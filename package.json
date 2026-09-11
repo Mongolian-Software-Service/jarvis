@@ -1,0 +1,31 @@
+{
+  "name": "jarvis",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:web": "pnpm --filter @jarvis/web dev",
+    "dev:mobile": "pnpm --filter @jarvis/mobile start",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "format": "prettier --write .",
+    "db:new": "supabase migration new",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --linked > .db-types.tmp && mv .db-types.tmp packages/types/src/database.ts || (rm -f .db-types.tmp && exit 1)"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "prettier": "^3.9.6",
+    "supabase": "^2.117.0",
+    "turbo": "^2.10.12",
+    "typescript": "^5.9.3",
+    "prettier-plugin-tailwindcss": "^0.8.1"
+  }
+}

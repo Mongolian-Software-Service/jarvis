@@ -1,0 +1,23 @@
+{
+  "name": "@jarvis/core",
+  "version": "0.0.0",
+  "private": true,
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import jiti/register --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@jarvis/types": "workspace:*",
+    "zod": "^4.6.2"
+  },
+  "devDependencies": {
+    "jiti": "^2.7.0",
+    "typescript": "^5.9.3"
+  }
+}

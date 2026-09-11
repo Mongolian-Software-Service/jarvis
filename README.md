@@ -35,4 +35,3 @@ pnpm dev            # http://localhost:3000
 Claude Code is set up in `.claude/`: four skills (`db-migration`,
 `feature-slice`, `lesson-content`, `payments`), five commands (`/ship`, `/db`,
 `/feature`, `/lesson`, `/review`) and two review agents.
-# jarvis

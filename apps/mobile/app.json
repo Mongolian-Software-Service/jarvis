@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Jarvis",
+    "slug": "jarvis",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "jarvis",
+    "newArchEnabled": true,
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#08090a",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "mn.jarvis.app"
+    },
+    "android": {
+      "package": "mn.jarvis.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#08090a",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-video",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#08090a",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 72
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

@@ -1,0 +1,32 @@
+node_modules/
+.pnpm-store/
+
+# Next
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Expo
+.expo/
+dist/
+ios/
+android/
+
+# Env — every one of these carries a secret. .env.example is the contract.
+.env
+.env.local
+.env*.local
+!.env.example
+
+# Supabase CLI scratch
+supabase/.branches/
+supabase/.temp/
+
+# OS / editor
+.DS_Store
+*.log
+.vercel

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+
+  /*
+   * Every environment variable this monorepo's builds are allowed to see.
+   *
+   * Turborepo 2 runs tasks in `strict` env mode: a variable that is not named
+   * here is not passed to the task at all, however carefully it was set on
+   * Vercel — and it is not part of the cache key either, so a build could be
+   * restored from a cache made with a different value and nobody would be told.
+   *
+   * This list is the app's environment contract. Add the variable here in the
+   * same commit that first reads it, or it will be `undefined` in production
+   * and defined on your laptop, which is the worst of the two.
+   */
+  "globalEnv": ["NODE_ENV"],
+
+  "tasks": {
+    "dev": { "cache": false, "persistent": true },
+
+    "build": {
+      "dependsOn": ["^build"],
+      "env": [
+        /* Supabase. The secret key is server-only and bypasses RLS (§Auth). */
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "SUPABASE_SECRET_KEY",
+
+        /* Where the app thinks it lives, for the links and callbacks it builds. */
+        "NEXT_PUBLIC_APP_URL",
+
+        /*
+         * Bonum (the payment gateway). `BONUM_MERCHANT_CHECKSUM_KEY` verifies
+         * the callback signature: without it every callback throws and no
+         * payment is ever confirmed. `BONUM_MOCK=1` settles locally and is
+         * refused in production.
+         */
+        "BONUM_API_BASE_URL",
+        "BONUM_APP_SECRET",
+        "BONUM_TERMINAL_ID",
+        "BONUM_MERCHANT_CHECKSUM_KEY",
+        "BONUM_CALLBACK_URL",
+        "BONUM_MOCK",
+
+        /*
+         * The phone's half. Only `EXPO_PUBLIC_*` ever reaches a bundle, and a
+         * secret in an Expo bundle is a leaked secret — so nothing without that
+         * prefix belongs in this group.
+         */
+        "EXPO_PUBLIC_SUPABASE_URL",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_API_URL"
+      ],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+
+    "lint": {},
+    "typecheck": { "dependsOn": ["^build"] },
+    "test": {}
+  }
+}

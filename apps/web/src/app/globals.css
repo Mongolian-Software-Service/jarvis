@@ -1,0 +1,425 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Jarvis — design tokens.
+ *
+ * The language is Linear's, measured off linear.app rather than remembered:
+ * a near-black cool ground (#08090a), one typeface, translucent hairlines
+ * instead of solid ones, type that is *light* rather than bold (510, never
+ * 700), and controls that are 32px pills of 13px text.
+ *
+ * **One theme, and it is dark** (CLAUDE.md §4). There is no second block of
+ * tokens here and no attribute or media query that would select one: this is a
+ * product people open at night to write code, and the values below are drawn
+ * for that ground rather than dimmed down to it. `color-scheme: dark` tells the
+ * browser to match — scrollbars, form controls and the canvas behind the page.
+ *
+ * The two-layer arrangement still matters with one palette. Semantic values
+ * live in `:root` as plain custom properties, because that is the only form
+ * `@layer base` rules, inline `style` attributes and `packages/core`'s drift
+ * test can all read. `@theme inline` then maps Tailwind's utility names onto
+ * `var(...)` **references**, so `bg-panel` and `background: var(--panel)`
+ * resolve to one declaration instead of two copies of a hex.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces. Four steps, each one barely above the last — a card is found by
+     its hairline, not by its brightness. */
+  --bg: #08090a;
+  --panel: #0e0f11;
+  --panel-2: #141516;
+  --panel-3: #1c1d1f;
+
+  /* Hairlines are translucent white, not a grey. They then read correctly over
+     any of the four surfaces above, and over an image. */
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.14);
+
+  /* Ink — three weights, and the muted one is the workhorse. */
+  --ink: #f7f8f8;
+  --ink-2: #b4b8bf;
+  --ink-3: #8a8f98;
+
+  /* The primary control is a near-white pill, not a coloured one. */
+  --solid: #e5e5e6;
+  --solid-hover: #ffffff;
+  --solid-ink: #08090a;
+
+  /* Purple is the *accent* — links, focus, the current thing — never the CTA. */
+  --accent: #7b83eb;
+  --accent-hover: #949bf0;
+  --accent-soft: rgba(94, 106, 210, 0.16);
+  --accent-ink: #ffffff;
+
+  --ok: #4cb782;
+  --ok-soft: rgba(76, 183, 130, 0.14);
+  --warn: #f2c94c;
+  --warn-soft: rgba(242, 201, 76, 0.14);
+  --bad: #eb5757;
+  --bad-soft: rgba(235, 87, 87, 0.14);
+
+  /* Topic tints. Named from lib rather than from a class, so they are written
+     out here and never tree-shaken. */
+  --tint-indigo: rgba(94, 106, 210, 0.16);
+  --tint-indigo-ink: #a5abf0;
+  --tint-teal: rgba(38, 181, 206, 0.14);
+  --tint-teal-ink: #68cbdd;
+  --tint-amber: rgba(242, 201, 76, 0.14);
+  --tint-amber-ink: #e3bd5a;
+  --tint-rose: rgba(235, 87, 87, 0.14);
+  --tint-rose-ink: #ef8080;
+  --tint-violet: rgba(160, 110, 220, 0.16);
+  --tint-violet-ink: #bd9bf0;
+
+  /* Charts. In :root, never in @theme: these are named from inline styles in
+     TSX, which Tailwind's class scanner cannot see — a theme variable nothing
+     *emitted* references is dropped, and every series comes out the same
+     colour. Chosen against the near-black ground they sit on. */
+  --viz-1: #7b83eb;
+  --viz-2: #4cb782;
+  --viz-3: #f2c94c;
+  --viz-4: #4ea7fc;
+  --viz-5: #eb5757;
+
+  /* Code */
+  --code-bg: #0b0c0d;
+  --code-line: rgba(255, 255, 255, 0.06);
+  --tok-keyword: #b48eff;
+  --tok-string: #7ee0a8;
+  --tok-comment: #6a6f78;
+  --tok-number: #f2c97d;
+  --tok-function: #6fb9ff;
+  --tok-tag: #ff8fa3;
+  --tok-attr: #e3bd5a;
+
+  /* Depth is a hairline and a very soft shadow. Linear's surfaces barely lift. */
+  --elev-card: 0 1px 2px rgb(0 0 0 / 0.35);
+  --elev-lift: 0 4px 24px -6px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-panel-3: var(--panel-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+
+  --color-solid: var(--solid);
+  --color-solid-hover: var(--solid-hover);
+  --color-solid-ink: var(--solid-ink);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+
+  --color-code-bg: var(--code-bg);
+  --color-code-line: var(--code-line);
+
+  /*
+   * One typeface for the whole interface.
+   *
+   * `--font-display` and `--font-sans` both resolve to Inter on purpose: a
+   * second display face is the thing that would break the resemblance first.
+   * Inter carries `cyrillic-ext`, which is what Ө ө Ү ү need (see the layout).
+   */
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /*
+   * Weights, remapped.
+   *
+   * Measured off linear.app: headings are **510**, emphasis is 590, and 700
+   * appears nowhere. Remapping the scale here means `font-medium` in a
+   * component already means the right thing, instead of two hundred components
+   * each carrying `font-[510]`.
+   */
+  --font-weight-normal: 400;
+  --font-weight-medium: 510;
+  --font-weight-semibold: 590;
+  --font-weight-bold: 590;
+
+  /*
+   * Radii. Controls are full pills (`rounded-full`); surfaces are 8–12px.
+   * The old 16–32px corners were the loudest thing on the page.
+   */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  --shadow-card: var(--elev-card);
+  --shadow-lift: var(--elev-lift);
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem; /* 15px — the size Linear sets its interface at */
+    /*
+     * 1.6, not Linear's 1.5. Cyrillic has a tall x-height and few descenders,
+     * and at 1.5 a Mongolian paragraph closes up into a grey slab. Prose in a
+     * lesson body goes further still (1.75, set on the markdown renderer).
+     */
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 510;
+    /* Both measured off linear.app: 61.6/56 and -1.232/56. */
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    /* Mongolian compounds are long — үндэсний, байгууллагын — and will run out
+       of a narrow card otherwise. */
+    overflow-wrap: break-word;
+  }
+
+  /*
+   * Never justified. There is no CSS hyphenation dictionary for `mn`, so
+   * justified Mongolian opens rivers down the column.
+   *
+   * Stated as a ban on `justify` rather than as `text-align: start` on every
+   * paragraph: the blanket version won the cascade against a deliberate
+   * `text-center` on a parent, and quietly pulled a centred hero's kicker out
+   * to the left margin. The rule people need is "do not justify", so that is
+   * the rule.
+   */
+  p[align="justify"],
+  .justify-text {
+    text-align: start;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  input, textarea, select, button {
+    font: inherit;
+    color: inherit;
+  }
+}
+
+/* ── Components ───────────────────────────────────────────────────────────── */
+
+@layer components {
+  .shell {
+    width: 100%;
+    max-width: 78rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .shell { padding-inline: 2rem; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+  }
+
+  .panel-raised {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elev-card);
+  }
+
+  /*
+   * The thin rule that separates the bar from the page.
+   *
+   * A 1px border plus a 1px highlight above it: the pair is what stops a
+   * hairline reading as a seam on a near-black ground, and it is how every
+   * edge on linear.app is drawn.
+   */
+  .bar {
+    background: color-mix(in srgb, var(--bg) 80%, transparent);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* The card's whole surface is the link's target; the anchor inside is
+     stretched over it so a card is one tab stop and the focus ring lands on
+     the headline. */
+  .card-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .measure {
+    max-width: 42rem;
+  }
+
+  /*
+   * Uppercase is keyed on English, in one place.
+   *
+   * Mongolian Cyrillic set in capitals loses legibility badly and reads as
+   * shouting; the same label in Latin does not. So the transform lives here,
+   * behind `:lang(en)`, rather than in twenty components that would each have
+   * to remember.
+   */
+  .kicker {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :lang(en) .kicker {
+    text-transform: uppercase;
+  }
+
+  .hairline {
+    border-top: 1px solid var(--line);
+  }
+
+  /*
+   * A strip that scrolls itself.
+   *
+   * The row is rendered twice and the track slides exactly half its own width,
+   * so the second copy arrives where the first began and the loop has no seam.
+   * That only holds if the spacing belongs to the **items** rather than to the
+   * track: a `gap` between the two copies is counted once, not twice, and
+   * -50% then lands half a gap short and the row visibly jumps every cycle.
+   *
+   * The fade is a percentage rather than a rem, so it stays proportional at
+   * 360 — a fixed 8rem feather eats two thirds of a phone.
+   */
+  .marquee {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 48s linear infinite;
+  }
+
+  .marquee-row {
+    display: flex;
+    align-items: center;
+  }
+
+  .marquee-row > * {
+    padding-inline: 1.5rem;
+  }
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Hover pauses it, which is the only way to read a name that is moving. The
+     rule is behind `hover: hover` because on touch `:hover` sticks after a tap
+     and the strip would simply stop for good (CLAUDE.md §4.4). */
+  @media (hover: hover) {
+    .marquee:hover .marquee-track {
+      animation-play-state: paused;
+    }
+  }
+
+  /*
+   * Reduced motion does not get a slower marquee — it gets no marquee.
+   * A continuous, unprompted animation is the exact thing that setting is
+   * about, so the strip becomes an ordinary scroller and the duplicate row,
+   * which exists only to make the loop seamless, is dropped.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      overflow-x: auto;
+      scrollbar-width: none;
+      mask-image: none;
+    }
+
+    .marquee::-webkit-scrollbar {
+      display: none;
+    }
+
+    .marquee-track {
+      animation: none;
+    }
+
+    .marquee-track > [aria-hidden="true"] {
+      display: none;
+    }
+  }
+
+  /* Horizontal strips must scroll inside themselves; the page never does. */
+  .strip {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    /* Matches the strip's own padding. Without it the browser scrolls the
+       leading gutter away on load and the first card sits flush to the edge. */
+    scroll-padding-inline: 1.25rem;
+    scrollbar-width: none;
+  }
+
+  .strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .strip > * {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+  }
+}
+
+@layer utilities {
+  /* Press feedback replaces hover on touch: a `:hover` rule sticks after a tap
+     and the element stays lit until something else is touched. */
+  @media (hover: none) {
+    .pressable:active {
+      transform: scale(0.985);
+    }
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}

@@ -1,0 +1,50 @@
+# Jarvis — Supabase CLI configuration.
+#
+# The running app talks to the HOSTED project, not to this local stack. `supabase
+# db reset` rebuilds a local database from migrations + seed.sql and does not
+# touch anything the deployed site reads; `supabase db push` is what moves a
+# migration to the hosted project. SETUP.md walks both.
+project_id = "jarvis"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+# Catches outgoing mail locally so a sign-up confirmation can be read without
+# sending anything to a real address.
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/confirm"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+# Off locally so a test account is usable the moment it is created. It is ON in
+# the hosted project — turn it off there and anyone can sign up as anyone.
+enable_confirmations = false
