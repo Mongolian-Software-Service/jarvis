@@ -15,11 +15,13 @@ import { buttonClass } from "@/components/ui/button";
  * already know.
  */
 export function CompleteButton({
+  courseId,
   lessonId,
   path,
   done,
   labels,
 }: {
+  courseId: string;
   lessonId: string;
   path: string;
   done: boolean;
@@ -33,7 +35,7 @@ export function CompleteButton({
     const next = !complete;
     setComplete(next);
     startTransition(async () => {
-      const result = await setLessonProgress({ lessonId, completed: next, path });
+      const result = await setLessonProgress({ courseId, lessonId, completed: next, path });
       if (!result.ok) setComplete(!next);
       router.refresh();
     });

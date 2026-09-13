@@ -9,8 +9,14 @@ import { buttonClass } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/actions/guard";
 
 type Copy = {
-  name?: string;
-  namePlaceholder?: string;
+  lastName?: string;
+  lastNamePlaceholder?: string;
+  firstName?: string;
+  firstNamePlaceholder?: string;
+  phone?: string;
+  phonePlaceholder?: string;
+  emailPlaceholder?: string;
+  passwordPlaceholder?: string;
   email: string;
   password: string;
   passwordHint?: string;
@@ -63,21 +69,61 @@ export function AuthForm({
     <form action={submit} className="space-y-4">
       {next ? <input type="hidden" name="next" value={next} /> : null}
 
-      {mode === "sign-up" && copy.name ? (
-        <Field label={copy.name} htmlFor="full_name" error={fields.full_name}>
+      {/*
+        * Овог and нэр side by side, овог first — that is the order a Mongolian
+        * name is written and read in, and a form that asks for them the other
+        * way round gets them the other way round.
+        */}
+      {mode === "sign-up" && copy.lastName && copy.firstName ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={copy.lastName} htmlFor="last_name" error={fields.last_name}>
+            <Input
+              id="last_name"
+              name="last_name"
+              autoComplete="family-name"
+              placeholder={copy.lastNamePlaceholder}
+              required
+            />
+          </Field>
+          <Field label={copy.firstName} htmlFor="first_name" error={fields.first_name}>
+            <Input
+              id="first_name"
+              name="first_name"
+              autoComplete="given-name"
+              placeholder={copy.firstNamePlaceholder}
+              required
+            />
+          </Field>
+        </div>
+      ) : null}
+
+      <Field label={copy.email} htmlFor="email" error={fields.email}>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          placeholder={copy.emailPlaceholder}
+          required
+        />
+      </Field>
+
+      {mode === "sign-up" && copy.phone ? (
+        <Field label={copy.phone} htmlFor="phone" error={fields.phone}>
+          {/* `inputMode="numeric"` gives a phone the number pad without the
+              `type="tel"` keyboard's dial-pad symbols, which are not part of a
+              Mongolian number. */}
           <Input
-            id="full_name"
-            name="full_name"
-            autoComplete="name"
-            placeholder={copy.namePlaceholder}
+            id="phone"
+            name="phone"
+            inputMode="numeric"
+            autoComplete="tel-national"
+            placeholder={copy.phonePlaceholder}
+            maxLength={12}
             required
           />
         </Field>
       ) : null}
-
-      <Field label={copy.email} htmlFor="email" error={fields.email}>
-        <Input id="email" name="email" type="email" autoComplete="email" required />
-      </Field>
 
       <Field
         label={copy.password}
@@ -90,6 +136,7 @@ export function AuthForm({
           name="password"
           type="password"
           autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+          placeholder={copy.passwordPlaceholder}
           required
         />
       </Field>

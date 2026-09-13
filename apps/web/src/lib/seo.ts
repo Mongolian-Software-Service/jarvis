@@ -2,7 +2,7 @@ import "server-only";
 import type { Metadata } from "next";
 import { DEFAULT_LOCALE, LOCALES, SITE_NAME, type Locale } from "@jarvis/core";
 
-const base = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const base = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001").replace(/\/$/, "");
 
 /**
  * The reciprocal `hreflang` set for a path that exists in both languages.

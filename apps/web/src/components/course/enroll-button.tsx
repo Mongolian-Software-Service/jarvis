@@ -14,16 +14,21 @@ import { buttonClass } from "@/components/ui/button";
  * Four states, because there are four situations and collapsing any two of them
  * produces a button that lies: signed out, already enrolled, free, and paid.
  *
- * The free path calls a server action and the paid path posts to
- * `/api/checkout`; neither sends a price. The course's price is read from its
- * own row on the server in both cases, because a price that arrives with the
- * request is a price the buyer chose.
+ * "Paid" no longer means this course. A course is not sold on its own (§1), so
+ * the fourth state buys the bundle and is labelled as buying all of it — the
+ * panel around this button says the same thing, and a button that said "buy
+ * this course" while charging for six would be the lie.
+ *
+ * Neither path sends a price. The free one calls a server action and the
+ * database decides; the paid one posts `{ bundle: true }` and the amount comes
+ * from one constant on the server. A price that arrives with the request is a
+ * price the buyer chose.
  */
 export function EnrollButton({
   courseId,
   courseSlug,
   locale,
-  priceMnt,
+  free,
   enrolled,
   signedIn,
   labels,
@@ -31,7 +36,7 @@ export function EnrollButton({
   courseId: string;
   courseSlug: string;
   locale: Locale;
-  priceMnt: number;
+  free: boolean;
   enrolled: boolean;
   signedIn: boolean;
   labels: {
@@ -71,7 +76,7 @@ export function EnrollButton({
     );
   }
 
-  if (priceMnt <= 0) {
+  if (free) {
     return (
       <div className="space-y-2">
         <button
@@ -102,7 +107,7 @@ export function EnrollButton({
       const response = await fetch(`/api/checkout?locale=${locale}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ course_id: courseId }),
+        body: JSON.stringify({ bundle: true }),
       });
       const result = (await response.json()) as { ok: boolean; url?: string };
       if (!result.ok || !result.url) {

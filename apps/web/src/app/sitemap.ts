@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { LOCALES } from "@jarvis/core";
 import { listCourseSlugs } from "@/lib/queries/courses";
 
-const base = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const base = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001").replace(/\/$/, "");
 
 /**
  * Published courses, in both languages, with each one naming the other.

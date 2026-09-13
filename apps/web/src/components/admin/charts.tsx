@@ -96,17 +96,30 @@ export function DailyColumns({
         <span>{data[data.length - 1]?.date.slice(5)}</span>
       </figcaption>
 
-      <table className="sr-only">
-        <caption>{label}</caption>
-        <tbody>
-          {data.map((row) => (
-            <tr key={row.date}>
-              <th scope="row">{row.date}</th>
-              <td>{row.count}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/*
+       * The numbers behind the drawing, for a screen reader.
+       *
+       * `sr-only` goes on a wrapping div, never on the `<table>` itself. The
+       * utility hides a thing by giving it `height: 1px` and clipping the
+       * overflow — and CSS treats a table's `height` as a *minimum*, so the
+       * table keeps its full height, stays `position: absolute`, and quietly
+       * adds its own length to the bottom of the document. On the console that
+       * meant several hundred pixels of phantom scroll and a sticky rail with
+       * no room left to stay put.
+       */}
+      <div className="sr-only">
+        <table>
+          <caption>{label}</caption>
+          <tbody>
+            {data.map((row) => (
+              <tr key={row.date}>
+                <th scope="row">{row.date}</th>
+                <td>{row.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

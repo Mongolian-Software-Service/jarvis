@@ -23,7 +23,13 @@ import { updateSession } from "@/lib/supabase/session";
  */
 
 /** Signed-in only. Matched against the path with its language prefix removed. */
-const PRIVATE = [/^\/learn(\/.*)?$/, /^\/account(\/.*)?$/, /^\/admin(\/.*)?$/];
+const PRIVATE = [
+  /^\/hello(\/.*)?$/,
+  /^\/dashboard(\/.*)?$/,
+  /^\/learn(\/.*)?$/,
+  /^\/account(\/.*)?$/,
+  /^\/admin(\/.*)?$/,
+];
 
 function unprefixed(pathname: string): string {
   for (const code of LOCALES) {
@@ -94,8 +100,12 @@ export const config = {
    * Everything except the files. Without a matcher the proxy runs on every
    * request including `_next/static`, and an auth redirect would then block the
    * stylesheet of the page it redirected to.
+   *
+   * `pdf` is on the list for the same reason the images are: the handbook in
+   * `public/handbook/` has no language prefix, so the proxy would redirect
+   * `/handbook/x.pdf` to `/mn/handbook/x.pdf`, which is nothing.
    */
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png|manifest.webmanifest|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|svg|webp|avif|ico|mp4|webm|woff2?)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png|manifest.webmanifest|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|svg|webp|avif|ico|mp4|webm|woff2?|pdf)$).*)",
   ],
 };

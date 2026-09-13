@@ -7,7 +7,7 @@ export const metadata: Metadata = { robots: { index: false } };
 
 export default async function AdminStudentsPage() {
   const { locale, t } = await getIntl();
-  const [students, courses] = await Promise.all([listStudents(), listCourseOptions()]);
+  const [students, courses] = await Promise.all([listStudents(locale), listCourseOptions()]);
 
   return (
     <div className="space-y-6">

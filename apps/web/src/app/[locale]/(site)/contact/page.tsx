@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { ArrowUpRight, Mail, Phone } from "lucide-react";
 import { CONTACT, telHref, type ContactChannel } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
+import { getViewer } from "@/lib/queries/viewer";
+import { FeedbackForm } from "@/components/site/feedback-form";
 import { pageMetadata } from "@/lib/seo";
 import { FacebookMark, InstagramMark } from "@/components/ui/brand-icons";
 
@@ -42,6 +44,15 @@ function handle(url: string): string {
 export default async function ContactPage() {
   const { t } = await getIntl();
   const copy = t.marketing.contact;
+  /*
+   * The form is for students, not for visitors.
+   *
+   * A request carries the sender's name, phone and address from their profile
+   * (§5) — so a signed-out person has none of those, and the console would get
+   * a message it cannot answer. They get the channels above instead, which is
+   * what those are for.
+   */
+  const viewer = await getViewer();
 
   const channels: Channel[] = [];
 
@@ -151,6 +162,14 @@ export default async function ContactPage() {
           ))}
         </div>
       </section>
+
+      {viewer ? (
+        <section className="shell pb-16">
+          <div className="max-w-xl">
+            <FeedbackForm t={t} />
+          </div>
+        </section>
+      ) : null}
     </>
   );
 }

@@ -1,45 +1,56 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { COURSE_LEVELS, coursesPath, fmt, levelLabel, type CourseLevel } from "@jarvis/core";
+import { fmt } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
-import { listCourses } from "@/lib/queries/courses";
+import { getViewer } from "@/lib/queries/viewer";
+import { hasEveryCourse, listCourses } from "@/lib/queries/courses";
 import { CourseCard } from "@/components/course/course-card";
+import { BundlePanel } from "@/components/course/bundle-panel";
 import { Empty } from "@/components/ui/empty";
-import { cn } from "@/lib/cn";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getIntl();
   return { title: t.learn.catalogue.title, description: t.learn.catalogue.deck };
 }
 
-export default async function CoursesPage({ searchParams }: PageProps<"/[locale]/courses">) {
+/**
+ * The catalogue, which is really the offer.
+ *
+ * There is no level filter. Five courses is a list you read, not one you
+ * search, and a row of filters over it implies a choice to make — which is the
+ * opposite of what the bundle above it says. Filtering came from a catalogue
+ * that was going to grow; if it does, this is where it comes back.
+ */
+export default async function CoursesPage() {
   const { locale, t } = await getIntl();
-  const { level } = await searchParams;
-  const active = typeof level === "string" ? (level as CourseLevel) : null;
 
-  const all = await listCourses(locale);
-  const courses = active ? all.filter((course) => course.level === active) : all;
+  const [courses, viewer, owned] = await Promise.all([
+    listCourses(locale),
+    getViewer(),
+    hasEveryCourse(),
+  ]);
 
   return (
     <div className="shell py-12">
+      {/* The offer first. The cards below are what it contains, not a menu to
+          choose from — see BundlePanel. */}
+      {courses.length > 1 ? (
+        <div className="mb-12">
+          <BundlePanel
+            courses={courses}
+            locale={locale}
+            t={t}
+            owned={owned}
+            signedIn={Boolean(viewer)}
+          />
+        </div>
+      ) : null}
+
       <header className="mb-8">
-        <h1 className="font-display text-[32px] leading-[1.1] sm:text-[40px]">{t.learn.catalogue.title}</h1>
+        <h1 className="font-display text-[32px] leading-[1.1] sm:text-[40px]">
+          {t.learn.bundle.includes}
+        </h1>
         <p className="mt-2 text-[15px] text-ink-3">{t.learn.catalogue.deck}</p>
       </header>
-
-      {/* Links, not filters. A control drawn as a filter that navigates is the
-          worse half of both; these change the URL, so a level can be shared. */}
-      <nav className="mb-8 flex flex-wrap gap-2">
-        <FilterLink href={coursesPath(locale)} label={t.learn.catalogue.all} active={!active} />
-        {COURSE_LEVELS.map((option) => (
-          <FilterLink
-            key={option}
-            href={`${coursesPath(locale)}?level=${option}`}
-            label={levelLabel(option, locale)}
-            active={active === option}
-          />
-        ))}
-      </nav>
 
       {courses.length === 0 ? (
         <Empty title={t.learn.catalogue.empty} />
@@ -60,22 +71,5 @@ export default async function CoursesPage({ searchParams }: PageProps<"/[locale]
         </>
       )}
     </div>
-  );
-}
-
-function FilterLink({ href, label, active }: { href: string; label: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "rounded-full border px-3 py-1 text-[13px] transition-colors",
-        active
-          ? "border-transparent bg-solid text-solid-ink"
-          : "border-line text-ink-3 hover:border-line-strong hover:text-ink",
-      )}
-    >
-      {label}
-    </Link>
   );
 }

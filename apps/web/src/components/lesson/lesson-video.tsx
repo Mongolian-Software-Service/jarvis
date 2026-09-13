@@ -17,12 +17,14 @@ import { setLessonProgress } from "@/lib/actions/progress";
  */
 export function LessonVideo({
   src,
+  courseId,
   lessonId,
   startAt,
   path,
   poster,
 }: {
   src: string;
+  courseId: string;
   lessonId: string;
   startAt: number;
   path: string;
@@ -48,7 +50,7 @@ export function LessonVideo({
     const seconds = Math.floor(element.currentTime);
     if (seconds - lastSaved.current < 15) return;
     lastSaved.current = seconds;
-    void setLessonProgress({ lessonId, completed: false, secondsWatched: seconds });
+    void setLessonProgress({ courseId, lessonId, completed: false, secondsWatched: seconds });
   }
 
   return (
@@ -62,7 +64,7 @@ export function LessonVideo({
         playsInline
         onTimeUpdate={onTimeUpdate}
         onEnded={() => {
-          void setLessonProgress({ lessonId, completed: true, secondsWatched: 0, path });
+          void setLessonProgress({ courseId, lessonId, completed: true, secondsWatched: 0, path });
         }}
         className="aspect-video w-full bg-black"
       />

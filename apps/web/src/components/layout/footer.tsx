@@ -1,5 +1,7 @@
 import Link from "next/link";
 import {
+  COMPANY_NAME,
+  COMPANY_URL,
   SITE_NAME,
   aboutPath,
   contactPath,
@@ -8,7 +10,7 @@ import {
   type Locale,
   type Strings,
 } from "@jarvis/core";
-import { LogoMark } from "./logo";
+import { CompanyMark, LogoMark } from "./logo";
 
 export function Footer({ locale, t }: { locale: Locale; t: Strings }) {
   const year = new Date().getFullYear();
@@ -56,10 +58,29 @@ export function Footer({ locale, t }: { locale: Locale; t: Strings }) {
         </nav>
       </div>
 
-      <div className="shell hairline flex flex-col gap-1 py-6 text-xs text-ink-3 sm:flex-row sm:justify-between">
+      {/*
+       * Two lines that say different things, so they sit at opposite ends
+       * rather than stacked: the left is the school's own claim, the right is
+       * who stands behind it. Below `sm` they stack and the company line comes
+       * first — it is the one a reader is more likely to want to tap.
+       */}
+      <div className="shell hairline flex flex-col-reverse gap-3 py-6 text-xs text-ink-3 sm:flex-row sm:items-center sm:justify-between sm:gap-1">
         <p>
           © {year} {SITE_NAME}. {t.footer.rights}
         </p>
+
+        <a
+          href={COMPANY_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="hover:text-ink inline-flex w-fit items-center gap-1.5 transition-colors"
+        >
+          <span>{t.footer.poweredBy}</span>
+          <CompanyMark className="size-3.5" />
+          <span className="font-display text-ink-2 font-semibold tracking-[-0.01em]">
+            {COMPANY_NAME}
+          </span>
+        </a>
       </div>
     </footer>
   );

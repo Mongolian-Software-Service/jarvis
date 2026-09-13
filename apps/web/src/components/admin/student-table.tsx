@@ -1,16 +1,24 @@
 "use client";
 
-import { useActionState, useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2, Search, ShieldCheck, User } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Search, ShieldCheck, User } from "lucide-react";
 import { formatDate, type Locale, type Strings } from "@jarvis/core";
-import { grantCourse, setRole } from "@/lib/actions/admin";
-import { Field, Input, Select } from "@/components/ui/field";
+import { Input } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
-import { buttonClass } from "@/components/ui/button";
-import type { ActionResult } from "@/lib/actions/guard";
 import type { AdminStudent } from "@/lib/queries/admin";
+import { StudentDialog } from "./student-dialog";
 
+/**
+ * Who is enrolled. One row each, and the row is the button.
+ *
+ * The actions used to sit **in** the row — a role toggle, and a grant form that
+ * unfolded underneath it. They have moved into the dialog, and not only for
+ * tidiness: a row that is itself a `<button>` cannot contain buttons. Nested
+ * interactive elements are invalid HTML, and a screen reader announces the
+ * whole row as one control with three names.
+ *
+ * So the row identifies, and the dialog acts.
+ */
 export function StudentTable({
   students,
   courses,
@@ -29,16 +37,23 @@ export function StudentTable({
     const term = query.trim().toLowerCase();
     if (!term) return students;
     return students.filter((student) =>
-      [student.name ?? "", student.email ?? ""].some((value) =>
+      [student.name ?? "", student.email ?? "", student.phone ?? ""].some((value) =>
         value.toLowerCase().includes(term),
       ),
     );
   }, [students, query]);
 
+  /*
+   * Looked up by id rather than held as an object: the list is replaced on
+   * every `router.refresh()` after an action, and a stale copy pinned in state
+   * would leave the dialog showing the courses somebody had a moment ago.
+   */
+  const current = open ? (students.find((student) => student.id === open) ?? null) : null;
+
   return (
     <div className="space-y-4">
       <div className="relative max-w-sm">
-        <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-3" />
+        <Search className="text-ink-3 absolute top-1/2 left-3 size-4 -translate-y-1/2" />
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -49,124 +64,53 @@ export function StudentTable({
       </div>
 
       {rows.length === 0 ? (
-        <p className="panel border-dashed px-4 py-10 text-center text-sm text-ink-3">
+        <p className="panel text-ink-3 border-dashed px-4 py-10 text-center text-sm">
           {t.admin.students.empty}
         </p>
       ) : (
-        <div className="panel divide-y divide-line overflow-hidden">
+        <div className="panel divide-line divide-y overflow-hidden">
           {rows.map((student) => (
-            <div key={student.id} className="px-4 py-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-panel-2 text-ink-3">
-                  {student.role === "admin" ? (
-                    <ShieldCheck className="size-4 text-accent" />
-                  ) : (
-                    <User className="size-4" />
-                  )}
-                </span>
+            <button
+              key={student.id}
+              type="button"
+              onClick={() => setOpen(student.id)}
+              className="hover:bg-panel-2 flex w-full items-center gap-3 px-4 py-3 text-left transition-colors"
+            >
+              <span className="bg-panel-2 text-ink-3 grid size-8 shrink-0 place-items-center rounded-full">
+                {student.role === "admin" ? (
+                  <ShieldCheck className="text-accent size-4" />
+                ) : (
+                  <User className="size-4" />
+                )}
+              </span>
 
-                <div className="min-w-40 flex-1">
-                  <p className="truncate text-sm font-medium">{student.name ?? "—"}</p>
-                  <p className="truncate text-xs text-ink-3">{student.email}</p>
-                </div>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium">{student.name ?? "—"}</span>
+                <span className="text-ink-3 block truncate text-xs">{student.email}</span>
+              </span>
 
-                <span className="hidden text-xs text-ink-3 tabular sm:block">
-                  {formatDate(student.joined, locale)}
-                </span>
-                <span className="text-xs text-ink-3 tabular">
-                  {student.courses} {t.admin.nav.courses.toLowerCase()}
-                </span>
+              <span className="text-ink-3 tabular hidden text-xs sm:block">
+                {formatDate(student.joined, locale)}
+              </span>
+              <span className="text-ink-3 tabular shrink-0 text-xs">
+                {student.held.length} {t.admin.nav.courses.toLowerCase()}
+              </span>
 
-                {student.role === "admin" ? <Badge tone="accent">admin</Badge> : null}
-
-                <RoleButton student={student} t={t} />
-
-                <button
-                  type="button"
-                  onClick={() => setOpen(open === student.id ? null : student.id)}
-                  className={buttonClass("secondary", "sm")}
-                >
-                  {t.admin.students.grant}
-                </button>
-              </div>
-
-              {open === student.id ? (
-                <GrantForm studentId={student.id} courses={courses} t={t} />
-              ) : null}
-            </div>
+              {student.role === "admin" ? <Badge tone="accent">admin</Badge> : null}
+            </button>
           ))}
         </div>
       )}
+
+      {current ? (
+        <StudentDialog
+          student={current}
+          courses={courses}
+          locale={locale}
+          t={t}
+          onClose={() => setOpen(null)}
+        />
+      ) : null}
     </div>
-  );
-}
-
-function RoleButton({ student, t }: { student: AdminStudent; t: Strings }) {
-  const [pending, startTransition] = useTransition();
-  const router = useRouter();
-  const next = student.role === "admin" ? "student" : "admin";
-
-  return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() =>
-        startTransition(async () => {
-          await setRole(student.id, next);
-          router.refresh();
-        })
-      }
-      className={buttonClass("ghost", "sm")}
-    >
-      {pending ? <Loader2 className="size-3.5 animate-spin" /> : null}
-      {next === "admin" ? t.admin.students.makeAdmin : t.admin.students.makeStudent}
-    </button>
-  );
-}
-
-/**
- * Open a course for somebody by hand.
- *
- * The expiry is optional and empty means for good — the common case is a
- * student who paid some other way, and putting a date on that by default would
- * quietly close a course they own.
- */
-function GrantForm({
-  studentId,
-  courses,
-  t,
-}: {
-  studentId: string;
-  courses: { id: string; title: string }[];
-  t: Strings;
-}) {
-  const [state, submit, pending] = useActionState<ActionResult | null, FormData>(grantCourse, null);
-
-  return (
-    <form action={submit} className="mt-3 flex flex-wrap items-end gap-3 rounded-md bg-panel-2 p-3">
-      <input type="hidden" name="user_id" value={studentId} />
-
-      <Field label={t.admin.nav.courses} htmlFor={`course-${studentId}`} className="min-w-48 flex-1">
-        <Select id={`course-${studentId}`} name="course_id" required>
-          {courses.map((course) => (
-            <option key={course.id} value={course.id}>
-              {course.title}
-            </option>
-          ))}
-        </Select>
-      </Field>
-
-      <Field label="Дуусах" htmlFor={`expires-${studentId}`}>
-        <Input id={`expires-${studentId}`} name="expires_at" type="date" />
-      </Field>
-
-      <button type="submit" disabled={pending} className={buttonClass("primary", "md")}>
-        {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-        {t.admin.students.grant}
-      </button>
-
-      {state?.ok ? <span className="text-sm text-ok">{t.admin.students.granted}</span> : null}
-      {state && !state.ok ? <span className="text-sm text-bad">{state.error}</span> : null}
-    </form>
   );
 }

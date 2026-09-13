@@ -1,37 +1,32 @@
 import Link from "next/link";
 import {
+  SITE_NAME,
   aboutPath,
-  adminPath,
-  canSeeAdmin,
   contactPath,
   coursesPath,
   homePath,
-  learnPath,
   signInPath,
+  signUpPath,
   type Locale,
   type Strings,
 } from "@jarvis/core";
-import { getViewer } from "@/lib/queries/viewer";
-import { signOut } from "@/lib/actions/auth";
 import { buttonClass } from "@/components/ui/button";
 import { Logo } from "./logo";
-import { LocaleSwitcher } from "./locale-switcher";
-import { MobileMenu, type MenuLink } from "./mobile-menu";
+import { SiteNav, type MenuLink } from "./site-nav";
 
 /**
- * The bar, on every page of the site.
+ * The bar a *visitor* reads — somebody deciding about the school.
  *
- * A server component: it asks who is reading and draws accordingly. What that
- * person may *do* is never decided here — hiding the admin link is courtesy,
- * and `requireAdmin()` plus the policies are the actual gate.
+ * It knows nothing about sessions, and does not ask: `(site)/layout.tsx` draws
+ * the app rail instead the moment there is a reader who is signed in, so this
+ * bar only ever renders for somebody who is not. That is why there is no
+ * sign-out button here and no admin link — a branch nobody can reach is a
+ * branch that quietly stops being true.
  */
-export async function Header({ locale, t }: { locale: Locale; t: Strings }) {
-  const viewer = await getViewer();
-
+export function Header({ locale, t }: { locale: Locale; t: Strings }) {
   /*
-   * The four public links first, in this order, then whatever this particular
-   * reader also has. One array: the bar draws it above `lg` and the sheet draws
-   * the same thing below, so a link cannot exist on one and not the other.
+   * One array: the bar draws it above `lg` and the sheet draws the same thing
+   * below, so a link cannot exist on one and not the other.
    */
   const links: MenuLink[] = [
     { href: homePath(locale), label: t.nav.home },
@@ -39,61 +34,40 @@ export async function Header({ locale, t }: { locale: Locale; t: Strings }) {
     { href: contactPath(locale), label: t.nav.contact },
     { href: aboutPath(locale), label: t.nav.about },
   ];
-  if (viewer) links.push({ href: learnPath(locale), label: t.nav.learn });
-  if (canSeeAdmin(viewer?.role)) links.push({ href: adminPath(locale), label: t.nav.admin });
-  if (viewer) links.push({ href: `/${locale}/account`, label: t.nav.account });
 
   return (
     <header className="bar sticky top-0 z-40">
+      {/*
+       * The first thing the tab key reaches, and the only thing on the page
+       * that is invisible until it is focused. Without it a keyboard reader
+       * walks the whole bar again on every page they open.
+       */}
+      <a href="#main" className="skip-link">
+        {t.nav.skip}
+      </a>
+
       <div className="shell flex h-14 items-center gap-4">
-        <Link href={homePath(locale)} aria-label="Jarvis" className="shrink-0">
+        <Link href={homePath(locale)} aria-label={SITE_NAME} className="shrink-0">
           <Logo />
         </Link>
 
-        <nav className="ml-2 hidden items-center gap-1 lg:flex">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-md px-2.5 py-1.5 text-[13px] text-ink-3 transition-colors hover:bg-panel-2 hover:text-ink"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        <SiteNav links={links} label={t.nav.tab.menu} />
 
+        {/*
+         * Below `lg` the bar carries the wordmark and **one** control, and the
+         * one it should be is the ask. Everything else — including «Нэвтрэх» —
+         * lives in the tab bar along the bottom, where a thumb already is.
+         */}
         <div className="ml-auto flex items-center gap-2">
-          <LocaleSwitcher locale={locale} label={t.language.switch} />
-
-          {viewer ? (
-            <form action={signOut} className="hidden lg:block">
-              <button type="submit" className={buttonClass("secondary", "sm")}>
-                {t.nav.signOut}
-              </button>
-            </form>
-          ) : (
-            <div className="hidden items-center gap-2 lg:flex">
-              <Link href={signInPath(locale)} className={buttonClass("ghost", "sm")}>
-                {t.nav.signIn}
-              </Link>
-              <Link href={`/${locale}/sign-up`} className={buttonClass("primary", "sm")}>
-                {t.nav.signUp}
-              </Link>
-            </div>
-          )}
-
-          <MobileMenu
-            label={t.nav.home}
-            links={
-              viewer
-                ? links
-                : [
-                    ...links,
-                    { href: signInPath(locale), label: t.nav.signIn },
-                    { href: `/${locale}/sign-up`, label: t.nav.signUp },
-                  ]
-            }
-          />
+          <Link
+            href={signInPath(locale)}
+            className={buttonClass("ghost", "sm", "hidden lg:inline-flex")}
+          >
+            {t.nav.signIn}
+          </Link>
+          <Link href={signUpPath(locale)} className={buttonClass("primary", "sm")}>
+            {t.nav.signUp}
+          </Link>
         </div>
       </div>
     </header>

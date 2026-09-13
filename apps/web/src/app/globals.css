@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * Jarvis — design tokens.
+ * TsStark Academy — design tokens.
  *
  * The language is Linear's, measured off linear.app rather than remembered:
  * a near-black cool ground (#08090a), one typeface, translucent hairlines
@@ -278,6 +278,21 @@
     border-bottom: 1px solid var(--line);
   }
 
+  /*
+   * The tab bar's surface: the same treatment as `.bar`, turned over.
+   *
+   * The hairline is on top rather than underneath, and the safe-area inset is
+   * padding rather than height — on an iPhone the home indicator sits in that
+   * strip, and a tab bar that ignores it puts its labels under a bar the reader
+   * cannot move. On every other device the inset is zero and nothing changes.
+   */
+  .tabbar {
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   /* The card's whole surface is the link's target; the anchor inside is
      stretched over it so a card is one tab stop and the focus ring lands on
      the headline. */
@@ -388,6 +403,41 @@
     }
   }
 
+  /*
+   * The first thing the tab key reaches.
+   *
+   * `sr-only focus:not-sr-only` would also work — that was checked, not assumed.
+   * This is written out for the reason `.bar` and `.rail-scroll` are: it is
+   * chrome with a behaviour, not a stack of utilities, and the behaviour is
+   * worth naming.
+   *
+   * The difference that decided it: `sr-only` clips the link to a 1px box, so
+   * until the moment it takes focus there is nothing on the page to notice.
+   * `transform` leaves it at full size and merely parks it above the top edge,
+   * which is what a screen magnifier needs to be able to find it. `display:
+   * none` and `visibility: hidden` are both out of the question — each takes
+   * the link out of the tab order, which is the one thing it exists to be in.
+   *
+   * No transition, so there is nothing for reduced motion to turn off.
+   */
+  .skip-link {
+    position: absolute;
+    top: 0.5rem;
+    left: 1rem;
+    z-index: 50;
+    transform: translateY(calc(-100% - 1rem));
+    border-radius: var(--radius-pill, 999px);
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 510;
+  }
+
+  .skip-link:focus {
+    transform: none;
+  }
+
   /* Horizontal strips must scroll inside themselves; the page never does. */
   .strip {
     display: flex;
@@ -411,6 +461,34 @@
 }
 
 @layer utilities {
+  /*
+   * A row that scrolls without saying so.
+   *
+   * The scrollbar is hidden and the trailing edge is feathered, so the link the
+   * row is cut off mid-word fades instead of being sliced against whatever sits
+   * beside it. `scroll-padding` matches the row's own padding — without it the
+   * browser scrolls the leading gutter away and the first item sits flush to
+   * the edge (CLAUDE.md §4.4).
+   */
+  .rail-scroll {
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-padding-inline: 0.25rem;
+    mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+  }
+
+  .rail-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* At `lg` the row is a column and neither applies. */
+  @media (min-width: 64rem) {
+    .rail-scroll {
+      overflow-x: visible;
+      mask-image: none;
+    }
+  }
+
   /* Press feedback replaces hover on touch: a `:hover` rule sticks after a tap
      and the element stays lit until something else is touched. */
   @media (hover: none) {

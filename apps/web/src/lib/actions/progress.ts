@@ -14,6 +14,14 @@ import { fail, type ActionResult } from "./guard";
  * cannot seed progress through a course nobody paid for.
  */
 export async function setLessonProgress(input: {
+  /*
+   * Sent even though `progress_sync_course` fills it from the lesson anyway.
+   *
+   * The column is NOT NULL with no default — the trigger satisfies it, but the
+   * generated types cannot know that, and a cast to silence them would be a lie
+   * that outlives the trigger. Every caller already knows the course.
+   */
+  courseId: string;
   lessonId: string;
   completed: boolean;
   secondsWatched?: number;
@@ -36,6 +44,7 @@ export async function setLessonProgress(input: {
   const { error } = await supabase.from("lesson_progress").upsert(
     {
       user_id: userId,
+      course_id: input.courseId,
       lesson_id: parsed.data.lesson_id,
       completed_at: parsed.data.completed ? new Date().toISOString() : null,
       seconds_watched: parsed.data.seconds_watched ?? 0,

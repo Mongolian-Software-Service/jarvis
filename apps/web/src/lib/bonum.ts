@@ -76,7 +76,7 @@ function required(name: string): string {
 export function callbackUrl(returnTo?: string): string {
   const base =
     process.env.BONUM_CALLBACK_URL ??
-    `${(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "")}/api/webhooks/bonum`;
+    `${(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001").replace(/\/$/, "")}/api/webhooks/bonum`;
   return returnTo
     ? `${base}${base.includes("?") ? "&" : "?"}to=${encodeURIComponent(returnTo)}`
     : base;

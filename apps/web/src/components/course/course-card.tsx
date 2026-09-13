@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Check } from "lucide-react";
 import {
   coursePath,
   formatDuration,
-  formatMoney,
   levelLabel,
   topicLabel,
   type Locale,
@@ -100,16 +100,29 @@ export function CourseCard({
               </p>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
-              <span
-                className={cn(
-                  "font-display text-[15px] font-semibold",
-                  course.priceMnt <= 0 ? "text-ok" : "text-ink",
-                )}
-              >
-                {formatMoney(course.priceMnt, locale)}
-              </span>
-              {course.priceMnt <= 0 ? <Badge tone="ok">{t.learn.course.preview}</Badge> : null}
+            /*
+             * No price on a card.
+             *
+             * There is one price and it is on the panel above this grid — a
+             * number here would read as a second thing to buy, next to five
+             * others, which is the decision the bundle exists to remove. A
+             * course either costs nothing or is inside it, so that is what a
+             * card says.
+             */
+            <div className="flex items-center justify-between gap-2">
+              {course.isFree ? (
+                <>
+                  <span className="font-display text-[15px] font-semibold text-ok">
+                    {t.learn.course.free}
+                  </span>
+                  <Badge tone="ok">{t.learn.course.preview}</Badge>
+                </>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-3">
+                  <Check className="size-3.5 shrink-0 text-ok" aria-hidden="true" />
+                  {t.learn.bundle.included}
+                </span>
+              )}
             </div>
           )}
         </div>

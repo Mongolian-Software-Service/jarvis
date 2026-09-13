@@ -3,14 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import {
-  adminPath,
-  coursePath,
-  formatMoney,
-  levelLabel,
-  type Locale,
-  type Strings,
-} from "@jarvis/core";
+import { adminPath, coursePath, levelLabel, type Locale, type Strings } from "@jarvis/core";
 import { deleteCourse } from "@/lib/actions/admin";
 import { Input } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
@@ -86,8 +79,11 @@ export function CourseTable({
               <span className="text-xs text-ink-3 tabular">
                 {course.students} {t.admin.nav.students.toLowerCase()}
               </span>
-              <span className="w-24 text-right text-sm tabular">
-                {formatMoney(course.priceMnt, locale)}
+              {/* Not a price — there is one of those and it is not per course
+                  (§1). What the console needs to see is which side of the
+                  bundle a course sits on. */}
+              <span className="w-24 text-right text-xs text-ink-3">
+                {course.isFree ? t.admin.courses.accessFree : t.admin.courses.accessBundle}
               </span>
 
               <Badge tone={course.published ? "ok" : "neutral"}>

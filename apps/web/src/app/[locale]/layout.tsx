@@ -68,7 +68,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: SITE_TAGLINE[locale],
     applicationName: SITE_NAME,
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001"),
   };
 }
 

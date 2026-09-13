@@ -2,26 +2,29 @@
 
 import { useActionState } from "react";
 import { Loader2 } from "lucide-react";
-import { LOCALES, LOCALE_NAMES, type Locale } from "@jarvis/core";
 import { updateProfile } from "@/lib/actions/auth";
-import { Field, Input, Select } from "@/components/ui/field";
+import { Field, Input } from "@/components/ui/field";
+import { ProfileFields } from "@/components/auth/profile-fields";
 import { buttonClass } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/actions/guard";
 
 export function ProfileForm({
-  fullName,
+  lastName,
+  firstName,
+  phone,
   email,
-  locale,
   copy,
 }: {
-  fullName: string;
+  lastName: string | null;
+  firstName: string | null;
+  phone: string | null;
   email: string;
-  locale: Locale;
   copy: {
-    name: string;
+    lastName: string;
+    firstName: string;
+    phone: string;
     email: string;
     emailNote: string;
-    language: string;
     save: string;
     saving: string;
     saved: string;
@@ -35,24 +38,12 @@ export function ProfileForm({
 
   return (
     <form action={submit} className="space-y-5">
-      <Field label={copy.name} htmlFor="full_name" error={fields.full_name}>
-        <Input id="full_name" name="full_name" defaultValue={fullName} required />
-      </Field>
+      <ProfileFields copy={copy} errors={fields} values={{ lastName, firstName, phone }} />
 
       <Field label={copy.email} htmlFor="email" hint={copy.emailNote}>
         {/* Read-only rather than absent: somebody checking which account they
             are signed into should not have to go and find out elsewhere. */}
         <Input id="email" defaultValue={email} disabled readOnly />
-      </Field>
-
-      <Field label={copy.language} htmlFor="locale">
-        <Select id="locale" name="locale" defaultValue={locale}>
-          {LOCALES.map((code) => (
-            <option key={code} value={code}>
-              {LOCALE_NAMES[code]}
-            </option>
-          ))}
-        </Select>
       </Field>
 
       <div className="flex items-center gap-3">

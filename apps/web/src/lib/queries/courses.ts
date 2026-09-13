@@ -120,14 +120,14 @@ export async function getCourseBySlug(slug: string, locale: Locale): Promise<Cou
 
   const card = toCourseCard(course, locale, {
     count: lessons.length,
-    minutes: lessons.reduce((sum, lesson) => sum + lesson.duration_minutes, 0),
+    minutes: lessons.reduce((sum, lesson) => sum + (lesson.duration_minutes ?? 0), 0),
   });
 
   return {
     ...card,
     description: localizedOrNull(locale, course.description_mn, course.description_en),
-    descriptionIsFallback:
-      locale === "en" && !course.description_en && Boolean(course.description_mn),
+    /* One language — see `isFallback` in core. */
+    descriptionIsFallback: false,
     modules: grouped,
   };
 }
@@ -139,6 +139,33 @@ export async function hasCourseAccess(courseId: string): Promise<boolean> {
   const { data, error } = await supabase.rpc("has_course_access", { course: courseId });
   if (error) return false;
   return data === true;
+}
+
+/**
+ * Does the caller hold every published course?
+ *
+ * The bundle is not a thing anybody owns — it is a way of buying. So "has the
+ * bundle" is asked as "is there a published course they are not enrolled in",
+ * which stays true when a sixth course is added: they do not, until it is
+ * granted. That is the honest answer, and the one the buy button needs.
+ */
+export async function hasEveryCourse(): Promise<boolean> {
+  if (!supabaseConfigured()) return false;
+  const supabase = createServerSupabase();
+
+  const [{ data: courses }, { data: mine }] = await Promise.all([
+    supabase.from("courses").select("id").eq("is_published", true),
+    supabase.from("enrollments").select("course_id, expires_at"),
+  ]);
+
+  if (!courses?.length) return false;
+
+  const live = new Set(
+    (mine ?? [])
+      .filter((row) => !row.expires_at || new Date(row.expires_at).getTime() > Date.now())
+      .map((row) => row.course_id),
+  );
+  return courses.every((course) => live.has(course.id));
 }
 
 /** Every published slug, for the sitemap. */

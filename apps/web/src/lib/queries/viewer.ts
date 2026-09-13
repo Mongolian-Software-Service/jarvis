@@ -13,9 +13,19 @@ export type Viewer = {
   id: string;
   email: string | null;
   fullName: string | null;
+  /** Нэр — what somebody is called, and what a greeting uses. */
+  firstName: string | null;
+  /** Овог — the clan name, which comes first when both are written. */
+  lastName: string | null;
+  phone: string | null;
   avatarUrl: string | null;
   role: Role;
 };
+
+/** Is there enough here to know who this is, and to reach them? */
+export function profileIsComplete(viewer: Viewer): boolean {
+  return Boolean(viewer.firstName && viewer.lastName && viewer.phone);
+}
 
 export const getViewer = cache(async (): Promise<Viewer | null> => {
   if (!supabaseConfigured()) return null;
@@ -25,7 +35,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const supabase = createServerSupabase();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, full_name, avatar_url, role")
+    .select("id, email, full_name, first_name, last_name, phone, avatar_url, role")
     .eq("id", userId)
     .maybeSingle();
 
@@ -38,13 +48,25 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
      * student rather than as signed-out: the session is real, and answering
      * "not signed in" would send them to a form they cannot get past.
      */
-    return { id: userId, email: null, fullName: null, avatarUrl: null, role: "student" };
+    return {
+      id: userId,
+      email: null,
+      fullName: null,
+      firstName: null,
+      lastName: null,
+      phone: null,
+      avatarUrl: null,
+      role: "student",
+    };
   }
 
   return {
     id: data.id,
     email: data.email,
     fullName: data.full_name,
+    firstName: data.first_name,
+    lastName: data.last_name,
+    phone: data.phone,
     avatarUrl: data.avatar_url,
     role: data.role,
   };
