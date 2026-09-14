@@ -5,6 +5,7 @@ import { fieldErrors, signInSchema, signUpSchema, space } from "@jarvis/core";
 import { useIntl } from "@/lib/settings";
 import { useAuth } from "@/lib/auth";
 import { Button, Card, Field, Input, Txt } from "./ui";
+import { GoogleButton, OrDivider } from "./google-button";
 
 /**
  * One form for both doors.
@@ -97,13 +98,20 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
         </Txt>
       </View>
 
+      {/* Google first: one tap against three fields, and most people arriving
+          here already have the account it would otherwise make. */}
+      <View style={{ gap: space.lg }}>
+        <GoogleButton />
+        <OrDivider />
+      </View>
+
       <Card style={{ gap: space.md }}>
         {mode === "sign-up" ? (
-          <Field label={t.auth.signUp.name} error={errors.full_name}>
+          <Field label={t.auth.signUp.firstName} error={errors.full_name}>
             <Input
               value={fullName}
               onChangeText={setFullName}
-              placeholder={t.auth.signUp.namePlaceholder}
+              placeholder={t.auth.signUp.firstNamePlaceholder}
               autoComplete="name"
               autoCapitalize="words"
             />

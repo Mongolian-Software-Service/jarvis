@@ -30,3 +30,7 @@ supabase/.temp/
 .DS_Store
 *.log
 .vercel
+
+# Staged copy of a handbook, written by scripts/build-handbook.mjs while it runs.
+docs/handbook/.staged.html
+docs/handbook/.diag-preview.html

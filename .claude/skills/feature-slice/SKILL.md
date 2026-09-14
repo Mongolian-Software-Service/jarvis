@@ -1,6 +1,6 @@
 ---
 name: feature-slice
-description: Build a complete Jarvis feature end to end — migration, RLS, shared logic in packages/core, server action, query, web route, and (when apps/mobile exists) the matching screen — in the correct order. Use whenever the request is to add or extend a user-facing feature: courses, lessons, quizzes, progress, enrolments, payments, the admin console. Consult it BEFORE writing any component, so the slice does not end up half-built.
+description: Build a complete TsStark Academy feature end to end — migration, RLS, shared logic in packages/core, server action, query, web route, and (when apps/mobile exists) the matching screen — in the correct order. Use whenever the request is to add or extend a user-facing feature: courses, lessons, quizzes, progress, enrolments, payments, the admin console. Consult it BEFORE writing any component, so the slice does not end up half-built.
 ---
 
 # A feature, end to end
@@ -49,10 +49,15 @@ Both languages from the start: every string comes from `t`, never a literal.
 
 ## 6. The phone
 
-`apps/mobile` does not exist yet (CLAUDE.md §9). Until it does, a feature is
-"done" on the web — but if you put business logic in a component instead of in
-`packages/core`, you have made the phone's version a rewrite instead of a
-screen. That is the whole cost of skipping step 2.
+`apps/mobile` exists (CLAUDE.md §9), so a feature is not done on the web alone —
+it is done when the phone has the matching screen, or when there is a reason
+written down for why it never will (paid checkout, for one: decision #009).
+
+The screen is the easy half **if** step 2 was done properly. Every rule the web
+worked out — which lesson «Үргэлжлүүлэх» opens, which course to resume, what a
+valid message is — has to be a function in `packages/core` that both platforms
+call. Leave one inside a web component and the phone's version is a rewrite
+rather than a screen, and the two drift the first time somebody edits one.
 
 ## Finishing
 

@@ -1,22 +1,17 @@
 import type { Locale } from "../locale";
-import { en } from "./en";
 import { core } from "./mn/core";
 import { marketing } from "./mn/marketing";
 import { auth } from "./mn/auth";
 import { learn } from "./mn/learn";
 import { admin } from "./mn/admin";
+import { guide } from "./mn/guide";
 
 /**
- * Every user-facing string, in one place, in each language the product speaks.
+ * Every user-facing string, in one place.
  *
  * Composed from several files rather than one table: a single file had nowhere
  * to grow, and the areas — marketing, auth, learning, admin — are edited by
  * different people at different times.
- *
- * **Mongolian is the source of truth for meaning.** `strings/mn/` carries the
- * comments explaining what a key is for; `strings/en/` is a translation table
- * and deliberately carries none, because a comment kept in two places is a
- * comment that disagrees with itself.
  */
 export const mn = {
   locale: "mn",
@@ -25,18 +20,18 @@ export const mn = {
   auth,
   learn,
   admin,
+  guide,
 } as const;
 
 /**
- * The shape every locale fills, with Mongolian's *values* widened back to
+ * The shape a language fills, with Mongolian's *values* widened back to
  * `string`.
  *
  * Without the widening `typeof mn` would say `signIn: "Нэвтрэх"` — a literal —
- * and the English table could not hold "Sign in" without a type error. What
- * remains is the guarantee worth having: a key missing from a translation, or
- * invented in one, does not compile.
+ * and a second table could not hold anything else without a type error. The
+ * widening is what keeps `Strings` a shape rather than a snapshot.
  */
-type Widen<T> = T extends "mn" | "en"
+type Widen<T> = T extends "mn"
   ? Locale
   : T extends string
     ? string
@@ -45,15 +40,6 @@ type Widen<T> = T extends "mn" | "en"
       : { [Key in keyof T]: Widen<T[Key]> };
 
 export type Strings = Widen<typeof mn>;
-
-/**
- * This annotation is the whole guarantee: a key added to one language and
- * forgotten in the other stops the build here, rather than showing up as
- * `undefined` on somebody's screen.
- */
-const enTable: Strings = en;
-
-export { enTable as en };
 
 /** Fill `{name}` placeholders: `fmt(t.learn.course.progress, { percent: "40" })`. */
 export function fmt(template: string, vars: Record<string, string | number>): string {
@@ -66,10 +52,10 @@ export function fmt(template: string, vars: Record<string, string | number>): st
 /**
  * The table for one language.
  *
- * Everything user-facing goes through this rather than importing `mn` directly
- * — an import of a single language is a string that cannot be translated, and a
- * few hundred of them are how a product ends up bilingual in theory only.
+ * There is one, and this still takes the locale: every call site already passes
+ * it, and the day a second language arrives this is the only place that has to
+ * learn to choose.
  */
-export function strings(locale: Locale): Strings {
-  return locale === "en" ? en : mn;
+export function strings(_locale: Locale): Strings {
+  return mn;
 }

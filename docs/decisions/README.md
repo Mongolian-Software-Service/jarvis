@@ -195,3 +195,67 @@ comes back it comes back as this file's #011 and as a second block in
 `globals.css` plus a second `Palette` in `packages/core` — not as a quiet
 attribute somebody adds mid-feature. `packages/core/test/theme.test.ts` fails if
 one appears without that decision.
+
+---
+
+## 011 — One price for everything
+
+**Chose:** the catalogue leads with a bundle — five courses, one payment, held
+for good — implemented as `payments.course_id = null` and a `settle_payment()`
+branch that enrols the buyer in every published course.
+
+**Gave up:** per-course revenue signal, and the ability to discount one track.
+Also the simplicity of `course_id` being NOT NULL.
+
+**Why:** five prices is a decision a beginner has to make before they have any
+way of making it — they do not yet know whether they need "Кодын суурь" or
+"Landing page". One price removes the decision, and the five cards below the
+offer become *what you get* rather than *what to choose between*. It also makes
+the tracks free to reorganise: splitting a course in two costs the buyer
+nothing, so the curriculum can follow what teaches best rather than what sells.
+
+**Why not a `products` table:** it would be the honest general model, and it is
+three tables and a join for a product with exactly one bundle in it. `course_id
+= null` says the same thing in one migration, and the day there is a second
+bundle is the day to pay for the general version.
+
+**What is not handled:** a course added after somebody buys is not granted
+retroactively — `settle_payment` enrols in what is published at the moment the
+money lands. `grant_all_courses()` exists for the console to do it by hand. If
+the school promises "and everything we add later", that promise needs code.
+
+---
+
+## 012 — A course has no price of its own
+
+**Chose:** `courses.price_mnt` is dropped. A course carries `is_free` and
+nothing else about money: free means anyone signed in may take it, and
+everything else opens with the bundle. `/api/checkout` sells only the bundle,
+and no screen prints a per-course amount.
+
+**Gave up:** the fallback #011 kept — buying one track on its own — and with it
+any future A/B of a single price against the bundle without a migration. Also
+the admin's ability to price a course, which is now a checkbox.
+
+**Why:** #011 left both models standing, and the two disagreed in public. Six
+cards priced 0–299,000₮ summed to 1,245,000₮ under a panel advertising 199,000₮
+against a 499,000₮ anchor; a buyer who added the cards up found a third number
+nobody meant. Worse, the endpoint would still have sold one course for 299,000₮
+— more than all six — to anybody who posted `{course_id}` at it. A price column
+nothing charges is not harmless: it is a number the next reader believes.
+
+**Why a boolean, not a `0` price:** keeping the column and agreeing never to
+charge it is the same drift in a quieter font. `is_free` says exactly what the
+one surviving distinction is, the RLS free-enrolment policy reads it directly,
+and `scripts/check-seed.mjs` fails if the seed ever omits it — the column
+defaults to `false`, so a dropped column would silently make the intro track
+paid and nothing would complain.
+
+**What the money still remembers:** `payments.amount_mnt` records what was
+charged, and `payments.course_id` stays nullable with its branch in
+`settle_payment()` so a payment taken for one course before this still says what
+it bought.
+
+**Would change it:** a real demand to sell one track alone — a corporate order
+for just "Fullstack", say. That is a price column plus this file's #013, not a
+quiet re-read of `is_free`.

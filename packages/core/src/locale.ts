@@ -1,12 +1,20 @@
 /**
- * The two languages Jarvis speaks.
+ * The one language TsStark Academy speaks.
  *
- * Mongolian is the default, the fallback, and the language the product is
- * written in. English is secondary and **may be incomplete** — a course whose
- * `title_en` is null is normal, and the English edition shows the Mongolian
- * rather than an empty card or a 404.
+ * It shipped bilingual and is not: the school is Mongolian, its students are
+ * Mongolian, and a half-translated second edition is worse than none — it
+ * doubles every copy change and shows somebody a screen in a language the rest
+ * of the product is not written in.
+ *
+ * `Locale` stays a type rather than becoming a constant, and the URL keeps its
+ * `/mn` prefix. The day a second language is a real decision, it is added here
+ * and to `strings/`, not retrofitted into three hundred call sites.
+ *
+ * The `_en` columns stay in the database, unread. Dropping them is a migration
+ * that throws away translations somebody may still want; leaving them costs a
+ * few bytes a row.
  */
-export const LOCALES = ["mn", "en"] as const;
+export const LOCALES = ["mn"] as const;
 
 export type Locale = (typeof LOCALES)[number];
 
@@ -19,7 +27,6 @@ export const DEFAULT_LOCALE: Locale = "mn";
  */
 export const LOCALE_NAMES: Record<Locale, string> = {
   mn: "Монгол",
-  en: "English",
 };
 
 /** The request header the proxy writes the negotiated locale into. */
@@ -27,6 +34,9 @@ export const LOCALE_HEADER = "x-locale";
 
 /** Where a chosen language is remembered, on both platforms. */
 export const LOCALE_COOKIE = "jarvis-locale";
+
+/** Where «Дараа бөглөнө» is remembered, for a day. */
+export const PROFILE_LATER_COOKIE = "jarvis-profile-later";
 
 /** A year: a language preference is not a question to ask again next week. */
 export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
@@ -47,37 +57,35 @@ export function toLocale(value: unknown): Locale {
 }
 
 /**
- * The Mongolian text, or the English one when it exists and English was asked for.
+ * The text for the reader's language.
  *
- * This is the locale fallback rule in one function, and every bilingual column
- * in the schema goes through it. The direction is deliberate and one-way: there
- * is no `mn ?? en`, because Mongolian is never the column that is missing.
+ * Every bilingual column in the schema goes through this. With one language it
+ * always answers with the Mongolian — the `_en` argument is still accepted so
+ * the call sites and the columns behind them do not have to be rewritten, and
+ * so a second language is a change here rather than everywhere.
  */
-export function localized(locale: Locale, mn: string, en?: string | null): string {
-  if (locale === "en" && en != null && en.trim() !== "") return en;
+export function localized(_locale: Locale, mn: string, _en?: string | null): string {
   return mn;
 }
 
 /** The same, for a column that may be absent in both languages. */
 export function localizedOrNull(
-  locale: Locale,
+  _locale: Locale,
   mn: string | null,
-  en?: string | null,
+  _en?: string | null,
 ): string | null {
-  if (locale === "en" && en != null && en.trim() !== "") return en;
   return mn != null && mn.trim() !== "" ? mn : null;
 }
 
 /**
- * Is this text a fallback — Mongolian shown inside the English edition?
+ * Is this text a fallback — one language shown inside another?
  *
- * The screen needs to know: a block in the wrong language has to carry
- * `lang="mn"`, or a screen reader will pronounce Cyrillic with English rules
- * and browser translation will offer to translate a page it has already
- * decided is English.
+ * Never, while there is one language. It stays because the screens that mark a
+ * fallback block `lang="…"` are right to ask, and because deleting the question
+ * would be the thing nobody remembers to put back.
  */
-export function isFallback(locale: Locale, en?: string | null): boolean {
-  return locale === "en" && (en == null || en.trim() === "");
+export function isFallback(_locale: Locale, _en?: string | null): boolean {
+  return false;
 }
 
 /**

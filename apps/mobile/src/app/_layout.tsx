@@ -77,6 +77,7 @@ function Shell() {
       >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
+        <Stack.Screen name="hello" />
         <Stack.Screen name="course/[slug]" />
         <Stack.Screen name="lesson/[course]/[lesson]" />
       </Stack>

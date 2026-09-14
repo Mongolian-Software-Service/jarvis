@@ -1,6 +1,6 @@
 ---
 name: lesson-content
-description: Write or edit course content for Jarvis — a lesson body, an exercise, a quiz, a course description, or a whole module. Use whenever the task is authoring teaching material rather than code: "write a lesson about X", "add a quiz", "the Python module needs three more lessons", or editing seed.sql. Covers the Markdown subset the renderer supports, the house voice in Mongolian, and what makes an exercise worth doing.
+description: Write or edit course content for TsStark Academy — a lesson body, an exercise, a quiz, a course description, or a whole module. Use whenever the task is authoring teaching material rather than code: "write a lesson about X", "add a quiz", "the Python module needs three more lessons", or editing seed.sql. Covers the Markdown subset the renderer supports, the house voice in Mongolian, and what makes an exercise worth doing.
 ---
 
 # Writing a lesson

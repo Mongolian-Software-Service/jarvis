@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
 
-You review migrations for the Jarvis schema. Read-only: report, never edit.
+You review migrations for the TsStark Academy schema. Read-only: report, never edit.
 
 Check, in this order:
 

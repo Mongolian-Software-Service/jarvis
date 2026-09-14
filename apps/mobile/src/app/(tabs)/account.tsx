@@ -1,27 +1,20 @@
 import { View } from "react-native";
 import { router } from "expo-router";
-import { LOCALES, LOCALE_NAMES, SITE_NAME, space, type Locale } from "@jarvis/core";
+import { SITE_NAME, space } from "@jarvis/core";
 import { useSettings } from "@/lib/settings";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
 import { Button, Card, Divider, Screen, Txt } from "@/components/ui";
 
 /**
- * Settings, and the one preference this product has.
+ * Settings.
  *
- * Changing the language writes it to the profile as well as to the keychain, so
- * the web agrees on the next visit — one product, one preference, whichever
- * screen it was set on. There is no theme row: the app is dark, like the site
- * (CLAUDE.md §4).
+ * No language row: the product speaks one language (CLAUDE.md §1). No theme
+ * row either: it is dark, like the site (§4). What is left is who you are and
+ * the way out.
  */
 export default function AccountScreen() {
-  const { locale, t, setLocale } = useSettings();
+  const { t } = useSettings();
   const { profile, userId, signOut } = useAuth();
-
-  async function chooseLocale(next: Locale) {
-    setLocale(next);
-    if (userId) await supabase.from("profiles").update({ locale: next }).eq("id", userId);
-  }
 
   return (
     <Screen>
@@ -30,7 +23,7 @@ export default function AccountScreen() {
       {userId ? (
         <Card>
           <Txt variant="small" tone="dim">
-            {t.auth.account.name}
+            {t.auth.account.firstName}
           </Txt>
           <Txt variant="heading">{profile?.fullName ?? "—"}</Txt>
           <Divider />
@@ -52,22 +45,6 @@ export default function AccountScreen() {
           </View>
         </Card>
       )}
-
-      <Card>
-        <Txt variant="small" tone="dim">
-          {t.language.label}
-        </Txt>
-        <View style={{ flexDirection: "row", gap: space.sm }}>
-          {LOCALES.map((code) => (
-            <Button
-              key={code}
-              label={LOCALE_NAMES[code]}
-              variant={code === locale ? "primary" : "secondary"}
-              onPress={() => void chooseLocale(code)}
-            />
-          ))}
-        </View>
-      </Card>
 
       {userId ? (
         <Button label={t.auth.account.signOut} variant="secondary" onPress={() => void signOut()} />

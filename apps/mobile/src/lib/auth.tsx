@@ -1,7 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 import type { Session } from "@supabase/supabase-js";
 import type { Role } from "@jarvis/core";
 import { supabase, supabaseConfigured } from "./supabase";
+
+/*
+ * Closes the in-app browser tab if one was left open by a previous attempt.
+ * Harmless on native; required on web, where the auth window is a real popup.
+ */
+void WebBrowser.maybeCompleteAuthSession();
 
 /**
  * Who is signed in, for the whole app.
@@ -33,6 +41,7 @@ type AuthValue = {
     email: string,
     password: string,
   ) => Promise<{ ok: boolean; error?: string; confirm?: boolean }>;
+  signInWithGoogle: () => Promise<{ ok: boolean; cancelled?: boolean }>;
   signOut: () => Promise<void>;
   reloadProfile: () => Promise<void>;
 };
@@ -114,6 +123,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error) return { ok: false, error: error.message };
         return { ok: true, confirm: !data.session };
       },
+      /**
+       * Google, through the system browser.
+       *
+       * Not a WebView. `openAuthSessionAsync` opens SFSafariViewController on
+       * iOS and a Custom Tab on Android — which is what Google requires, and
+       * also what lets somebody already signed in on the device finish in one
+       * tap instead of typing a password into an app's embedded browser.
+       *
+       * `Linking.createURL` is what makes this work in Expo Go *and* in a
+       * standalone build: it returns `exp://…/--/auth/callback` in one and
+       * `jarvis://auth/callback` in the other. Both have to be in the Supabase
+       * project's redirect allowlist — see SETUP.md.
+       */
+      async signInWithGoogle() {
+        const redirectTo = Linking.createURL("/auth/callback");
+
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          // The browser is opened below rather than by the SDK, so that the
+          // result comes back here instead of leaving the app for good.
+          options: { redirectTo, skipBrowserRedirect: true },
+        });
+        if (error || !data.url) return { ok: false };
+
+        const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+        if (result.type !== "success") return { ok: false, cancelled: true };
+
+        // `Linking.parse` rather than `new URL`: the redirect is an `exp://` or
+        // `jarvis://` URL, and URL parsing of non-http schemes is not reliable.
+        const code = Linking.parse(result.url).queryParams?.code;
+        if (typeof code !== "string") return { ok: false };
+
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        // `onAuthStateChange` above picks the session up; nothing to set here.
+        return { ok: !exchangeError };
+      },
+
       async signOut() {
         await supabase.auth.signOut();
       },

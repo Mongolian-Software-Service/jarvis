@@ -1,6 +1,6 @@
 ---
 name: db-migration
-description: Change Jarvis's Supabase schema safely — new tables, columns, enums, indexes, and the RLS policies that must come with them. Use this ANY time work touches the database, even indirectly: adding a feature that stores something, "add a field for X", "students should be able to save Y", fixing a permission error, a 42501 / "new row violates row-level security policy", or regenerating types. Do not hand-write SQL against the database without reading this first.
+description: Change TsStark Academy's Supabase schema safely — new tables, columns, enums, indexes, and the RLS policies that must come with them. Use this ANY time work touches the database, even indirectly: adding a feature that stores something, "add a field for X", "students should be able to save Y", fixing a permission error, a 42501 / "new row violates row-level security policy", or regenerating types. Do not hand-write SQL against the database without reading this first.
 ---
 
 # Changing the schema
@@ -22,6 +22,25 @@ description: Change Jarvis's Supabase schema safely — new tables, columns, enu
 7. Any column used in a policy's `where` clause or a list query needs an index.
 8. Enums: `create type … as enum`. Adding a value is `alter type … add value`,
    which **cannot run inside a transaction** — it needs its own migration.
+9. **Locking a function down takes two revokes, not one.** A role reaches
+   `execute` by two independent routes, and revoking one leaves the other:
+
+   ```sql
+   revoke all on function public.f(uuid) from public;  -- the create-time default
+   revoke all on function public.f(uuid) from anon;    -- Supabase's named grant
+   grant execute on function public.f(uuid) to authenticated;
+   ```
+
+   `revoke … from anon, authenticated` **alone does nothing**: PUBLIC is every
+   role and is not covered by naming two of them. The tell is the error text —
+   "permission denied for function" means the gate held; your function's own
+   `raise` means the call got through it and only the `is_admin()` check inside
+   stopped it.
+10. **A table GRANT is the outer gate; RLS only filters within a command the
+    role already holds.** So a policy written `for all` against a table granted
+    only `select, insert` has update and delete branches that can never fire.
+    Make the two agree — and prefer narrowing the policy to what the app
+    actually does over widening the grant to match a promise nobody needs.
 
 ## The rule this schema exists to enforce
 

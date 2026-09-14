@@ -3,7 +3,6 @@ import { Link } from "expo-router";
 import { Image } from "expo-image";
 import {
   formatDuration,
-  formatMoney,
   levelLabel,
   radius,
   space,
@@ -70,10 +69,18 @@ export function CourseCardView({
               </Txt>
             </View>
           ) : (
+            /* No price on a card — there is one price and a course is either
+               free or inside it (§1). The web catalogue says the same. */
             <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-              <Txt variant="heading" tone={course.priceMnt <= 0 ? "ok" : "ink"}>
-                {formatMoney(course.priceMnt, locale)}
-              </Txt>
+              {course.isFree ? (
+                <Txt variant="heading" tone="ok">
+                  {t.learn.course.free}
+                </Txt>
+              ) : (
+                <Txt variant="small" tone="dim">
+                  {t.learn.bundle.included}
+                </Txt>
+              )}
             </View>
           )}
         </View>

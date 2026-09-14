@@ -1,6 +1,6 @@
 ---
 name: payments
-description: Work on Jarvis's payment path — the Bonum checkout, the webhook, invoice settlement, enrolment on purchase, the admin payments screen, or the mock mode used for local testing. Use for anything involving money, invoices, `settle_payment`, `BONUM_*` environment variables, or a purchase that did not open a course.
+description: Work on TsStark Academy's payment path — the Bonum checkout, the webhook, invoice settlement, enrolment on purchase, the admin payments screen, or the mock mode used for local testing. Use for anything involving money, invoices, `settle_payment`, `BONUM_*` environment variables, or a purchase that did not open a course.
 ---
 
 # Payments

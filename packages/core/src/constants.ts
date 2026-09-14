@@ -1,33 +1,74 @@
 import type { Locale } from "./locale";
 
 /**
- * The name, in Latin, capitalised, in both editions.
+ * The school's name, in Latin, capitalised.
  *
  * Never transliterated into Cyrillic and never translated: a wordmark that
- * changes shape under the language switch stops being a landmark. Where a
- * Mongolian sentence needs a case suffix, attach it with a non-breaking hyphen
- * — `Jarvis‑ийн` (U+2011) — so the line cannot break between the name and its
+ * changes shape mid-product stops being a landmark. Where a Mongolian sentence
+ * needs a case suffix, attach it with a non-breaking hyphen — `TsStark‑ийн`
+ * (U+2011, not U+002D) — so the line cannot break between the name and its
  * ending.
  */
-export const SITE_NAME = "Jarvis";
+export const SITE_NAME = "TsStark Academy";
+
+/**
+ * Who runs the school, and where they live.
+ *
+ * The academy is one thing TsStark makes, and the footer says so — a school
+ * with a company behind it is a school somebody can still reach next year.
+ * Separate constants because the two names appear in different places and
+ * `SITE_NAME.split(" ")[0]` is a rule that breaks the first time either
+ * changes.
+ */
+export const COMPANY_NAME = "TsStark";
+export const COMPANY_URL = "https://tsstark.com";
 
 /** What the product is, in one line, for the masthead and the OG description. */
 export const SITE_TAGLINE: Record<Locale, string> = {
   mn: "Онлайн код сургалт",
-  en: "Learn to code online",
 };
 
 /** Where the app thinks it lives. Falls back to localhost for a dev machine. */
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_APP_URL ??
   process.env.EXPO_PUBLIC_API_URL ??
-  "http://localhost:3000"
+  "http://localhost:3001"
 ).replace(/\/$/, "");
 
-/** Free access is priced at zero, not flagged separately. */
-export function isFree(priceMnt: number): boolean {
-  return priceMnt <= 0;
-}
+/**
+ * One price for the whole school, and the only price there is.
+ *
+ * A course is not sold on its own. Six tracks at six prices is a set of
+ * decisions somebody has to make before they have any way of making them — so
+ * there is one decision: pay this once, hold every published course for good.
+ * Courses carry `is_free` and nothing else about money; the amount charged is
+ * this constant, read on the server, never sent by a client (§6.6).
+ *
+ * A constant rather than a column because there is exactly one of it and
+ * changing it is a deploy, not a Tuesday. When the team wants to run a sale
+ * without asking a developer, it becomes a row in a settings table and this
+ * comment is the note that it was a deliberate wait.
+ */
+export const BUNDLE_PRICE_MNT = 199_000;
+
+/**
+ * The price the bundle is struck through from.
+ *
+ * Stated, not computed. There is no per-course price left to add up, and there
+ * should not be: the saving a buyer is shown is the difference between these
+ * two numbers and nothing else, so changing either keeps every screen honest
+ * with itself.
+ */
+export const BUNDLE_FULL_PRICE_MNT = 499_000;
+
+/**
+ * What the buyer is told they save — derived once, shown in two places.
+ *
+ * The catalogue panel and the course page both print it, and a saving that is
+ * subtracted separately on each screen is a saving that disagrees with itself
+ * the first time one of the two constants moves.
+ */
+export const BUNDLE_SAVING_MNT = BUNDLE_FULL_PRICE_MNT - BUNDLE_PRICE_MNT;
 
 /**
  * How to reach the school — the only copy of these values.

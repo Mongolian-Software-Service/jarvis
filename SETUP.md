@@ -1,4 +1,4 @@
-# Setting Jarvis up
+# Setting TsStark Academy up
 
 Ten steps, about twenty minutes. Steps 1–2 get the site running with no data;
 3–7 give it a real database; 8–10 put it on the internet.
@@ -20,7 +20,7 @@ cp .env.example apps/web/.env.local
 pnpm dev
 ```
 
-`http://localhost:3000` → redirects to `/mn`. Without Supabase credentials the
+`http://localhost:3001` → redirects to `/mn`. Without Supabase credentials the
 pages render with nothing in them, which is the point of this step: the site,
 the fonts and both languages are all working before the database exists.
 
@@ -48,6 +48,39 @@ Vercel's environment, never in a file that ships, never in a commit.
 
 ## 5. Push the schema
 
+### The short way — one command
+
+Two things need a person at a keyboard: creating the project (step 3, the form
+sets a database password) and creating the Google OAuth client (step 7, Google's
+console). **Everything else is configuration, and there is a script for it.**
+
+1. [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens)
+   → **Generate new token**.
+2. Put it, and the project ref from your project's URL, in a `.env` at the repo
+   root — gitignored, and the only file that holds either:
+
+   ```
+   SUPABASE_ACCESS_TOKEN=sbp_...
+   SUPABASE_PROJECT_REF=abcdefghijklmnop
+   APP_URL=https://yourdomain.mn          # optional, for the redirect allowlist
+   GOOGLE_CLIENT_ID=...                   # optional, from step 7
+   GOOGLE_CLIENT_SECRET=...
+   ```
+
+3. ```bash
+   pnpm supabase:setup
+   ```
+
+It applies the three migrations, runs the seed, sets the site URL and the
+redirect allowlist (including `jarvis://**` and `exp://**` for the phone),
+enables Google when both Google values are present, and prints the two public
+values for `.env.local`. It is idempotent — run it again after any change.
+
+The rest of this step is the same work done by hand, if you would rather see it.
+
+### By hand
+
+
 ```bash
 pnpm dlx supabase login
 pnpm dlx supabase link --project-ref <your-project-ref>   # the ref is in the project URL
@@ -67,7 +100,7 @@ Check it took: **Table Editor** should list eight tables, and each should show
 Four published courses, one draft, twelve modules, thirty-seven lessons and
 eleven quiz questions. The seed upserts by id, so running it twice is safe.
 
-The site now has content: `http://localhost:3000/mn/courses`.
+The site now has content: `http://localhost:3001/mn/courses`.
 
 ## 7. Make yourself an admin
 
@@ -95,6 +128,52 @@ developing, or read the link in **Authentication → Logs**.
 For production, set **Authentication → URL Configuration → Site URL** to your
 real domain and add `https://yourdomain.mn/auth/confirm` to the redirect
 allowlist, or every confirmation link will point at localhost.
+
+### Google sign-in
+
+The button is already built, on the web and in the app. It needs two things
+switched on, and neither of them lives in this repository.
+
+**In Google Cloud Console** — [console.cloud.google.com](https://console.cloud.google.com):
+
+1. Create a project (or pick one), then **APIs & Services → OAuth consent
+   screen**. External. Fill in the app name, your support email, and the
+   developer email. While it is in *Testing* only the addresses you list under
+   *Test users* can sign in — publish it when you are ready for real students.
+2. **Credentials → Create credentials → OAuth client ID → Web application.**
+3. Under **Authorised redirect URIs** add exactly one:
+
+   ```
+   https://<your-project-ref>.supabase.co/auth/v1/callback
+   ```
+
+   That is Supabase's URL, not ours. Google talks to Supabase; Supabase talks to
+   us. Putting `localhost:3001` here instead is the mistake that costs an hour.
+4. Copy the **Client ID** and **Client secret**.
+
+**In Supabase** — **Authentication → Sign In / Providers → Google**:
+
+5. Enable it, paste the client ID and secret, save.
+6. **Authentication → URL Configuration → Redirect URLs** — add all of these:
+
+   ```
+   http://localhost:3001/auth/confirm      the web, locally
+   https://yourdomain.mn/auth/confirm      the web, in production
+   jarvis://**                             the app, installed
+   exp://**                                the app, in Expo Go
+   ```
+
+   Supabase refuses to redirect anywhere not on this list, and the refusal
+   looks like a silent bounce back to the sign-in form.
+
+That is all. `/auth/confirm` already exchanges the code for a session — the same
+route the email links use — and `handle_new_user()` fills the new profile's name
+and picture from Google's claims. **The role is not read from them**, ever:
+every account arrives as a student (step 7 is how the first one stops being one).
+
+One button does both jobs. An address Google knows and Supabase does not becomes
+an account on the first tap; after that the same button signs in. There is no
+separate "sign up with Google".
 
 ---
 

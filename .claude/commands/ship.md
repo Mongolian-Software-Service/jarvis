@@ -1,5 +1,5 @@
 ---
-description: Pre-commit checklist for Jarvis
+description: Pre-commit checklist for TsStark Academy
 ---
 
 Walk this before I commit. Report pass/fail per line, fix what you can, and list

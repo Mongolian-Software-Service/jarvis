@@ -43,7 +43,7 @@ export function supabaseConfigured(): boolean {
 }
 
 /** The API this app calls for anything the database cannot decide alone. */
-export const apiUrl = (process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000").replace(
+export const apiUrl = (process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001").replace(
   /\/$/,
   "",
 );

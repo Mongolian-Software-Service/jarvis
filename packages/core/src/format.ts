@@ -16,26 +16,17 @@ import type { Locale } from "./locale";
  * US order.
  */
 
-const EN_MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
 function parse(value: string | Date): Date | null {
   const date = value instanceof Date ? value : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-/** `2026 оны 9-р сарын 11` / `11 September 2026` */
-export function formatDate(value: string | Date | null | undefined, locale: Locale): string {
+/** `2026 оны 9-р сарын 11`. Never US order. */
+export function formatDate(value: string | Date | null | undefined, _locale: Locale): string {
   if (!value) return "";
   const date = parse(value);
   if (!date) return "";
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  if (locale === "en") return `${day} ${EN_MONTHS[date.getMonth()]} ${year}`;
-  return `${year} оны ${month}-р сарын ${day}`;
+  return `${date.getFullYear()} оны ${date.getMonth() + 1}-р сарын ${date.getDate()}`;
 }
 
 /** The same, with `HH:MM` after it. */
@@ -48,8 +39,8 @@ export function formatDateTime(value: string | Date | null | undefined, locale: 
 }
 
 /** `149,000₮`. Zero is the word "free", which is a different thing to say. */
-export function formatMoney(mnt: number, locale: Locale): string {
-  if (mnt <= 0) return locale === "en" ? "Free" : "Үнэгүй";
+export function formatMoney(mnt: number, _locale: Locale): string {
+  if (mnt <= 0) return "Үнэгүй";
   return `${groupDigits(Math.round(mnt))}₮`;
 }
 
@@ -66,37 +57,32 @@ export function groupDigits(value: number): string {
 }
 
 /** `12 мин` / `1 ц 20 мин` */
-export function formatDuration(minutes: number, locale: Locale): string {
+export function formatDuration(minutes: number, _locale: Locale): string {
   const total = Math.max(0, Math.round(minutes));
   const hours = Math.floor(total / 60);
   const mins = total % 60;
-  if (locale === "en") {
-    if (hours && mins) return `${hours}h ${mins}m`;
-    if (hours) return `${hours}h`;
-    return `${mins}m`;
-  }
   if (hours && mins) return `${hours} ц ${mins} мин`;
   if (hours) return `${hours} ц`;
   return `${mins} мин`;
 }
 
 /**
- * `3 хоногийн өмнө` / `3 days ago`.
+ * `3 хоногийн өмнө`.
  *
- * Anything older than a month gets the date instead: "47 хоногийн өмнө" is a
+ * Anything older than a month gets the date instead: «47 хоногийн өмнө» is a
  * number nobody converts in their head.
  */
 export function formatAgo(value: string | Date | null | undefined, locale: Locale): string {
   const date = value ? parse(value) : null;
   if (!date) return "";
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return locale === "en" ? "just now" : "дөнгөж сая";
+  if (seconds < 60) return "дөнгөж сая";
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return locale === "en" ? `${minutes}m ago` : `${minutes} минутын өмнө`;
+  if (minutes < 60) return `${minutes} минутын өмнө`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return locale === "en" ? `${hours}h ago` : `${hours} цагийн өмнө`;
+  if (hours < 24) return `${hours} цагийн өмнө`;
   const days = Math.floor(hours / 24);
-  if (days <= 30) return locale === "en" ? `${days}d ago` : `${days} хоногийн өмнө`;
+  if (days <= 30) return `${days} хоногийн өмнө`;
   return formatDate(date, locale);
 }
 

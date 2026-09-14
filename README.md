@@ -1,4 +1,4 @@
-# Jarvis
+# TsStark Academy
 
 An online coding school in Mongolian, with an English edition. Students buy a
 course, work through video, written and code lessons, and their progress follows
@@ -20,7 +20,7 @@ rules, and the reasoning behind the decisions that look odd.
 ```bash
 pnpm install
 cp .env.example apps/web/.env.local
-pnpm dev            # http://localhost:3000
+pnpm dev            # http://localhost:3001
 ```
 
 | | |

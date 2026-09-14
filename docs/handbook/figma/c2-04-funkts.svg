@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="380" viewBox="0 0 1200 380" fill="none">
+  <rect width="1200" height="410" fill="#ffffff"/>
+  <g id="garchig">
+    <text x="80" y="56" font-family="Inter" font-size="28" font-weight="600" fill="#0f1216" text-anchor="start">Функц — нэр өгсөн ажил</text>
+    <text x="80" y="84" font-family="Inter" font-size="17" font-weight="400" fill="#9aa0a6" text-anchor="start">Юм өгөөд, хариу авдаг машин</text>
+  </g>
+<g id="orolt"><text x="150" y="220" font-family="Inter" font-size="24" font-weight="400" fill="#5b616e" text-anchor="middle">199 000₮</text><path d="M250 210 H400" stroke="#9aa0a6" stroke-width="3"/><path d="M400 210 l-12 -6 v12 z" fill="#9aa0a6"/><text x="325" y="190" font-family="Inter" font-size="16" font-weight="400" fill="#9aa0a6" text-anchor="middle">оролт</text></g>
+<g id="ajil"><rect x="412" y="150" width="380" height="120" rx="14" fill="#eef0fd" stroke="#5e6ad2" stroke-width="2"/><text x="602" y="200" font-family="Inter" font-size="22" font-weight="600" fill="#0f1216" text-anchor="middle">tatvartaiDun</text><text x="602" y="232" font-family="Inter" font-size="16" font-weight="400" fill="#5b616e" text-anchor="middle">нэг удаа бичээд хаа сайгүй</text></g>
+<g id="garalt"><path d="M804 210 H954" stroke="#2f8f63" stroke-width="3"/><path d="M954 210 l-12 -6 v12 z" fill="#2f8f63"/><text x="879" y="190" font-family="Inter" font-size="16" font-weight="400" fill="#2f8f63" text-anchor="middle">гаралт</text><text x="1060" y="220" font-family="Inter" font-size="24" font-weight="400" fill="#5b616e" text-anchor="middle">218 900₮</text></g>
+<g id="temdeglel"><text x="600" y="330" font-family="Inter" font-size="17" font-weight="400" fill="#9aa0a6" text-anchor="middle">Нэг газар засахад хаа сайгүй зөв болно</text></g>
+</svg>

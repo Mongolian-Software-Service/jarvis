@@ -29,7 +29,6 @@ export function toPaymentStatus(raw: string): PaymentStatus {
 
 const STATUS_LABELS: Record<Locale, Record<PaymentStatus, string>> = {
   mn: { pending: "Хүлээгдэж буй", paid: "Төлөгдсөн", failed: "Амжилтгүй", expired: "Хугацаа дууссан" },
-  en: { pending: "Pending", paid: "Paid", failed: "Failed", expired: "Expired" },
 };
 
 export function paymentLabel(status: PaymentStatus, locale: Locale): string {

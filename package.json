@@ -13,12 +13,17 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "test": "turbo test",
+    "test": "node scripts/check-seed.mjs && node scripts/check-lines.mjs && turbo test",
     "format": "prettier --write .",
     "db:new": "supabase migration new",
     "db:push": "supabase db push",
     "db:reset": "supabase db reset",
-    "db:types": "supabase gen types typescript --linked > .db-types.tmp && mv .db-types.tmp packages/types/src/database.ts || (rm -f .db-types.tmp && exit 1)"
+    "db:types": "set -a && . ./.env && set +a && supabase gen types typescript --project-id $SUPABASE_PROJECT_REF > .db-types.tmp && mv .db-types.tmp packages/types/src/database.ts || (rm -f .db-types.tmp && exit 1)",
+    "supabase:setup": "node scripts/supabase-setup.mjs",
+    "check:seed": "node scripts/check-seed.mjs",
+    "check:lines": "node scripts/check-lines.mjs",
+    "handbook": "node scripts/build-handbook.mjs",
+    "diagrams": "node scripts/build-diagrams.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

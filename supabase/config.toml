@@ -1,4 +1,4 @@
-# Jarvis — Supabase CLI configuration.
+# TsStark Academy — Supabase CLI configuration.
 #
 # The running app talks to the HOSTED project, not to this local stack. `supabase
 # db reset` rebuilds a local database from migrations + seed.sql and does not

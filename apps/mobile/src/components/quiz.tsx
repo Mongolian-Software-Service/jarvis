@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View } from "react-native";
 import { QUIZ_PASS_SCORE, fmt, quizScore, radius, space, type QuizItem } from "@jarvis/core";
 import { useIntl } from "@/lib/settings";
 import { Button, Card, Progress, Txt } from "./ui";
+import { QuizOptions } from "./quiz/options";
+import { QuizResult } from "./quiz/result";
 
 /**
  * A teaching quiz, marked on the device.
@@ -47,28 +48,21 @@ export function Quiz({
 
   if (done) {
     const score = quizScore(correct, questions.length);
-    const passed = score >= QUIZ_PASS_SCORE;
     return (
-      <Card style={{ alignItems: "center", gap: space.md, paddingVertical: space.xl }}>
-        <Txt variant="display" tone={passed ? "ok" : "warn"}>
-          {score}%
-        </Txt>
-        <Txt variant="small" tone="dim" center>
-          {fmt(t.learn.quiz.result, { score, correct, total: questions.length })}
-        </Txt>
-        <Txt variant="heading">{passed ? t.learn.quiz.passed : t.learn.quiz.failed}</Txt>
-        <Button
-          label={t.learn.quiz.retry}
-          variant="secondary"
-          onPress={() => {
-            setIndex(0);
-            setPicked(null);
-            setChecked(false);
-            setCorrect(0);
-            setDone(false);
-          }}
-        />
-      </Card>
+      <QuizResult
+        score={score}
+        passed={score >= QUIZ_PASS_SCORE}
+        correct={correct}
+        total={questions.length}
+        t={t}
+        restart={() => {
+          setIndex(0);
+          setPicked(null);
+          setChecked(false);
+          setCorrect(0);
+          setDone(false);
+        }}
+      />
     );
   }
 
@@ -83,69 +77,14 @@ export function Quiz({
 
       <Txt variant="heading">{question.prompt}</Txt>
 
-      <View style={{ gap: space.sm }}>
-        {question.options.map((option, position) => {
-          const isPicked = picked === position;
-          const isAnswer = position === question.correctIndex;
-          const revealed = checked && isAnswer;
-          const wrong = checked && isPicked && !isAnswer;
-
-          return (
-            <Pressable
-              key={position}
-              disabled={checked}
-              onPress={() => setPicked(position)}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: space.md,
-                padding: space.md,
-                borderRadius: radius.md,
-                borderWidth: StyleSheet.hairlineWidth * 2,
-                borderColor: revealed
-                  ? palette.ok
-                  : wrong
-                    ? palette.bad
-                    : isPicked
-                      ? palette.accent
-                      : palette.line,
-                backgroundColor: revealed
-                  ? palette.okSoft
-                  : wrong
-                    ? palette.badSoft
-                    : isPicked
-                      ? palette.accentSoft
-                      : "transparent",
-              }}
-            >
-              <View
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: radius.pill,
-                  borderWidth: StyleSheet.hairlineWidth * 2,
-                  borderColor: isPicked ? palette.accent : palette.lineStrong,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {revealed ? (
-                  <Ionicons name="checkmark" size={13} color={palette.ok} />
-                ) : wrong ? (
-                  <Ionicons name="close" size={13} color={palette.bad} />
-                ) : (
-                  <Txt variant="micro" tone={isPicked ? "accent" : "dim"}>
-                    {String.fromCharCode(65 + position)}
-                  </Txt>
-                )}
-              </View>
-              <Txt variant="small" style={{ flex: 1 }}>
-                {option}
-              </Txt>
-            </Pressable>
-          );
-        })}
-      </View>
+      <QuizOptions
+        question={question}
+        picked={picked}
+        setPicked={setPicked}
+        checked={checked}
+        right={right}
+        t={t}
+      />
 
       {checked ? (
         <View
