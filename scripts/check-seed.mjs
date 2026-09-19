@@ -83,6 +83,15 @@ starts.forEach((start, n) => {
   if (kind === "video" && at("video_url") === "null") {
     problems.push([start + 1, slug, "kind 'video' with no video_url — lesson_video_needs_url"]);
   }
+  /*
+   * The player is a plain `<video src>` (§4 has the reasoning), so `video_url`
+   * has to be a media file. A youtube.com/watch or vimeo.com page is HTML: the
+   * element loads it, finds nothing it can decode, and draws a black frame
+   * stuck at 0:00 with no error anywhere. Four lessons shipped like that.
+   */
+  if (/youtube\.com|youtu\.be|vimeo\.com|\/watch\?/.test(at("video_url"))) {
+    problems.push([start + 1, slug, "video_url is a web page, not a file — <video> cannot play it"]);
+  }
   if (kind === "text" && at("body_mn") === "null") {
     problems.push([start + 1, slug, "kind 'text' with no body_mn — lesson_text_needs_body"]);
   }
