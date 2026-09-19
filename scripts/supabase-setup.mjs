@@ -26,6 +26,7 @@
  *   node scripts/supabase-setup.mjs --auth     auth settings only
  */
 import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { configureAuth } from "./supabase/auth.mjs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -196,50 +197,11 @@ if (doSchema) {
 // ── Auth ─────────────────────────────────────────────────────────────────────
 if (doAuth) {
   console.log("Auth");
-
-  const appUrl = (process.env.APP_URL ?? "").replace(/\/$/, "");
-  const googleId = process.env.GOOGLE_CLIENT_ID;
-  const googleSecret = process.env.GOOGLE_CLIENT_SECRET;
-
-  /*
-   * Every URL Supabase is allowed to send somebody back to.
-   *
-   * `exp://**` and `jarvis://**` are the phone: Expo Go and an installed
-   * build respectively. A redirect that is not on this list is refused, and
-   * the refusal looks like a silent bounce back to the sign-in form.
-   */
-  const redirects = [
-    "http://localhost:3000/auth/confirm",
-    "http://localhost:3001/auth/confirm",
-    "jarvis://**",
-    "exp://**",
-    ...(appUrl ? [`${appUrl}/auth/confirm`] : []),
-  ];
-
-  const config = {
-    site_url: appUrl || "http://localhost:3001",
-    uri_allow_list: redirects.join(","),
-    // Off while developing: an account is usable the moment it is created.
-    // Turn it back on before real students arrive.
-    mailer_autoconfirm: true,
-  };
-
-  if (googleId && googleSecret) {
-    config.external_google_enabled = true;
-    config.external_google_client_id = googleId;
-    config.external_google_secret = googleSecret;
-  }
-
-  await api(`/projects/${ref}/config/auth`, {
-    method: "PATCH",
-    body: JSON.stringify(config),
+  await configureAuth(api, ref, {
+    appUrl: (process.env.APP_URL ?? "").replace(/\/$/, ""),
+    googleId: process.env.GOOGLE_CLIENT_ID,
+    googleSecret: process.env.GOOGLE_CLIENT_SECRET,
   });
-
-  console.log(`  site url        ${config.site_url}`);
-  console.log(`  redirect urls   ${redirects.length} entries`);
-  console.log(
-    `  google          ${googleId && googleSecret ? "enabled" : "skipped (no GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET)"}\n`,
-  );
 }
 
 // ── What to put in .env.local ────────────────────────────────────────────────

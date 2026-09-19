@@ -1,0 +1,30 @@
+# What never needs uploading to a build machine that installs its own deps.
+#
+# Without this the CLI walked pnpm's symlinked `node_modules` and offered to
+# upload **26 GB** from a 2.6 GB checkout — the store is a graph, and following
+# it multiplies every shared package by the number of packages depending on it.
+node_modules
+.pnpm-store
+
+# Build output. Vercel builds from source; shipping a local `.next` both wastes
+# the upload and risks a stale bundle winning over the one just built.
+.next
+out
+dist
+.turbo
+.expo
+.expo-shared
+
+# Local only.
+.env
+.env.local
+.env.*.local
+.vercel
+*.log
+
+# NOT excluded, deliberately:
+#
+#   apps/mobile   — `pnpm install --frozen-lockfile` reads every package named
+#                   in pnpm-workspace.yaml. Drop one and the install fails
+#                   before the web app is ever built.
+#   docs/         — small, and `pnpm handbook` is not run here anyway.

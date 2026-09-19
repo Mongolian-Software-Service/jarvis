@@ -1,20 +1,23 @@
 {
   "expo": {
     "name": "TsStark Academy",
-    "slug": "jarvis",
+    "slug": "tsstark-academy",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "jarvis",
+    "scheme": "tsstark",
     "newArchEnabled": true,
     "userInterfaceStyle": "dark",
     "backgroundColor": "#08090a",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "mn.jarvis.app"
+      "bundleIdentifier": "mn.tsstark.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
-      "package": "mn.jarvis.app",
+      "package": "mn.tsstark.app",
       "adaptiveIcon": {
         "backgroundColor": "#08090a",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -42,6 +45,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c6a30d69-bf69-492c-ba08-c99558c05537"
+      }
+    },
+    "owner": "tsstark"
   }
 }

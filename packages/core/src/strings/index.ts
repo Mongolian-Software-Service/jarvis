@@ -1,6 +1,7 @@
 import type { Locale } from "../locale";
 import { core } from "./mn/core";
 import { marketing } from "./mn/marketing";
+import { legal } from "./mn/legal";
 import { auth } from "./mn/auth";
 import { learn } from "./mn/learn";
 import { admin } from "./mn/admin";
@@ -17,6 +18,7 @@ export const mn = {
   locale: "mn",
   ...core,
   marketing,
+  legal,
   auth,
   learn,
   admin,

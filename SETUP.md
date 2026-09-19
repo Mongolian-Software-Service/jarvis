@@ -72,7 +72,7 @@ console). **Everything else is configuration, and there is a script for it.**
    ```
 
 It applies the three migrations, runs the seed, sets the site URL and the
-redirect allowlist (including `jarvis://**` and `exp://**` for the phone),
+redirect allowlist (including `tsstark://**` and `exp://**` for the phone),
 enables Google when both Google values are present, and prints the two public
 values for `.env.local`. It is idempotent — run it again after any change.
 
@@ -159,12 +159,29 @@ switched on, and neither of them lives in this repository.
    ```
    http://localhost:3001/auth/confirm      the web, locally
    https://yourdomain.mn/auth/confirm      the web, in production
-   jarvis://**                             the app, installed
-   exp://**                                the app, in Expo Go
+   tsstark://**                            the app, installed
+   exp://**                                Expo Go on a simulator
+   exp://*.exp.direct/**                   Expo Go on a real phone, --tunnel
    ```
 
-   Supabase refuses to redirect anywhere not on this list, and the refusal
-   looks like a silent bounce back to the sign-in form.
+   A redirect that is not on this list is **not** refused with an error — it is
+   silently replaced by the site URL, so the failure looks like the site being
+   broken rather than the list being short.
+
+   **Supabase rejects any redirect whose host is an IP address**, and no
+   allowlist entry changes that — an exact literal is refused too:
+
+   | redirect | result |
+   | --- | --- |
+   | `exp://localhost:8081/--/auth/callback` | accepted |
+   | `exp://ab.anonymous.8081.exp.direct/--/auth/callback` | accepted |
+   | `exp://192.168.0.178:8081/--/auth/callback` | **refused** |
+
+   That last one is exactly what Expo Go hands out on a **physical** device over
+   the LAN — which is why Google sign-in works in the simulator and bounces to
+   `localhost` on a real phone. There is no entry that fixes it. On hardware,
+   either run `npx expo start --tunnel` (the host becomes `*.exp.direct`, a real
+   name) or use a development build, where the scheme is `tsstark://`.
 
 That is all. `/auth/confirm` already exchanges the code for a session — the same
 route the email links use — and `handle_new_user()` fills the new profile's name

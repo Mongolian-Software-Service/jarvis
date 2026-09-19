@@ -50,10 +50,7 @@ const KNOWN_TINTS: Record<string, TopicTint> = {
   mobile: "teal",
   games: "rose",
   web: "teal",
-  javascript: "amber",
-  typescript: "indigo",
-  react: "violet",
-  python: "rose",
+  app: "violet",
 };
 
 export function topicTint(topic: string): TopicTint {
@@ -68,10 +65,7 @@ export function topicTint(topic: string): TopicTint {
 export function topicLabel(topic: string): string {
   const names: Record<string, string> = {
     web: "Web",
-    javascript: "JavaScript",
-    typescript: "TypeScript",
-    react: "React",
-    python: "Python",
+    app: "App",
     mobile: "Mobile",
     games: "Games",
     general: "General",
@@ -120,6 +114,16 @@ export function aboutPath(locale: Locale): string {
 }
 export function contactPath(locale: Locale): string {
   return `/${locale}/contact`;
+}
+/**
+ * The two pages a school taking money has to have, and could not link to
+ * because they did not exist — the footer listed them as plain text.
+ */
+export function termsPath(locale: Locale): string {
+  return `/${locale}/terms`;
+}
+export function privacyPath(locale: Locale): string {
+  return `/${locale}/privacy`;
 }
 export function signUpPath(locale: Locale): string {
   return `/${locale}/sign-up`;

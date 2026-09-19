@@ -7,6 +7,8 @@ import {
   contactPath,
   coursesPath,
   homePath,
+  privacyPath,
+  termsPath,
   type Locale,
   type Strings,
 } from "@jarvis/core";
@@ -52,8 +54,14 @@ export function Footer({ locale, t }: { locale: Locale; t: Strings }) {
           </div>
           <div className="space-y-2">
             <p className="kicker">{t.footer.legal}</p>
-            <span className="block text-ink-3">{t.footer.terms}</span>
-            <span className="block text-ink-3">{t.footer.privacy}</span>
+            {/* Links now, not text. They were spans because the pages did not
+                exist — a footer naming two documents nobody could open. */}
+            <Link href={termsPath(locale)} className="block text-ink-2 hover:text-ink">
+              {t.footer.terms}
+            </Link>
+            <Link href={privacyPath(locale)} className="block text-ink-2 hover:text-ink">
+              {t.footer.privacy}
+            </Link>
           </div>
         </nav>
       </div>

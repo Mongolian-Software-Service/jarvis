@@ -3,12 +3,13 @@ import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { fmt, formatDuration, groupDigits, radius, space, type CourseStats } from "@jarvis/core";
+import { fmt, formatDuration, groupDigits, space } from "@jarvis/core";
 import { useIntl } from "@/lib/settings";
 import { useAuth } from "@/lib/auth";
 import { useAsync } from "@/lib/use-async";
 import { getStudentOverview } from "@/lib/queries";
-import { Button, Card, Empty, Loading, Progress, Txt } from "@/components/ui";
+import { Button, Card, Empty, Loading, Txt } from "@/components/ui";
+import { OpenCourse, Stat } from "@/components/dashboard/pieces";
 
 /**
  * Where a signed-in student lands.
@@ -165,75 +166,5 @@ export default function DashboardScreen() {
         )}
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function Stat({
-  icon,
-  label,
-  value,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  value: string;
-}) {
-  const { palette } = useIntl();
-  return (
-    <View
-      style={{
-        flex: 1,
-        minWidth: 0,
-        gap: 2,
-        padding: space.md,
-        borderRadius: radius.lg,
-        borderWidth: 1,
-        borderColor: palette.line,
-        backgroundColor: palette.panel,
-      }}
-    >
-      <Ionicons name={icon} size={14} color={palette.ink3} />
-      <Txt variant="heading">{value}</Txt>
-      <Txt variant="micro" tone="dim" numberOfLines={2}>
-        {label}
-      </Txt>
-    </View>
-  );
-}
-
-function OpenCourse({
-  title,
-  progress,
-  first,
-  onPress,
-}: {
-  title: string;
-  progress: CourseStats;
-  first: boolean;
-  onPress: () => void;
-}) {
-  const { palette } = useIntl();
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => ({
-        gap: space.sm,
-        padding: space.md,
-        borderTopWidth: first ? 0 : 1,
-        borderTopColor: palette.line,
-        opacity: pressed ? 0.7 : 1,
-      })}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Txt variant="body" numberOfLines={1}>
-            {title}
-          </Txt>
-        </View>
-        <Txt variant="micro" tone="dim">
-          {progress.completed}/{progress.total}
-        </Txt>
-      </View>
-      <Progress value={progress.percent} tone={progress.finished ? "ok" : "accent"} />
-    </Pressable>
   );
 }

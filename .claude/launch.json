@@ -5,7 +5,7 @@
       "name": "jarvis-web",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@jarvis/web", "dev"],
-      "port": 3000
+      "port": 3001
     }
   ]
 }

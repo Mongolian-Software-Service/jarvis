@@ -29,7 +29,7 @@ type Channel = {
   external: boolean;
 };
 
-/** `facebook.com/jarvis.mn` reads as an address; the full URL reads as markup. */
+/** `instagram.com/ts.stark.software` reads as an address; the full URL reads as markup. */
 function handle(url: string): string {
   return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
 }

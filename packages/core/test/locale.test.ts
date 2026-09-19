@@ -69,7 +69,8 @@ test("sign-in: a real destination is honoured, an off-site one never is", () => 
 test("topics: an unknown tag still gets a stable tint", () => {
   const first = topicTint("rust");
   assert.equal(first, topicTint("rust"));
-  assert.equal(topicTint("react"), "violet");
+  // A tag the table knows keeps the colour the table gives it.
+  assert.equal(topicTint("app"), "violet");
 });
 
 // ── The welcome guide ────────────────────────────────────────────────────────

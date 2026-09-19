@@ -25,7 +25,7 @@ export const COMPANY_URL = "https://tsstark.com";
 
 /** What the product is, in one line, for the masthead and the OG description. */
 export const SITE_TAGLINE: Record<Locale, string> = {
-  mn: "Онлайн код сургалт",
+  mn: "Код бичихгүйгээр апп бүтээж сурах онлайн сургалт",
 };
 
 /** Where the app thinks it lives. Falls back to localhost for a dev machine. */
@@ -86,11 +86,22 @@ export const BUNDLE_SAVING_MNT = BUNDLE_FULL_PRICE_MNT - BUNDLE_PRICE_MNT;
 export type ContactChannel = "email" | "phone" | "facebook" | "instagram";
 
 export const CONTACT: Record<ContactChannel, string> = {
-  email: "info@jarvis.mn",
+  email: "tsstark1@icloud.com",
   /** Written the way it is dialled, and linked as `tel:` with the spaces out. */
-  phone: "+976 7000 0000",
-  facebook: "https://www.facebook.com/jarvis.mn",
-  instagram: "https://www.instagram.com/jarvis.mn",
+  phone: "+976 9921 0611",
+  /*
+   * The canonical profile, not the `/share/…` link it was given as: a share URL
+   * carries a one-off token, is not guaranteed to keep resolving, and says
+   * nothing about who it belongs to. This one at least reads as the company.
+   * It gets shorter the day the page claims a username.
+   */
+  facebook: "https://www.facebook.com/people/TS-Stark-Software-LLC/61591180479626/",
+  /*
+   * `?stkn=…` deliberately dropped. That parameter is a personal share token
+   * tied to the account that copied the link — it belongs in a message, not in
+   * a repository, and the bare handle resolves the same.
+   */
+  instagram: "https://www.instagram.com/ts.stark.software/",
 };
 
 /** `tel:` wants digits and a `+`, not the spacing a person reads. */

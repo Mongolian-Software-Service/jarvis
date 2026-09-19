@@ -52,14 +52,21 @@ changes. The footer's «Powered by» stays **English** beside the Latin mark: it
 is brand lettering, not copy, and half-translating it would give the company two
 shapes.
 
-It was called **Jarvis** until this rename. What changed is the brand — every
-string a reader sees, the phone's home-screen label, the documents. What did
-**not** change is the plumbing: the `@jarvis/*` workspace scopes, the phone's
-`jarvis://` scheme and `mn.jarvis.app` bundle id. Those are identifiers, not
-names — nobody outside the repository reads a package scope, and the scheme and
-bundle id are registered with Supabase's redirect allowlist and the app stores,
-where renaming them breaks Google sign-in on the phone and resets app identity.
-**Rename them only with an ADR that says who is updating those two registries.**
+It was called **Jarvis** until this rename. The brand went first — every string a
+reader sees, the documents. The phone's identifiers followed a few days later,
+while nothing was registered anywhere: `scheme` is now `tsstark`, the bundle id
+and Android package `mn.tsstark.app`, and the Expo slug `tsstark-academy`.
+
+That timing was the whole point. **A bundle id is free to change until Apple has
+seen it once, and expensive afterwards** — a new one is a new app, with its own
+downloads, ratings and reviews. It was changed on the day an Apple Developer
+account appeared and before the first build, which is the last moment it costs
+nothing.
+
+What did **not** change is the `@jarvis/*` workspace scopes. Nobody outside this
+repository reads a package scope, and renaming them touches every import in
+three packages to no one's benefit. If they are ever renamed it is a mechanical
+change, not a decision.
 
 - **One language: Mongolian.** It shipped bilingual and is not. A
   half-translated second edition doubles every copy change and shows somebody a
@@ -96,8 +103,20 @@ a body and an exercise is normal and needs no new kind.
 learns what the pieces are called, how to ask for them clearly, and how to
 check what comes back. So a lesson body carries **no code blocks** — prompts go
 in `>` quotes, and a `code` lesson kind would promise an exercise there is not.
-«Танилцуулга хичээл» and «Кодын суурь» are the two rewritten so far; the other
-four still teach syntax and are next.
+
+**All six courses are now written this way**, and nothing in the seed carries a
+fence or a `code` lesson any more. The `code` kind stays in the enum and in the
+table above because the constraint that guards it is still correct, not because
+anything uses it — a course that wants an exercise back has to bring
+`starter_code` with it. The renderer has no tables either, so a `|` row in a
+body is four pipes on the page; the intro course had one for months.
+
+The front page carries the same promise, and it is easy to break there without
+touching a lesson: the hero line, the framed product shot under it, the topic
+chip on a course card and that course's cover photo are each a claim about what
+this school teaches. The shot showed a syntax-highlighted CSS rule, and
+`fullstack` wore a React source screenshot, for exactly as long as nobody
+looked.
 
 **A course may carry a handbook** — a PDF companion built from
 `docs/handbook/*.html` by `pnpm handbook`, which prints it with headless Chrome
@@ -610,8 +629,19 @@ is configured in this repository (SETUP.md step 7 has the two dashboards).
   absolute URL there would make the sign-in button an open redirect.
 - **The phone uses the system browser**, not a WebView: `openAuthSessionAsync`
   with a `Linking.createURL` redirect, which resolves to `exp://…` in Expo Go and
-  `jarvis://…` installed. Both need to be in Supabase's redirect allowlist, and
+  `tsstark://…` installed. Both need to be in Supabase's redirect allowlist, and
   Google requires a real browser anyway.
+- **A redirect Supabase will not allow is not refused — it is replaced by
+  `site_url`.** So the failure never says "not allowed"; it says whatever
+  `site_url` says, which in development is `http://localhost:3001` and on a
+  phone is Safari reporting it cannot reach the server. Read that error as "the
+  allowlist rejected my redirect", not as "the site is down".
+- **Supabase rejects any redirect whose host is an IP address**, and no
+  allowlist entry changes it — an exact literal is refused too. Expo Go on a
+  *physical* device serves over the LAN IP, so Google sign-in there can never
+  work: run `npx expo start --tunnel` (the host becomes `*.exp.direct`) or use a
+  development build on `tsstark://`. The simulator is unaffected, which is what
+  makes this look like a device bug rather than a URL rule.
 - **Where a new session goes is one function**, `destinationAfterSignIn()` in
   `packages/core/src/courses.ts`, and all three doors call it: the password
   form, the sign-up form, and `/auth/confirm` (which catches Google and every
@@ -723,6 +753,39 @@ card is assembled by one function for both platforms; only the client differs.
    in-app purchase for digital content sold inside an iOS app, and Bonum is not
    that. A free course enrols in-app; a paid one sends the buyer to the website
    and opens the moment they come back. See docs/decisions #009.
+
+### Building it — EAS
+
+The project is **`@tsstark/tsstark-academy`** on the `tsstark` account, and its
+id lives in `app.json` under `extra.eas.projectId`. `eas.json` carries four
+profiles; `development` is the one to reach for, because a development build is
+the only way Google sign-in works reliably on hardware (§6.6).
+
+**The identifiers are registered now, so they are no longer free to change.**
+`mn.tsstark.app` was registered with Apple under team `X32PU9N9PJ` on
+2026-09-18, hours after it was renamed from `mn.jarvis.app` and before the first
+build. That ordering was the whole saving: a bundle id Apple has seen is a bundle
+id you keep, because a new one is a new App Store listing with its own downloads
+and reviews. Renaming it now costs what renaming it then did not.
+
+**Environment variables live on EAS, not in `.env`.** `apps/mobile/.env` is
+gitignored, so a build machine never sees it; the three `EXPO_PUBLIC_*` values
+are set per environment with `eas env:create` and the build prints which it
+loaded. `.env` remains the local-development copy and the two can drift — if a
+build behaves differently from `pnpm dev:mobile`, compare them first.
+
+```bash
+pnpm exec eas env:list --environment development
+```
+
+**The free plan has a monthly iOS build quota**, and running out reads as
+`Error: build command failed` with a billing link rather than anything about the
+code. Two ways past it without paying:
+
+- `eas build --profile development --platform ios --local` builds on this Mac
+  and spends no quota. It needs Xcode, and it is slower.
+- For *testing* alone, no build is needed at all: `npx expo start --tunnel` in
+  Expo Go reaches Supabase's allowlist through `*.exp.direct` (§6.6).
 
 ### Things that bite
 

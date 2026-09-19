@@ -133,8 +133,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
        *
        * `Linking.createURL` is what makes this work in Expo Go *and* in a
        * standalone build: it returns `exp://…/--/auth/callback` in one and
-       * `jarvis://auth/callback` in the other. Both have to be in the Supabase
+       * `tsstark://auth/callback` in the other. Both have to be in the Supabase
        * project's redirect allowlist — see SETUP.md.
+       *
+       * On a **physical** device in Expo Go this resolves to the LAN IP, and
+       * Supabase refuses any redirect whose host is an IP address — no
+       * allowlist entry fixes it. The refusal is silent: it redirects to
+       * `site_url` instead, so the phone shows Safari failing to reach
+       * localhost. Use `--tunnel`, or a development build.
        */
       async signInWithGoogle() {
         const redirectTo = Linking.createURL("/auth/callback");
@@ -151,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (result.type !== "success") return { ok: false, cancelled: true };
 
         // `Linking.parse` rather than `new URL`: the redirect is an `exp://` or
-        // `jarvis://` URL, and URL parsing of non-http schemes is not reliable.
+        // `tsstark://` URL, and URL parsing of non-http schemes is not reliable.
         const code = Linking.parse(result.url).queryParams?.code;
         if (typeof code !== "string") return { ok: false };
 

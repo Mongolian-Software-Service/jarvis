@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { landingPath, signUpPath } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
 import { listCourses } from "@/lib/queries/courses";
 import { getViewer } from "@/lib/queries/viewer";
+import { pageMetadata } from "@/lib/seo";
 import { Hero } from "@/components/home/sections/hero";
 import { CourseGrid } from "@/components/home/sections/courses";
 import Link from "next/link";
@@ -11,6 +13,25 @@ import { buttonClass } from "@/components/ui/button";
 import { TechMarquee } from "@/components/home/tech-marquee";
 import { FeatureRow } from "@/components/home/feature-row";
 import { WebsiteVisual, MobileVisual, GameVisual, AiVisual } from "@/components/home/feature-visuals";
+
+/**
+ * The front page had no metadata at all, and so no Open Graph tags.
+ *
+ * Every other page calls `pageMetadata`; this one — the URL anybody actually
+ * shares — was the exception, so a link to the school posted in Messenger or
+ * Facebook unfurled as a bare grey box. `metadataBase` is set in the root
+ * layout, so a site-relative image resolves to an absolute URL on its own.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale, t } = await getIntl();
+  return pageMetadata({
+    locale,
+    title: t.marketing.hero.title,
+    description: t.marketing.hero.deck,
+    path: "/",
+    image: "/auth-globe.jpg",
+  });
+}
 
 export default async function HomePage() {
   const { locale, t } = await getIntl();

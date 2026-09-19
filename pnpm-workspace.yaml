@@ -24,6 +24,11 @@ allowBuilds:
   sharp: true
   esbuild: true
   unrs-resolver: true
+  # Both arrived with eas-cli, and both are skippable:
+  # dtrace-provider is bunyan's optional DTrace addon — bunyan logs fine
+  # without it — and protobufjs's postinstall is a no-op in current versions.
+  dtrace-provider: false
+  protobufjs: false
 
 minimumReleaseAgeExclude:
   - zod@4.6.2
