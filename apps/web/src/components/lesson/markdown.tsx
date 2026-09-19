@@ -3,6 +3,7 @@ import Link from "next/link";
 import { parseMarkdown, type MdBlock, type MdInline } from "@jarvis/core";
 import { cn } from "@/lib/cn";
 import { CodeBlock } from "./code-block";
+import { Diagram } from "./diagram";
 
 /**
  * A lesson body, rendered from the shared parser's blocks.
@@ -53,6 +54,9 @@ function Block({
       }
       return <h4 className="font-display mt-6 text-base font-medium">{content}</h4>;
     }
+
+    case "diagram":
+      return <Diagram steps={block.steps} />;
 
     case "paragraph":
       return (

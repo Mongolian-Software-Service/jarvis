@@ -4,7 +4,7 @@
  * Line-oriented and single-pass. Every run of text it produces is handed to
  * the inline pass, which is the only thing that knows about `**` and `[]()`.
  */
-import type { MdBlock } from "./types";
+import type { MdBlock, MdStep } from "./types";
 import { parseInline } from "./inline";
 
 const HEADING = /^(#{1,3})\s+(.*)$/;
@@ -41,6 +41,11 @@ export function parseMarkdown(source: string): MdBlock[] {
         i++;
       }
       i++; // past the closing fence
+      if (language === "diagram") {
+        const steps = body.map(parseStep).filter((step): step is MdStep => step !== null);
+        if (steps.length) blocks.push({ type: "diagram", steps });
+        continue;
+      }
       blocks.push({ type: "code", language, code: body.join("\n") });
       continue;
     }
@@ -146,4 +151,20 @@ export function parseMarkdown(source: string): MdBlock[] {
   }
 
   return blocks;
+}
+
+/**
+ * One line of a ```diagram fence: `Label` or `Label | the note under it`.
+ *
+ * A pipe, because it is the one punctuation mark that never appears in
+ * Mongolian prose — an em dash or a colon would have made every step with a
+ * clause in it split in the wrong place. Blank lines are skipped so a long
+ * diagram can be spaced out in the seed for whoever edits it next.
+ */
+function parseStep(line: string): MdStep | null {
+  const text = line.trim();
+  if (!text) return null;
+  const bar = text.indexOf("|");
+  if (bar === -1) return { label: text, note: null };
+  return { label: text.slice(0, bar).trim(), note: text.slice(bar + 1).trim() || null };
 }

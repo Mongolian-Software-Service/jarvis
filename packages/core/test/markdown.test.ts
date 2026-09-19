@@ -23,6 +23,23 @@ test("markdown: a fenced block keeps its language and its text verbatim", () => 
   assert.equal(block?.type === "code" && block.code, "const a = 1;\n\nconst b = 2;");
 });
 
+test("markdown: a diagram fence parses to steps, not to code", () => {
+  const blocks = parseMarkdown("```diagram\nЧи | юу хүсэхээ бичнэ\nClaude\n\nХөтөч | биелүүлнэ\n```");
+  const [block] = blocks;
+  assert.equal(block?.type, "diagram");
+  if (block?.type !== "diagram") return;
+  // The blank line is dropped; a step without a pipe simply has no note.
+  assert.deepEqual(block.steps, [
+    { label: "Чи", note: "юу хүсэхээ бичнэ" },
+    { label: "Claude", note: null },
+    { label: "Хөтөч", note: "биелүүлнэ" },
+  ]);
+});
+
+test("markdown: an empty diagram fence produces no block at all", () => {
+  assert.deepEqual(parseMarkdown("```diagram\n\n```"), []);
+});
+
 test("markdown: an unclosed fence runs to the end rather than eating the parser", () => {
   const blocks = parseMarkdown("Текст\n\n```js\nconst a = 1;");
   assert.equal(blocks.length, 2);

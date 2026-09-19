@@ -11,6 +11,10 @@
  * Supported, deliberately: `#`/`##`/`###` headings, paragraphs, `-` and `1.`
  * lists, fenced code with a language, `>` quotes, `---` rules, and inline
  * `**bold**`, `*italic*`, `` `code` `` and `[links](href)`.
+ *
+ * One fence is not code: ```diagram parses to a `diagram` block, one step per
+ * line, `Label | the note under it`. It is how a lesson draws a picture without
+ * carrying one — see `MdStep` in `./types`.
  */
 
 export * from "./types";

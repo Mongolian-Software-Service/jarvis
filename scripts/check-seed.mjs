@@ -13,71 +13,10 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { FIELDS, splitFields } from "./seed/fields.mjs";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const lines = readFileSync(join(root, "supabase/seed.sql"), "utf8").split("\n");
-
-const FIELDS = [
-  "id",
-  "module_id",
-  "course_id",
-  "slug",
-  "title_mn",
-  "title_en",
-  "kind",
-  "video_url",
-  "duration_minutes",
-  "body_mn",
-  "body_en",
-  "code_language",
-  "starter_code",
-  "solution_code",
-  "is_preview",
-  "rank",
-];
-
-/**
- * Split on top-level commas only.
- *
- * A naive `split(",")` breaks on a title like `'Текст, холбоос, зураг'` and
- * then reports a parse failure for a row that is perfectly fine — which is
- * exactly how a checker teaches people to ignore it.
- */
-function splitFields(text) {
-  const out = [];
-  let current = "";
-  let quoted = false;
-  let depth = 0;
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (quoted) {
-      if (ch === "'" && text[i + 1] === "'") {
-        current += "''";
-        i++;
-        continue;
-      }
-      if (ch === "'") quoted = false;
-      current += ch;
-    } else if (ch === "'") {
-      quoted = true;
-      current += ch;
-    } else if (ch === "(") {
-      depth++;
-      current += ch;
-    } else if (ch === ")") {
-      depth--;
-      current += ch;
-    } else if (ch === "," && depth === 0) {
-      out.push(current.trim());
-      current = "";
-    } else {
-      current += ch;
-    }
-  }
-  if (current.trim()) out.push(current.trim());
-  return out;
-}
 
 const starts = [];
 lines.forEach((line, index) => {
@@ -157,6 +96,44 @@ starts.forEach((start, n) => {
 });
 
 /*
+ * No lesson body may open a fence that is not a diagram.
+ *
+ * The school teaches directing, not typing (CLAUDE.md §1): a body carries no
+ * code, and the one fence it may open is ```diagram, which parses to boxes
+ * rather than to a `code` block. This is the guard for that rule, because it is
+ * a rule about prose — nothing in Postgres or TypeScript can notice a lesson
+ * quietly growing a `js` snippet again, and six courses had to be rewritten
+ * once already.
+ *
+ * Tables are checked in the same pass. The renderer has no table node, so a
+ * `| a | b |` row reaches the reader as four pipes on the page, and it did for
+ * months in the intro course before anybody opened that lesson.
+ */
+const source = readFileSync(join(root, "supabase/seed.sql"), "utf8");
+for (const match of source.matchAll(/\$md\$([\s\S]*?)\$md\$/g)) {
+  const body = match[1];
+  const first = source.slice(0, match.index).split("\n").length;
+
+  // Fences come in pairs, so only every other one names a language — checking
+  // each ``` line independently reports the closing fence of a legal diagram.
+  let open = false;
+  body.split("\n").forEach((text, offset) => {
+    const fence = /^```[ \t]*([A-Za-z0-9+#-]*)[ \t]*$/.exec(text);
+    if (fence) {
+      if (!open && fence[1].toLowerCase() !== "diagram") {
+        const what = fence[1] || "(no language)";
+        problems.push([first + offset, "body", `opens a \`\`\`${what} fence — only \`\`\`diagram is allowed`]);
+      }
+      open = !open;
+      return;
+    }
+    if (!open && /^[ \t]*\|/.test(text)) {
+      problems.push([first + offset, "body", "has a Markdown table — the renderer draws it as pipes"]);
+    }
+  });
+}
+
+/*
  * And one thing about courses, which Postgres cannot catch.
  *
  * `courses.is_free` defaults to false. Drop it from the insert's column list
@@ -166,7 +143,7 @@ starts.forEach((start, n) => {
  * kind of omission worth a line of arithmetic here.
  */
 const courseBlock =
-  readFileSync(join(root, "supabase/seed.sql"), "utf8")
+  source
     .split("insert into public.courses")[1]
     ?.split("on conflict")[0] ?? "";
 

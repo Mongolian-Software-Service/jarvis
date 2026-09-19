@@ -105,11 +105,24 @@ check what comes back. So a lesson body carries **no code blocks** — prompts g
 in `>` quotes, and a `code` lesson kind would promise an exercise there is not.
 
 **All six courses are now written this way**, and nothing in the seed carries a
-fence or a `code` lesson any more. The `code` kind stays in the enum and in the
-table above because the constraint that guards it is still correct, not because
-anything uses it — a course that wants an exercise back has to bring
-`starter_code` with it. The renderer has no tables either, so a `|` row in a
-body is four pipes on the page; the intro course had one for months.
+code fence or a `code` lesson any more. The `code` kind stays in the enum and in
+the table above because the constraint that guards it is still correct, not
+because anything uses it — a course that wants an exercise back has to bring
+`starter_code` with it.
+
+**One fence is still allowed, and it is not code**: ```diagram parses to a
+`diagram` block — one step per line, `Label | the note under it` — which the web
+draws as a row of boxes (a column on a phone) and `apps/mobile` draws as a
+column. It exists because a lesson body **cannot carry a picture**: there is no
+image node in `parseMarkdown()` and there should not be one, since an image is a
+file somebody has to keep in step with the prose in two places and translate
+separately. A written diagram travels with the sentence that explains it.
+
+`scripts/check-seed.mjs` enforces both halves of this — a body may open no other
+fence, and may contain no `|` table row, because the renderer has no table node
+and draws one as four pipes on the page. The intro course had one for months.
+Nothing in Postgres or TypeScript can notice prose going wrong, which is why
+that guard is a script and why it runs inside `pnpm test`.
 
 The front page carries the same promise, and it is easy to break there without
 touching a lesson: the hero line, the framed product shot under it, the topic
