@@ -207,7 +207,7 @@ across `sb-<ref>-auth-token.0`, `.1`, … at ~3.2KB each — and Next's own
 anybody expects. A browser profile used for a lot of local work hits it; a
 clean one does not, which is what makes it look like a bug in the app.
 
-`jarvis.mn` is not exposed to this: on a real domain the jar is ours alone,
+`www.tsstark-academy.com` is not exposed to this: on a real domain the jar is ours alone,
 and our own cookies come to roughly 7KB. So this belongs on the dev script and
 nowhere else. **If it is ever hit again, the fix is to clear the cookies for
 `localhost`, not to raise the number again.**

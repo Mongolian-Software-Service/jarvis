@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft, BookOpenText, Lock } from "lucide-react";
 import {
   coursePath,
+  fmt,
   formatDuration,
+  handbookFor,
+  handbookPath,
   kindLabel,
+  learnPath,
   lessonPath,
   type Locale,
 } from "@jarvis/core";
@@ -42,16 +46,27 @@ export default async function LessonPage({
   const path = lessonPath(locale, course, lesson);
   const copy = { copy: t.actions.copy, copied: t.actions.copied };
   const completed = new Set(view.completed);
+  const handbook = handbookFor(view.course.slug);
 
   const sidebar = (
     <aside className="space-y-4">
-      <Link
-        href={coursePath(locale, view.course.slug)}
-        className="inline-flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink"
-      >
-        <ArrowLeft className="size-4" />
-        {view.course.title}
-      </Link>
+      {/*
+       * Out of the course, not back to its sales page: for somebody holding
+       * the course that page now redirects here, so a link to it would be a
+       * link to the lesson they are already reading. The course's own name
+       * stays as text, because it is the only place this screen says which
+       * course these lessons belong to.
+       */}
+      <div className="space-y-1">
+        <Link
+          href={learnPath(locale)}
+          className="text-ink-3 hover:text-ink inline-flex items-center gap-1.5 text-sm"
+        >
+          <ArrowLeft className="size-4" />
+          {t.nav.tab.learn}
+        </Link>
+        <p className="font-display text-[15px]">{view.course.title}</p>
+      </div>
       <Syllabus
         modules={view.modules}
         courseSlug={view.course.slug}
@@ -61,6 +76,31 @@ export default async function LessonPage({
         completed={completed}
         currentSlug={lesson}
       />
+
+      {/*
+       * The handbook sits under the syllabus, after the last lesson, because
+       * that is what it is: the thing you reach for once the course has run
+       * out. Above the list it would compete with the lesson the reader came
+       * for; on the course page alone it is invisible to anybody already
+       * studying, which is everybody who would use it.
+       */}
+      {handbook ? (
+        <Link
+          href={handbookPath(locale, view.course.slug)}
+          className="panel hover:bg-panel-2 flex items-center gap-3 px-4 py-3 transition-colors"
+        >
+          <BookOpenText className="text-ink-3 size-4 shrink-0" />
+          <span className="min-w-0">
+            <span className="block text-[13px]">{t.learn.course.handbook.title}</span>
+            <span className="text-ink-3 block text-[11px]">
+              {fmt(t.learn.course.handbook.meta, {
+                pages: handbook.pages,
+                size: handbook.sizeKb,
+              })}
+            </span>
+          </span>
+        </Link>
+      ) : null}
     </aside>
   );
 
@@ -77,9 +117,9 @@ export default async function LessonPage({
       <div className="shell grid gap-10 py-10 lg:grid-cols-[18rem_1fr]">
         <div className="hidden lg:block">{sidebar}</div>
         <div className="panel flex flex-col items-center gap-4 px-6 py-20 text-center">
-          <Lock className="size-8 text-ink-3" />
+          <Lock className="text-ink-3 size-8" />
           <h1 className="font-display text-[22px]">{t.learn.player.lockedTitle}</h1>
-          <p className="max-w-sm text-[13px] text-ink-3">{t.learn.player.lockedBody}</p>
+          <p className="text-ink-3 max-w-sm text-[13px]">{t.learn.player.lockedBody}</p>
           <Link
             href={coursePath(locale, view.course.slug)}
             className={buttonClass("primary", "md")}
@@ -109,9 +149,7 @@ export default async function LessonPage({
             {kindLabel(item.kind, locale)}
             {item.minutes > 0 ? ` · ${formatDuration(item.minutes, locale)}` : ""}
           </p>
-          <h1 className="font-display text-[28px] leading-tight sm:text-[34px]">
-            {item.title}
-          </h1>
+          <h1 className="font-display text-[28px] leading-tight sm:text-[34px]">{item.title}</h1>
         </header>
         <LessonBody view={view} item={item} path={path} t={t} copy={copy} />
 

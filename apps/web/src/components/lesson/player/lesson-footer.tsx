@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { coursePath, lessonPath, type LessonContent, type Locale, type Strings } from "@jarvis/core";
+import { learnPath, lessonPath, type LessonContent, type Locale, type Strings } from "@jarvis/core";
 import type { LessonView } from "@/lib/queries/learn";
 import { CompleteButton } from "@/components/lesson/complete-button";
 import { buttonClass } from "@/components/ui/button";
@@ -55,7 +55,7 @@ export function LessonFooter({
               </Link>
             ) : (
               <Link
-                href={coursePath(locale, view.course.slug)}
+                href={learnPath(locale)}
                 className={buttonClass("secondary", "md")}
               >
                 {t.learn.player.backToCourse}

@@ -62,8 +62,8 @@ console). **Everything else is configuration, and there is a script for it.**
    ```
    SUPABASE_ACCESS_TOKEN=sbp_...
    SUPABASE_PROJECT_REF=abcdefghijklmnop
-   APP_URL=https://yourdomain.mn          # optional, for the redirect allowlist
-   GOOGLE_CLIENT_ID=...                   # optional, from step 7
+   APP_URL=https://www.tsstark-academy.com  # optional, for the redirect allowlist
+   GOOGLE_CLIENT_ID=...                     # optional, from step 7
    GOOGLE_CLIENT_SECRET=...
    ```
 
@@ -126,7 +126,7 @@ By default Supabase emails a confirmation link before an account can sign in.
 developing, or read the link in **Authentication → Logs**.
 
 For production, set **Authentication → URL Configuration → Site URL** to your
-real domain and add `https://yourdomain.mn/auth/confirm` to the redirect
+real domain and add `https://www.tsstark-academy.com/auth/confirm` to the redirect
 allowlist, or every confirmation link will point at localhost.
 
 ### Google sign-in
@@ -137,9 +137,25 @@ switched on, and neither of them lives in this repository.
 **In Google Cloud Console** — [console.cloud.google.com](https://console.cloud.google.com):
 
 1. Create a project (or pick one), then **APIs & Services → OAuth consent
-   screen**. External. Fill in the app name, your support email, and the
-   developer email. While it is in *Testing* only the addresses you list under
-   *Test users* can sign in — publish it when you are ready for real students.
+   screen** — the current console has renamed this **Google Auth Platform →
+   Branding**. External.
+
+   **The app name is `TsStark Academy`, and it is not a formality.** It is the
+   line a student reads at the moment they decide whether to hand over their
+   Google account: the chooser says *"to continue to <app name>"*. Left unset,
+   Google falls back to the OAuth client's own host — so the school introduces
+   itself as `<your-project-ref>.supabase.co`, which is a string nobody
+   recognises and every phishing warning has taught them to distrust. Fill in
+   the support email and the developer email as well; the form will not save
+   without both.
+
+   The host disappears from that screen only with a Supabase **custom domain**
+   (a paid add-on): the callback then lives on a domain that is ours, and
+   Google has something of ours to print. Until then the app name is the whole
+   of the branding, which is why it has to be right.
+
+   While it is in *Testing* only the addresses you list under *Test users* can
+   sign in — publish it when you are ready for real students.
 2. **Credentials → Create credentials → OAuth client ID → Web application.**
 3. Under **Authorised redirect URIs** add exactly one:
 
@@ -158,7 +174,7 @@ switched on, and neither of them lives in this repository.
 
    ```
    http://localhost:3001/auth/confirm      the web, locally
-   https://yourdomain.mn/auth/confirm      the web, in production
+   https://www.tsstark-academy.com/auth/confirm      the web, in production
    tsstark://**                            the app, installed
    exp://**                                Expo Go on a simulator
    exp://*.exp.direct/**                   Expo Go on a real phone, --tunnel
@@ -202,7 +218,7 @@ merchant account.
 
 When Bonum issues real credentials, fill in `BONUM_APP_SECRET`,
 `BONUM_TERMINAL_ID` and `BONUM_MERCHANT_CHECKSUM_KEY`, set `BONUM_MOCK=0`, and
-point `BONUM_CALLBACK_URL` at `https://yourdomain.mn/api/webhooks/bonum`. See
+point `BONUM_CALLBACK_URL` at `https://www.tsstark-academy.com/api/webhooks/bonum`. See
 `.claude/skills/payments`.
 
 ## 9. Deploy to Vercel
@@ -223,7 +239,9 @@ In the Vercel project settings:
 > Turborepo runs builds in strict env mode: a name missing from that list is not
 > passed to the build however carefully it was set in the dashboard.
 
-Set `NEXT_PUBLIC_APP_URL` to the real domain. It is what the confirmation links,
+Set `NEXT_PUBLIC_APP_URL` to `https://www.tsstark-academy.com`. The apex redirects there,
+so the `www.` form is the canonical one and the only one worth building links
+from. It is what the confirmation links,
 the sitemap, the OG tags and the payment callback are built from.
 
 ## 10. After the first deploy

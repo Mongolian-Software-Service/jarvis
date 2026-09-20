@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { excerpt, handbookFor, type Locale } from "@jarvis/core";
+import { notFound, redirect } from "next/navigation";
+import { excerpt, handbookFor, lessonPath, type Locale } from "@jarvis/core";
 import { getIntl, getLocale } from "@/lib/locale";
 import { getCourseBySlug, hasCourseAccess } from "@/lib/queries/courses";
+import { resumeLessonSlug } from "@/lib/queries/learn";
 import { getViewer } from "@/lib/queries/viewer";
 import { pageMetadata } from "@/lib/seo";
 import { Syllabus } from "@/components/course/syllabus";
@@ -34,6 +35,25 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/course
   if (!course) notFound();
 
   const [access, viewer] = await Promise.all([hasCourseAccess(course.id), getViewer()]);
+
+  /*
+   * Somebody who already holds this course is not shopping for it.
+   *
+   * This page argues: here is what the course is, here is what it costs, here
+   * is how to get it. Every one of those sentences is answered for a student
+   * who owns it, and they arrive here constantly — from the catalogue, from a
+   * link, from the browser's own history. So they go where they were going.
+   *
+   * The page stays public and unchanged for a stranger, which is the whole
+   * reason it lives in `(site)` (§3). Admins are exempt: previewing a course
+   * is what the console's link on that course's row is for, and a preview that
+   * redirects into a lesson previews nothing.
+   */
+  if (access && viewer?.role !== "admin") {
+    const resume = await resumeLessonSlug(slug, locale);
+    if (resume) redirect(lessonPath(locale, slug, resume));
+  }
+
   const handbook = handbookFor(course.slug);
   const copy = { copy: t.actions.copy, copied: t.actions.copied };
 
