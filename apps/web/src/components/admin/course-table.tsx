@@ -90,8 +90,15 @@ export function CourseTable({
                 {course.published ? t.admin.courses.published : t.admin.courses.draft}
               </Badge>
 
+              {/*
+                * `?preview=1` is what makes this link show the page rather
+                * than redirect into a lesson: the course page sends anybody
+                * holding the course straight to where they were studying, and
+                * the team holds every course (§6.7). Asking for the preview by
+                * name is better than exempting admins, who are students too.
+                */}
               <Link
-                href={coursePath(locale, course.slug)}
+                href={`${coursePath(locale, course.slug)}?preview=1`}
                 className="text-xs text-ink-3 hover:text-ink"
               >
                 {t.admin.nav.viewSite}

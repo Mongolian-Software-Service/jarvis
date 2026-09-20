@@ -27,8 +27,12 @@ export async function generateMetadata({
   });
 }
 
-export default async function CoursePage({ params }: PageProps<"/[locale]/courses/[slug]">) {
+export default async function CoursePage({
+  params,
+  searchParams,
+}: PageProps<"/[locale]/courses/[slug]">) {
   const { slug } = await params;
+  const { preview } = await searchParams;
   const { locale, t } = await getIntl();
 
   const course = await getCourseBySlug(slug, locale);
@@ -45,11 +49,16 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/course
    * link, from the browser's own history. So they go where they were going.
    *
    * The page stays public and unchanged for a stranger, which is the whole
-   * reason it lives in `(site)` (§3). Admins are exempt: previewing a course
-   * is what the console's link on that course's row is for, and a preview that
-   * redirects into a lesson previews nothing.
+   * reason it lives in `(site)` (§3). `?preview=1` opts back in, and the
+   * console's link on a course row carries it — that link exists to show this
+   * page, and a preview that redirects into a lesson previews nothing.
+   *
+   * The opt-in is a parameter rather than an exemption for admins, because the
+   * team holds every course (§6.7) and studies like everybody else. Exempting
+   * the role would mean the one person who runs the school is the one person
+   * the redirect never works for.
    */
-  if (access && viewer?.role !== "admin") {
+  if (access && !preview) {
     const resume = await resumeLessonSlug(slug, locale);
     if (resume) redirect(lessonPath(locale, slug, resume));
   }
