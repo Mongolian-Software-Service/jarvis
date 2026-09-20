@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookOpen, CheckCircle2, Clock } from "lucide-react";
 import {
-  coursePlayerPath,
   coursesPath,
   fmt,
   formatDuration,
   groupDigits,
+  learnPath,
   lessonPath,
 } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
@@ -100,10 +100,18 @@ export default async function DashboardPage() {
         <section>
           <h2 className="font-display mb-4 text-[20px]">{t.learn.overview.inProgress}</h2>
           <div className="panel divide-y divide-line overflow-hidden">
+            {/*
+              * Every row goes to «Миний сургалт», not into its own course.
+              * Resuming already has a screen of its own directly above — the
+              * course, the lesson and a button straight into it. A second way
+              * to resume, hidden behind a progress bar, would be the same
+              * journey twice; this list is here to be read, and the place it
+              * leads to is the fuller version of itself.
+              */}
             {started.map((course) => (
               <Link
                 key={course.id}
-                href={coursePlayerPath(locale, course.slug)}
+                href={learnPath(locale)}
                 className="flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-panel-2"
               >
                 <span className="min-w-0 flex-1">
