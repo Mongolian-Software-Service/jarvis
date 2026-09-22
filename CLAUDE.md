@@ -131,14 +131,21 @@ this school teaches. The shot showed a syntax-highlighted CSS rule, and
 `fullstack` wore a React source screenshot, for exactly as long as nobody
 looked.
 
-**A course may carry a handbook** — a PDF companion built from
-`docs/handbook/*.html` by `pnpm handbook`, which prints it with headless Chrome
-and writes the page count back into `packages/core/src/handbooks.ts`. The PDF is
-committed, because the build needs a browser the deploy does not have. It is
-**public**, deliberately: a stranger who downloads it and learns what a server
-is has been taught something, which is the argument for the school. The document
-is light where the product is dark (§4) — a page gets printed, and that is a
-different medium, not a second theme.
+**There is no handbook.** A course carried a PDF companion for a while: built
+from HTML by headless Chrome, committed because the deploy has no browser, and
+public on the argument that a stranger who downloads it and learns what a server
+is has been taught something.
+
+It is gone — two PDFs, their sources, the SVG diagrams, the two scripts that
+drew and printed them, a route to read one, a row on the phone, and the
+paragraph that used to stand here. The lessons are the course. A second document
+saying the same things in another medium is a second document to keep true every
+time a lesson changes, and nothing in `pnpm test` could ever have noticed it
+drifting.
+
+If a printed companion is wanted again it comes back as a decision in
+`docs/decisions/`, and that decision has to answer the question this one could
+not: who rewrites it the week the course changes.
 
 **Every course ends with an exam**: a final module named «Шалгалт» holding one
 `quiz` lesson of **ten** questions, passed at 60% (`QUIZ_PASS_SCORE`). The

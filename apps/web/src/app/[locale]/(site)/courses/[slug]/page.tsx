@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { excerpt, handbookFor, lessonPath, type Locale } from "@jarvis/core";
+import { excerpt, lessonPath, type Locale } from "@jarvis/core";
 import { getIntl, getLocale } from "@/lib/locale";
 import { getCourseBySlug, hasCourseAccess } from "@/lib/queries/courses";
 import { resumeLessonSlug } from "@/lib/queries/learn";
@@ -63,7 +63,6 @@ export default async function CoursePage({
     if (resume) redirect(lessonPath(locale, slug, resume));
   }
 
-  const handbook = handbookFor(course.slug);
   const copy = { copy: t.actions.copy, copied: t.actions.copied };
 
   return (
@@ -77,7 +76,7 @@ export default async function CoursePage({
       />
 
       <div className="shell grid gap-12 py-12 lg:grid-cols-[1fr_22rem] lg:items-start">
-        <CourseAbout course={course} locale={locale} t={t} copy={copy} handbook={handbook} />
+        <CourseAbout course={course} t={t} copy={copy} />
 
         <section className="lg:sticky lg:top-24">
           <h2 className="font-display mb-4 text-[20px]">{t.learn.course.syllabus}</h2>

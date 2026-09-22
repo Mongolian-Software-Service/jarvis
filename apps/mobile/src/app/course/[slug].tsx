@@ -10,7 +10,6 @@ import { useAuth } from "@/lib/auth";
 import { useAsync } from "@/lib/use-async";
 import { enrollFree, getCourse, hasAccess, resumeLesson } from "@/lib/queries";
 import { AccessCard } from "@/components/course/access-card";
-import { HandbookRow } from "@/components/course/handbook-row";
 import { CourseSyllabus } from "@/components/course/syllabus";
 import { Badge, Loading, Txt } from "@/components/ui";
 
@@ -106,8 +105,6 @@ export default function CourseScreen() {
           open={() => void open()}
           take={() => void take()}
         />
-
-        <HandbookRow slug={course.slug} t={t} />
 
         <CourseSyllabus course={course} locale={locale} t={t} access={access} />
       </ScrollView>

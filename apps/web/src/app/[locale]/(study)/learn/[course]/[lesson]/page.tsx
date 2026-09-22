@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpenText, Lock } from "lucide-react";
+import { ArrowLeft, Lock } from "lucide-react";
 import {
   coursePath,
-  fmt,
   formatDuration,
-  handbookFor,
-  handbookPath,
   kindLabel,
   learnPath,
   lessonPath,
@@ -46,7 +43,6 @@ export default async function LessonPage({
   const path = lessonPath(locale, course, lesson);
   const copy = { copy: t.actions.copy, copied: t.actions.copied };
   const completed = new Set(view.completed);
-  const handbook = handbookFor(view.course.slug);
 
   const sidebar = (
     <aside className="space-y-4">
@@ -76,31 +72,6 @@ export default async function LessonPage({
         completed={completed}
         currentSlug={lesson}
       />
-
-      {/*
-       * The handbook sits under the syllabus, after the last lesson, because
-       * that is what it is: the thing you reach for once the course has run
-       * out. Above the list it would compete with the lesson the reader came
-       * for; on the course page alone it is invisible to anybody already
-       * studying, which is everybody who would use it.
-       */}
-      {handbook ? (
-        <Link
-          href={handbookPath(locale, view.course.slug)}
-          className="panel hover:bg-panel-2 flex items-center gap-3 px-4 py-3 transition-colors"
-        >
-          <BookOpenText className="text-ink-3 size-4 shrink-0" />
-          <span className="min-w-0">
-            <span className="block text-[13px]">{t.learn.course.handbook.title}</span>
-            <span className="text-ink-3 block text-[11px]">
-              {fmt(t.learn.course.handbook.meta, {
-                pages: handbook.pages,
-                size: handbook.sizeKb,
-              })}
-            </span>
-          </span>
-        </Link>
-      ) : null}
     </aside>
   );
 

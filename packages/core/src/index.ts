@@ -16,7 +16,6 @@ export * from "./roles";
 export * from "./format";
 export * from "./google-mark";
 export * from "./courses";
-export * from "./handbooks";
 export * from "./shapes";
 export * from "./theme";
 export * from "./progress";

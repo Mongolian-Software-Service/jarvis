@@ -99,10 +99,6 @@ export function helloPath(locale: Locale): string {
 export function accountPath(locale: Locale): string {
   return `/${locale}/account`;
 }
-/** The in-site reader for a course's handbook, not the PDF itself. */
-export function handbookPath(locale: Locale, courseSlug: string): string {
-  return `/${locale}/courses/${courseSlug}/handbook`;
-}
 export function coursePlayerPath(locale: Locale, courseSlug: string): string {
   return `/${locale}/learn/${courseSlug}`;
 }
