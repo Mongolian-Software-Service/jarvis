@@ -93,7 +93,20 @@ starts.forEach((start, n) => {
    * stuck at 0:00 with no error anywhere. Four lessons shipped like that.
    */
   if (/youtube\.com|youtu\.be|vimeo\.com|\/watch\?/.test(at("video_url"))) {
-    problems.push([start + 1, slug, "video_url is a web page, not a file — <video> cannot play it"]);
+    problems.push([
+      start + 1,
+      slug,
+      "video_url is a web page, not a file — <video> cannot play it",
+    ]);
+  }
+  /*
+   * Google's sample bucket was this seed's stand-in until it began refusing
+   * anonymous requests. Every clip in it is a 403 now — a black frame with
+   * nothing in the console — so a row copied from an old seed is refused here
+   * rather than discovered by a student.
+   */
+  if (/commondatastorage\.googleapis\.com|gtv-videos-bucket/.test(at("video_url"))) {
+    problems.push([start + 1, slug, "video_url is in Google's sample bucket, which answers 403"]);
   }
   /*
    * A stand-in video is not a failure — a lesson has to exist before its film
@@ -102,9 +115,9 @@ starts.forEach((start, n) => {
    * different thing, and the only way that happens is silently.
    *
    * So these are counted and named on every run. `pnpm test` stays green and
-   * still says out loud which lessons are showing a Google sample reel.
+   * still says out loud which lessons are showing the MDN sample clip.
    */
-  if (/commondatastorage\.googleapis\.com|gtv-videos-bucket/.test(at("video_url"))) {
+  if (/interactive-examples\.mdn\.mozilla\.net\/media\/cc0-videos\//.test(at("video_url"))) {
     placeholders.push([start + 1, slug]);
   }
   if (kind === "text" && at("body_mn") === "null") {
@@ -146,13 +159,21 @@ for (const match of source.matchAll(/\$md\$([\s\S]*?)\$md\$/g)) {
     if (fence) {
       if (!open && fence[1].toLowerCase() !== "diagram") {
         const what = fence[1] || "(no language)";
-        problems.push([first + offset, "body", `opens a \`\`\`${what} fence — only \`\`\`diagram is allowed`]);
+        problems.push([
+          first + offset,
+          "body",
+          `opens a \`\`\`${what} fence — only \`\`\`diagram is allowed`,
+        ]);
       }
       open = !open;
       return;
     }
     if (!open && /^[ \t]*\|/.test(text)) {
-      problems.push([first + offset, "body", "has a Markdown table — the renderer draws it as pipes"]);
+      problems.push([
+        first + offset,
+        "body",
+        "has a Markdown table — the renderer draws it as pipes",
+      ]);
     }
   });
 }
@@ -166,10 +187,7 @@ for (const match of source.matchAll(/\$md\$([\s\S]*?)\$md\$/g)) {
  * anything without buying. A default that silently means "no" is exactly the
  * kind of omission worth a line of arithmetic here.
  */
-const courseBlock =
-  source
-    .split("insert into public.courses")[1]
-    ?.split("on conflict")[0] ?? "";
+const courseBlock = source.split("insert into public.courses")[1]?.split("on conflict")[0] ?? "";
 
 if (!/\(.*\bis_free\b/s.test(courseBlock.split("values")[0] ?? "")) {
   problems.push([

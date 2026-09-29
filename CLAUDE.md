@@ -155,9 +155,10 @@ get somebody to the thing they built, not to grade them on the way.
 **A quiz inside a module is a different object and stays.** Four questions,
 asked right after the lesson that warned about the mistake, marked in the
 browser with the explanation as the second half of the teaching
-(`QUIZ_PASS_SCORE` is still what marks it). One survives — «Шалгалт: HTML ба
-CSS» — and more are welcome. The rule the seed guard encodes is the distinction:
-four questions is a quiz, ten was an exam.
+(`QUIZ_PASS_SCORE` is still what marks it). None is in the seed right now —
+the last, «Шалгалт: HTML ба CSS», went with the lessons it asked about when
+Landing page became a single video — and more are welcome. The rule the seed
+guard encodes is the distinction: four questions is a quiz, ten was an exam.
 
 So the `quiz` kind stays, and so does the constraint Postgres cannot express —
 questions live in another table, so a `quiz` lesson with none applies cleanly
@@ -683,7 +684,7 @@ is configured in this repository (SETUP.md step 7 has the two dashboards).
   that is what `site_url` is, and on the deployed site the same broken match
   landed correctly and hid the fault for as long as nobody worked locally.
   `scripts/supabase/auth.mjs` holds the list; `node scripts/supabase-setup.mjs
-  --auth` pushes it without touching the seed.
+--auth` pushes it without touching the seed.
 - **Where a new session goes is one function**, `destinationAfterSignIn()` in
   `packages/core/src/courses.ts`, and all three doors call it: the password
   form, the sign-up form, and `/auth/confirm` (which catches Google and every
