@@ -9,7 +9,6 @@
   "scripts": {
     "dev": "turbo dev",
     "dev:web": "pnpm --filter @jarvis/web dev",
-    "dev:mobile": "pnpm --filter @jarvis/mobile start",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",

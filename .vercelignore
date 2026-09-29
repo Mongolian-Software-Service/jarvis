@@ -12,8 +12,6 @@ node_modules
 out
 dist
 .turbo
-.expo
-.expo-shared
 
 # Local only.
 .env
@@ -24,7 +22,10 @@ dist
 
 # NOT excluded, deliberately:
 #
-#   apps/mobile   — `pnpm install --frozen-lockfile` reads every package named
-#                   in pnpm-workspace.yaml. Drop one and the install fails
-#                   before the web app is ever built.
-#   docs/         — small, and `pnpm handbook` is not run here anyway.
+#   docs/         — small, and nothing here builds from it.
+#
+# `apps/mobile` used to be named here as a deliberate non-exclusion, because
+# `pnpm install --frozen-lockfile` reads every package listed in
+# pnpm-workspace.yaml and dropping one fails the install before the web app is
+# ever built. That app is gone (CLAUDE.md §9); the rule it illustrated still
+# applies to any workspace package added later.

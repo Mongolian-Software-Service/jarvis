@@ -2,33 +2,17 @@ packages:
   - "apps/*"
   - "packages/*"
 
-# Expo's native runtime looks a module up by *name* at runtime, so a transitive
-# dependency like `expo-asset` has to sit somewhere a plain lookup finds it.
-# pnpm's isolated layout leaves it under `.pnpm` only — which is what
-# "Cannot find native module 'ExpoAsset'" means when apps/mobile lands.
-#
-# Hoisting these rather than everything (`nodeLinker: hoisted`): a fully flat
-# workspace also flattens the two apps' React versions into one — the web is on
-# Next's, the phone on Expo's — and moves `server-only` somewhere the
-# `react-server` condition no longer reaches.
-publicHoistPattern:
-  - "expo"
-  - "expo-*"
-  - "@expo/*"
-  - "react-native"
-  - "react-native-*"
-
 # pnpm 11 asks before running a package's install scripts. true = a native build
 # we actually need; false = a no-op or funding banner we deliberately skip.
+#
+# `dtrace-provider` and `protobufjs` used to sit here as `false`. They arrived
+# with `eas-cli`, which left with `apps/mobile`, so neither is in the tree any
+# more and naming them would only tell the next person to look for an Expo app
+# that is not here.
 allowBuilds:
   sharp: true
   esbuild: true
   unrs-resolver: true
-  # Both arrived with eas-cli, and both are skippable:
-  # dtrace-provider is bunyan's optional DTrace addon — bunyan logs fine
-  # without it — and protobufjs's postinstall is a no-op in current versions.
-  dtrace-provider: false
-  protobufjs: false
 
 minimumReleaseAgeExclude:
   - zod@4.6.2

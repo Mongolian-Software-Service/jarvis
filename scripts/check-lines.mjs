@@ -16,11 +16,11 @@
  * is 160 lines of *code*, and a well-documented file is allowed to be long on
  * disk.
  *
- * Why this and not ESLint's `max-lines`: lint runs in `apps/web` and
- * `apps/mobile` only. `packages/core` has no ESLint config, and `scripts/` and
- * `supabase/` are not linted at all — so half the repository would be exempt
- * by accident rather than by decision. Everything that is exempt here is
- * exempt on purpose, with the reason written next to it.
+ * Why this and not ESLint's `max-lines`: lint runs in `apps/web` alone.
+ * `packages/core` has no ESLint config, and `scripts/` and `supabase/` are not
+ * linted at all — so half the repository would be exempt by accident rather
+ * than by decision. Everything that is exempt here is exempt on purpose, with
+ * the reason written next to it.
  *
  *   node scripts/check-lines.mjs           report and fail
  *   node scripts/check-lines.mjs --list    every file, longest first

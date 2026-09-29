@@ -40,16 +40,7 @@
         "BONUM_TERMINAL_ID",
         "BONUM_MERCHANT_CHECKSUM_KEY",
         "BONUM_CALLBACK_URL",
-        "BONUM_MOCK",
-
-        /*
-         * The phone's half. Only `EXPO_PUBLIC_*` ever reaches a bundle, and a
-         * secret in an Expo bundle is a leaked secret — so nothing without that
-         * prefix belongs in this group.
-         */
-        "EXPO_PUBLIC_SUPABASE_URL",
-        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-        "EXPO_PUBLIC_API_URL"
+        "BONUM_MOCK"
       ],
       "outputs": [".next/**", "!.next/cache/**"]
     },

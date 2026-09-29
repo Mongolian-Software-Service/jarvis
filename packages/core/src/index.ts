@@ -1,14 +1,17 @@
 /**
- * Everything both platforms share.
+ * Everything that is not a screen.
  *
  * The rule that keeps this package worth having: **no business logic in a
- * component.** If the web and the phone would each need their own copy of a
- * decision — what "finished" means, what a lesson body parses to, which tint a
- * topic wears — it belongs here, where there is one copy of it.
+ * component.** What "finished" means, what a lesson body parses to, which tint
+ * a topic wears — each is one decision, and it belongs here rather than inside
+ * whichever component happened to need it first.
  *
- * Nothing in here may import from `apps/*`, and nothing may touch `window`,
- * `document`, `next/*` or a React Native module: this code runs in a browser, in
- * a Node server, and on a phone.
+ * This package began as the seam between the web and an Expo app. The app is
+ * gone and the seam is still worth keeping: nothing in here may import from
+ * `apps/*` or touch `window`, `document` or `next/*`, so the same code runs in
+ * a browser, in a Node server, and in the plain-Node test runner that checks it
+ * (`packages/core/test`). A rule that survived losing its original reason
+ * usually had a second one.
  */
 export * from "./locale";
 export * from "./constants";
@@ -17,7 +20,6 @@ export * from "./format";
 export * from "./google-mark";
 export * from "./courses";
 export * from "./shapes";
-export * from "./theme";
 export * from "./progress";
 export * from "./payments";
 export * from "./slug";
