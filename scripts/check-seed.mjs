@@ -25,6 +25,9 @@ lines.forEach((line, index) => {
 
 const problems = [];
 
+/** Lessons pointing at a sample reel. Reported, never fatal — see below. */
+const placeholders = [];
+
 /*
  * Which lessons have questions written for them.
  *
@@ -91,6 +94,18 @@ starts.forEach((start, n) => {
    */
   if (/youtube\.com|youtu\.be|vimeo\.com|\/watch\?/.test(at("video_url"))) {
     problems.push([start + 1, slug, "video_url is a web page, not a file — <video> cannot play it"]);
+  }
+  /*
+   * A stand-in video is not a failure — a lesson has to exist before its film
+   * does, and blocking the build until somebody shoots one would only mean the
+   * lesson never gets written. It is a failure to *forget*, which is a
+   * different thing, and the only way that happens is silently.
+   *
+   * So these are counted and named on every run. `pnpm test` stays green and
+   * still says out loud which lessons are showing a Google sample reel.
+   */
+  if (/commondatastorage\.googleapis\.com|gtv-videos-bucket/.test(at("video_url"))) {
+    placeholders.push([start + 1, slug]);
   }
   if (kind === "text" && at("body_mn") === "null") {
     problems.push([start + 1, slug, "kind 'text' with no body_mn — lesson_text_needs_body"]);
@@ -170,8 +185,17 @@ if (!/\(.*\bis_free\b/s.test(courseBlock.split("values")[0] ?? "")) {
   ]);
 }
 
+function reportPlaceholders() {
+  if (placeholders.length === 0) return;
+  console.log(
+    `  ${placeholders.length} lesson(s) still on a stand-in video — replace video_url when the real one exists:`,
+  );
+  for (const [line, slug] of placeholders) console.log(`    seed.sql:${line}  ${slug}`);
+}
+
 if (problems.length === 0) {
   console.log(`✓ seed.sql — ${starts.length} lessons, every one satisfies its constraint`);
+  reportPlaceholders();
   process.exit(0);
 }
 
@@ -181,4 +205,5 @@ console.error(
 for (const [line, slug, why] of problems) {
   console.error(`  seed.sql${line ? `:${line}` : ""}  ${slug}\n    ${why}`);
 }
+reportPlaceholders();
 process.exit(1);
