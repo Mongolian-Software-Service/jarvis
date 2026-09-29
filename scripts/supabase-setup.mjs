@@ -33,7 +33,7 @@ import { dirname, join } from "node:path";
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const API = "https://api.supabase.com/v1";
 
-/** `.env` is not loaded for us here — this is plain Node, not Next or Expo. */
+/** `.env` is not loaded for us here — this is plain Node, not Next. */
 function loadEnvFile() {
   const file = join(root, ".env");
   if (!existsSync(file)) return;
@@ -208,7 +208,7 @@ if (doAuth) {
 const keys = await api(`/projects/${ref}/api-keys`);
 const publishable = keys.find((key) => key.type === "publishable" || key.name === "anon");
 
-console.log("For apps/web/.env.local and apps/mobile/.env:\n");
+console.log("For apps/web/.env.local:\n");
 console.log(`  NEXT_PUBLIC_SUPABASE_URL=https://${ref}.supabase.co`);
 if (publishable?.api_key) console.log(`  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${publishable.api_key}`);
 console.log(

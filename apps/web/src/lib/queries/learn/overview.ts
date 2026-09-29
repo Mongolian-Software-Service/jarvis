@@ -55,8 +55,10 @@ export async function getStudentOverview(locale: Locale): Promise<StudentOvervie
 
   if (courses.length === 0) return { ...empty, courses, lessonsDone, minutesWatched };
 
-  /* Which course to send them back to — the rule is `resumeCourse` in core, so
-     the phone's dashboard cannot disagree with this one. */
+  /* Which course to send them back to. The rule is `resumeCourse` in core
+     rather than four lines here, because it is the kind of rule that grows a
+     second, slightly different copy the moment a screen needs it — and the
+     plain-Node test runner can check it where it is. */
   const target = resumeCourse(courses, rows[0]?.course_id);
 
   if (!target) return { ...empty, courses, lessonsDone, minutesWatched };

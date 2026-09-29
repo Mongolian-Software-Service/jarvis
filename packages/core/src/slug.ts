@@ -10,10 +10,41 @@
  * same string, and the database's unique index is what catches that.
  */
 const MAP: Record<string, string> = {
-  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "yo", ж: "j", з: "z",
-  и: "i", й: "i", к: "k", л: "l", м: "m", н: "n", о: "o", ө: "u", п: "p",
-  р: "r", с: "s", т: "t", у: "u", ү: "u", ф: "f", х: "h", ц: "ts", ч: "ch",
-  ш: "sh", щ: "sh", ъ: "", ы: "y", ь: "i", э: "e", ю: "yu", я: "ya",
+  а: "a",
+  б: "b",
+  в: "v",
+  г: "g",
+  д: "d",
+  е: "e",
+  ё: "yo",
+  ж: "j",
+  з: "z",
+  и: "i",
+  й: "i",
+  к: "k",
+  л: "l",
+  м: "m",
+  н: "n",
+  о: "o",
+  ө: "u",
+  п: "p",
+  р: "r",
+  с: "s",
+  т: "t",
+  у: "u",
+  ү: "u",
+  ф: "f",
+  х: "h",
+  ц: "ts",
+  ч: "ch",
+  ш: "sh",
+  щ: "sh",
+  ъ: "",
+  ы: "y",
+  ь: "i",
+  э: "e",
+  ю: "yu",
+  я: "ya",
 };
 
 export function slugify(input: string): string {
@@ -24,16 +55,20 @@ export function slugify(input: string): string {
     else if (/[a-z0-9]/.test(char)) out += char;
     else out += "-";
   }
-  return out
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 80)
-    .replace(/-$/, "");
+  return out.replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 80).replace(/-$/, "");
 }
 
 /** The same rule the `public.slug` domain enforces in the database. */
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+/**
+ * Does this pass the domain?
+ *
+ * No screen calls this, and that is not a reason to delete it: `test/format`
+ * uses it to assert that `slugify()` produces something the database will
+ * actually accept. Without it that test can only check the output against a
+ * literal, which is a second copy of the rule rather than the rule.
+ */
 export function isValidSlug(value: string): boolean {
   return SLUG_PATTERN.test(value);
 }

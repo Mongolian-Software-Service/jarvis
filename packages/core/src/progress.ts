@@ -47,10 +47,11 @@ export function nextLesson<T extends LessonRef>(
  * nothing while they hold a course: an empty «үргэлжлүүлэх» button is a dead end
  * with a label on it.
  *
- * Generic over the course shape because the web and the phone each carry their
- * own, and the rule is the same rule. It lives here rather than in either
- * query so the two cannot drift into disagreeing about where a student left off
- * (CLAUDE.md §9).
+ * Generic over the course shape: it needs an id and whether the course is
+ * finished, and nothing else. Keeping it that narrow is what lets the dashboard
+ * and the trail pass their own richer objects without either one shaping itself
+ * around this function — and what keeps the rule readable on its own, in a file
+ * the plain-Node test runner can check without a database.
  */
 export function resumeCourse<T extends { id: string; progress: { finished: boolean } }>(
   held: readonly T[],

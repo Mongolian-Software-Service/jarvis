@@ -17,8 +17,8 @@ export async function configureAuth(api, ref, { appUrl, googleId, googleSecret }
    * not allow, and the base of every email link. Running this script without
    * `APP_URL` used to overwrite a deployed URL with `http://localhost:3001` —
    * silently, in one line of output nobody reads — and the next person to sign
-   * in on a phone got Safari saying it could not reach a server. It happened
-   * once; that is what this guard is.
+   * in was sent to a server that was not running. It happened once; that is
+   * what this guard is.
    *
    * So an absent `APP_URL` means *leave it alone* when what is there is
    * already a real site. Only a project that has never been deployed gets the
@@ -33,34 +33,34 @@ export async function configureAuth(api, ref, { appUrl, googleId, googleSecret }
    *
    * A redirect that is not on this list is **not** refused with an error — it
    * is silently replaced by `site_url`. Worth knowing, because the failure then
-   * looks like the *site* being broken rather than the list being short: on a
-   * phone it arrives as Safari saying it cannot reach localhost.
+   * looks like the *site* being broken rather than the list being short.
    *
-   * **Supabase rejects any redirect whose host is an IP address**, and no
-   * allowlist entry changes that — an exact literal is refused too. Tested:
+   * ⚠️ This list REPLACES whatever is in the dashboard, which is what makes it
+   * the removal as well as the setup: four entries used to live here for an
+   * Expo app — `tsstark://**`, `exp://**`, `exp://*.exp.direct/**` and the
+   * reasoning behind them — and running this script is what takes them off a
+   * project that still has them (CLAUDE.md §9).
+   */
+  /*
+   * ⚠️ WILDCARDS, not the bare callback path — and that is the whole fix.
    *
-   *   exp://localhost:8081/--/auth/callback              accepted
-   *   exp://myhost:8081/--/auth/callback                 accepted
-   *   exp://ab.anonymous.8081.exp.direct/--/auth/callback accepted
-   *   exp://192.168.0.178:8081/--/auth/callback          REFUSED
+   * `signInWithGoogle` never sends a bare `/auth/confirm`. It sends
+   * `/auth/confirm?locale=mn`, plus `&next=…` when the reader asked for
+   * somewhere. An entry without a wildcard is an exact URL, the query makes it
+   * not that URL, and the redirect falls through to `site_url`.
    *
-   * That last one is what Expo Go hands out on a *physical* device over the
-   * LAN, which is why Google sign-in on a real phone bounced to localhost while
-   * the simulator was fine. There is no entry that fixes it. Run Expo with
-   * `--tunnel` on hardware and the host becomes `*.exp.direct`, a real name.
+   * On a deployed site `site_url` *is* the deployed site, so the fallback lands
+   * somewhere sensible and the list looks like it works. On a laptop it does
+   * not: signing in at `localhost:3001` sent the reader to the live domain,
+   * mid-session, with no error anywhere. The list was never matching — the
+   * production accident was covering for it.
    */
   const redirects = [
-    "http://localhost:3000/auth/confirm",
-    "http://localhost:3001/auth/confirm",
-    // The installed build. Matches `scheme` in apps/mobile/app.json.
-    "tsstark://**",
-    // Expo Go: `exp://**` covers the simulator, `*.exp.direct` a real device
-    // started with `--tunnel`. A LAN IP cannot be covered at all — see above.
-    "exp://**",
-    "exp://*.exp.direct/**",
+    "http://localhost:3000/**",
+    "http://localhost:3001/**",
     // Follows `siteUrl`, not `appUrl`: a run without APP_URL keeps the live
     // site's own callback on the list rather than quietly dropping it.
-    ...(siteUrl.startsWith("https://") ? [`${siteUrl}/auth/confirm`] : []),
+    ...(siteUrl.startsWith("https://") ? [`${siteUrl}/**`] : []),
   ];
 
   const config = {
@@ -74,8 +74,8 @@ export async function configureAuth(api, ref, { appUrl, googleId, googleSecret }
      *
      * Supabase ships a minimum of six. The form refuses seven characters and
      * the database would have accepted them — so anything not going through the
-     * form (the phone, a REST client, a future screen) could set a password
-     * weaker than the one the student was told was required. A rule that lives
+     * form (a REST client, a future screen) could set a password weaker than
+     * the one the student was told was required. A rule that lives
      * only in the form is a rule that holds only for people using the form.
      */
     password_min_length: 8,

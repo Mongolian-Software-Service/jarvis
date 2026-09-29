@@ -19,7 +19,7 @@ Focus areas, in order of how much damage they do:
   `user_metadata`.
 - **Secrets.** `SUPABASE_SECRET_KEY` outside `lib/supabase/server.ts`;
   `createServiceSupabase()` called anywhere but the Bonum webhook; any secret
-  behind a `NEXT_PUBLIC_` or `EXPO_PUBLIC_` name.
+  behind a `NEXT_PUBLIC_` name.
 - **Rendering.** `cookies()` or `headers()` inside a `try/catch` that swallows —
   it turns a private page into a prerendered one. Missing `force-dynamic` on a
   segment that shows who is signed in.

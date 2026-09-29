@@ -12,9 +12,17 @@ A Mongolian-language school that teaches people to write code, with a secondary
 English edition. Students work through video + written + coding lessons, and
 their progress follows them between a laptop and a phone.
 
-**There is one price, and it buys everything, for good.** Six tracks —
-Танилцуулга (free), Кодын суурь, Landing page, Fullstack website, iOS/Android,
-2D/3D тоглоом. A course is **not sold on its own**: no screen shows a per-course
+**It is a website, and only a website.** There was an Expo app — catalogue,
+player, quiz, progress, account, all working — and it is gone, along with every
+line that existed to serve it (decision #013). "Follows them between a laptop
+and a phone" means the browser on both, which is what `.shell`, the tab bar and
+the 360px check in §7 are for. If a request says "the app", it means this site.
+
+**There is one price, and it buys everything, for good.** Five tracks —
+Танилцуулга (free), Landing page, Fullstack website, iOS/Android, 2D/3D
+тоглоом. «Кодын суурь» was a sixth and is deleted: it taught the pieces of a
+language to a school that stopped teaching typing, and every other lesson that
+pointed at it now points at Landing page instead. A course is **not sold on its own**: no screen shows a per-course
 price, `/api/checkout` sells only the bundle, and `courses` has no price column
 to read. Six prices is a decision somebody has to make before they have any way
 of making it; one price is no decision at all, which is the point.
@@ -52,16 +60,8 @@ changes. The footer's «Powered by» stays **English** beside the Latin mark: it
 is brand lettering, not copy, and half-translating it would give the company two
 shapes.
 
-It was called **Jarvis** until this rename. The brand went first — every string a
-reader sees, the documents. The phone's identifiers followed a few days later,
-while nothing was registered anywhere: `scheme` is now `tsstark`, the bundle id
-and Android package `mn.tsstark.app`, and the Expo slug `tsstark-academy`.
-
-That timing was the whole point. **A bundle id is free to change until Apple has
-seen it once, and expensive afterwards** — a new one is a new app, with its own
-downloads, ratings and reviews. It was changed on the day an Apple Developer
-account appeared and before the first build, which is the last moment it costs
-nothing.
+It was called **Jarvis** until this rename — every string a reader sees, and the
+documents.
 
 What did **not** change is the `@jarvis/*` workspace scopes. Nobody outside this
 repository reads a package scope, and renaming them touches every import in
@@ -89,12 +89,12 @@ because a real lesson is usually three of them at once: watch this, read the
 notes, write the code, answer two questions. `kind` says what it leads with;
 the columns say what it actually has.
 
-| kind | leads with | must have |
-| --- | --- | --- |
-| `video` | the player | `video_url` |
-| `text` | the writing | `body_mn` |
-| `code` | the exercise | `starter_code` |
-| `quiz` | the questions | rows in `quiz_questions` |
+| kind    | leads with    | must have                |
+| ------- | ------------- | ------------------------ |
+| `video` | the player    | `video_url`              |
+| `text`  | the writing   | `body_mn`                |
+| `code`  | the exercise  | `starter_code`           |
+| `quiz`  | the questions | rows in `quiz_questions` |
 
 The database enforces those three constraints (§5). A lesson with a video and
 a body and an exercise is normal and needs no new kind.
@@ -111,9 +111,9 @@ because anything uses it — a course that wants an exercise back has to bring
 `starter_code` with it.
 
 **One fence is still allowed, and it is not code**: ```diagram parses to a
-`diagram` block — one step per line, `Label | the note under it` — which the web
-draws as a row of boxes (a column on a phone) and `apps/mobile` draws as a
-column. It exists because a lesson body **cannot carry a picture**: there is no
+`diagram` block — one step per line, `Label | the note under it` — drawn as a
+row of boxes, and as a column once the screen is narrow enough that a row would
+scroll. It exists because a lesson body **cannot carry a picture**: there is no
 image node in `parseMarkdown()` and there should not be one, since an image is a
 file somebody has to keep in step with the prose in two places and translate
 separately. A written diagram travels with the sentence that explains it.
@@ -137,8 +137,8 @@ public on the argument that a stranger who downloads it and learns what a server
 is has been taught something.
 
 It is gone — two PDFs, their sources, the SVG diagrams, the two scripts that
-drew and printed them, a route to read one, a row on the phone, and the
-paragraph that used to stand here. The lessons are the course. A second document
+drew and printed them, a route to read one, and the paragraph that used to stand
+here. The lessons are the course. A second document
 saying the same things in another medium is a second document to keep true every
 time a lesson changes, and nothing in `pnpm test` could ever have noticed it
 drifting.
@@ -147,32 +147,40 @@ If a printed companion is wanted again it comes back as a decision in
 `docs/decisions/`, and that decision has to answer the question this one could
 not: who rewrites it the week the course changes.
 
-**Every course ends with an exam**: a final module named «Шалгалт» holding one
-`quiz` lesson of **ten** questions, passed at 60% (`QUIZ_PASS_SCORE`). The
-fourth constraint is the one Postgres cannot express — questions live in another
-table, so a `quiz` lesson with none applies cleanly and then opens as an empty
-exam at the very end of a course. `scripts/check-seed.mjs` refuses that, and is
-wired into `pnpm test`.
+**No course ends with an exam.** Each used to: a final module «Шалгалт» holding
+one `quiz` lesson of ten questions. All five are deleted — a ten-question test
+between a student and the end of a course is a gate, and this school's job is to
+get somebody to the thing they built, not to grade them on the way.
+
+**A quiz inside a module is a different object and stays.** Four questions,
+asked right after the lesson that warned about the mistake, marked in the
+browser with the explanation as the second half of the teaching
+(`QUIZ_PASS_SCORE` is still what marks it). One survives — «Шалгалт: HTML ба
+CSS» — and more are welcome. The rule the seed guard encodes is the distinction:
+four questions is a quiz, ten was an exam.
+
+So the `quiz` kind stays, and so does the constraint Postgres cannot express —
+questions live in another table, so a `quiz` lesson with none applies cleanly
+and then opens as a page with nothing on it. `scripts/check-seed.mjs` refuses
+that, and is wired into `pnpm test`.
 
 ---
 
 ## §2 Stack, commands, environment
 
-| Concern | Choice |
-| --- | --- |
-| Monorepo | pnpm workspaces + Turborepo |
-| Web | Next.js **16** App Router, React 19, TypeScript strict |
-| Mobile | Expo SDK 57 + expo-router, `apps/mobile` (§9) |
-| Styling | Tailwind **v4** (CSS-first `@theme`, no `tailwind.config.js`) |
-| Data | Supabase — Postgres + RLS + Auth + Storage |
-| Payments | **Bonum** (MNT). `BONUM_MOCK=1` settles locally (§6.7) |
-| Deploy | Vercel (web), EAS (mobile, later) |
-| i18n | Hand-rolled string tables in `packages/core` — **not** next-intl (decision #003) |
-| Motion | CSS transitions, plus one keyframe loop (`.marquee`). No animation library. |
+| Concern  | Choice                                                                           |
+| -------- | -------------------------------------------------------------------------------- |
+| Monorepo | pnpm workspaces + Turborepo                                                      |
+| Web      | Next.js **16** App Router, React 19, TypeScript strict                           |
+| Styling  | Tailwind **v4** (CSS-first `@theme`, no `tailwind.config.js`)                    |
+| Data     | Supabase — Postgres + RLS + Auth + Storage                                       |
+| Payments | **Bonum** (MNT). `BONUM_MOCK=1` settles locally (§6.7)                           |
+| Deploy   | Vercel                                                                           |
+| i18n     | Hand-rolled string tables in `packages/core` — **not** next-intl (decision #003) |
+| Motion   | CSS transitions, plus one keyframe loop (`.marquee`). No animation library.      |
 
 ```bash
 pnpm dev              # turbo dev — web on :3001
-pnpm dev:mobile       # expo start — the phone
 pnpm build            # must be clean: zero errors, zero warnings
 pnpm typecheck        # next typegen && tsc --noEmit
 pnpm lint
@@ -200,8 +208,8 @@ The four that bite hardest:
 
 `apps/web`'s `dev` and `start` scripts raise Node's header limit from its
 default 16KB to 64KB. That is not a performance knob and it is not cargo:
-without it `localhost:3001` answers **HTTP 431** — *Request Header Fields Too
-Large* — and it does so from inside Node's HTTP parser, before Turbopack, the
+without it `localhost:3001` answers **HTTP 431** — _Request Header Fields Too
+Large_ — and it does so from inside Node's HTTP parser, before Turbopack, the
 proxy or any route sees the request. There is nothing to catch and nothing to
 log; the browser shows a bare error page and the site looks dead.
 
@@ -233,7 +241,7 @@ arrange that, and the second is the one that actually bit:
 
 1. `pnpm build` running against a live dev server — they share the directory.
 2. **Restarting the dev server too quickly.** `pkill` returns immediately;
-   Next does not. The dying server flushes this manifest *after* the new one has
+   Next does not. The dying server flushes this manifest _after_ the new one has
    written it. `sleep 2` is not enough — wait for the process to be gone.
 
 ```bash
@@ -260,12 +268,19 @@ BONUM_MERCHANT_CHECKSUM_KEY= BONUM_CALLBACK_URL=
 `SUPABASE_SECRET_KEY` is read in exactly one file —
 `apps/web/src/lib/supabase/server.ts` — and that file starts with
 `import "server-only"`. There is exactly **one** legitimate caller of
-`createServiceSupabase()`: the Bonum webhook. Anything else reaching for it is a
-bug, including "the type checker was easier this way".
+`createServiceSupabase()` in production: the Bonum webhook, which has no session
+and has to settle an invoice for a buyer who is not making the request.
+
+There is a second caller, and it is the exception that shows the shape of the
+rule: `/api/checkout` settles its own invoice in **mock mode**, and that branch
+sits behind `isMockMode()`, which is `NODE_ENV !== "production" && BONUM_MOCK === "1"`.
+It cannot exist in a production bundle. Anything reaching for the service client
+outside those two is a bug, including "the type checker was easier this way" —
+and any third caller has to arrive with a guard as unambiguous as that one.
 
 **Every variable must also be listed in `turbo.json`'s build `env` array.**
 Turborepo 2 runs builds in strict env mode: a variable missing from that list is
-not passed to the build however carefully it was set on Vercel, *and* is not part
+not passed to the build however carefully it was set on Vercel, _and_ is not part
 of the cache key — so a build can be restored from a cache made with a different
 value and nobody is told.
 
@@ -274,8 +289,7 @@ value and nobody is told.
 ## §3 Layout
 
 ```
-apps/web            Next.js 16
-apps/mobile         Expo SDK 57 — catalogue, player, progress, account
+apps/web            Next.js 16 — the site and the console
 packages/core       locale, strings, schemas, markdown, highlighter, formatting
 packages/types      generated database types
 supabase/           migrations, seed.sql, config.toml
@@ -292,7 +306,7 @@ limit fails the build the same way a broken type does.
 length on purpose, and a cap that counted prose would be paid for by deleting
 the reasoning behind the code — the one thing here that cannot be recovered by
 reading the code again. So a heavily documented 300-line file can be perfectly
-legal; it is the *code* that is capped. Never delete a comment to get under the
+legal; it is the _code_ that is capped. Never delete a comment to get under the
 number. If a file is over, it is over because it is doing too much.
 
 The number is not the point — the pressure is. A 400-line component is three
@@ -308,9 +322,9 @@ history — rewriting one desynchronises `applied_migrations`), `supabase/seed.s
 (course prose, not code) and `globals.css` (§4.1 — the palette is one place to
 look). **Adding to that list is a decision, not a shortcut.**
 
-Not ESLint's `max-lines`: lint runs in `apps/web` and `apps/mobile` only, so
-`packages/core`, `scripts/` and `supabase/` would have been exempt by accident
-rather than by decision.
+Not ESLint's `max-lines`: lint runs in `apps/web` alone, so `packages/core`,
+`scripts/` and `supabase/` would have been exempt by accident rather than by
+decision.
 
 ```bash
 pnpm check:lines           # report
@@ -342,7 +356,8 @@ column — a second navigation beside it would squeeze the thing the reader came
 for. The groups do not appear in the URL, so `/mn/learn` and
 `/mn/learn/react-next/state` live in different shells at the same path prefix.
 
-**The signed-in navigation is a tab bar, the way the phone does it.** One array
+**The signed-in navigation is a tab bar**, the shape a phone browser already
+expects. One array
 of links in `components/app/nav.tsx`, drawn two ways: a **fixed bar along the
 bottom** below `lg`, inside the thumb's reach and never scrolled away, and a row
 in the top bar above it, because a bottom bar on a 27-inch screen puts the
@@ -351,9 +366,8 @@ the same component, so a link cannot exist on one and not the other. The tab bar
 pads itself by `env(safe-area-inset-bottom)` and `main` reserves `pb-24`, or the
 last line of every page sits under it.
 
-Labels come from `t.nav.tab.*` — short forms written for a 72px-wide tab, and
-used by `apps/mobile` too. Truncating «Миний сургалт» would leave a beginning,
-not a name.
+Labels come from `t.nav.tab.*` — short forms written for a 72px-wide tab.
+Truncating «Миний сургалт» would leave a beginning, not a name.
 
 **A page owns its own column.** Every page carries `.shell`; no shell adds one.
 Two nested `.shell`s double the gutter, which costs a fifth of the width on a
@@ -366,14 +380,14 @@ it stays at `.measure`, because a 90-character line is harder to read, not more
 generous — so a text-heavy screen pairs the reading column with something that
 earns the rest: a picture, a set of numbers, an aside. `(app)/hello` is the
 worked example, and `components/app/course-trail.tsx` is how one component
-carries two layouts: a winding column on a phone, one horizontal track on a
-laptop, both drawing the same node so they cannot drift.
+carries two layouts: a winding column on a narrow screen, one horizontal track
+on a wide one, both drawing the same node so they cannot drift.
 
 **The shell follows the reader, not the URL.** A signed-in person never sees the
 marketing chrome: `(site)/layout.tsx` renders `AppShell` — the same rail `(app)`
 uses — the moment `getViewer()` returns somebody. The catalogue, a course page,
-about, contact and checkout are public *because a stranger must be able to read
-them*, not because a student should be thrown back out to the sales bar every
+about, contact and checkout are public _because a stranger must be able to read
+them_, not because a student should be thrown back out to the sales bar every
 time they open the catalogue from their own rail. So `components/layout/header.tsx`
 knows nothing about sessions — it only ever renders for somebody who has none —
 and inside the product the wordmark goes to the dashboard, never to `/`.
@@ -384,7 +398,7 @@ visitor to `landingPath()` before any of this matters — which is why a link to
 was clicked.
 
 **The admin rail's only way out is «Гарах».** It carried a "view site" link
-once; that went, because the console is somewhere the team is *working* and a
+once; that went, because the console is somewhere the team is _working_ and a
 link back to the shop floor is a way to lose your place mid-edit. Previewing a
 course still has its own link, on that course's row, where the thing being
 previewed is unambiguous. `t.admin.nav.viewSite` is that row's label and is
@@ -392,7 +406,7 @@ still used — it is the rail-level version that is gone.
 
 **There is no `app/layout.tsx`.** `app/[locale]/layout.tsx` is the root layout,
 and that is load-bearing rather than a preference: `next/root-params` only
-exposes segments sitting *above* the root layout, which is what lets any server
+exposes segments sitting _above_ the root layout, which is what lets any server
 component ask for the current language without every page passing it down. Add a
 passthrough layout above it and `getLocale()` stops working everywhere at once.
 
@@ -408,9 +422,8 @@ the only edition there is. This is a product people open at night to write
 code, and a second palette is a second set of contrast decisions, a toggle, a
 cookie, a `theme-color` that has to follow it and a whole column of the ship
 checklist, all to serve a reader who is already looking at a dark editor. So
-there is no `data-theme` attribute, no `light:` variant, no toggle in the
-header and no theme row in the phone's settings. The palette below is **the**
-palette. If a light edition is ever wanted, it comes back as a decision in
+there is no `data-theme` attribute, no `light:` variant and no toggle in the
+header. The palette below is **the** palette. If a light edition is ever wanted, it comes back as a decision in
 `docs/decisions/`, not as a quiet `[data-theme="light"]` block.
 
 Four things carry the resemblance. Change any of them and it stops looking like
@@ -438,9 +451,12 @@ on any heading that can wrap.
 Two layers, and the arrangement is still load-bearing with one theme:
 
 - Semantic values live in `:root` as plain custom properties. That is the
-  single source of the palette — `@layer base` rules, inline `style`
-  attributes and `packages/core/src/theme.ts` (via its drift test) all read
-  these names, and only a custom property can be named from all three.
+  single source of the palette — `@layer base` rules and inline `style`
+  attributes both read these names, and only a custom property can be named
+  from both. (A third reader used to exist: `packages/core/src/theme.ts` held
+  the palette as data for the phone, kept honest by a drift test. Both went
+  with the app — §9 — so the palette now has exactly one home, which is the
+  stronger version of the same rule.)
 - `@theme inline { --color-panel: var(--panel); … }` maps Tailwind's utility
   names onto **references**, so `bg-panel` and `background: var(--panel)`
   resolve to the same declaration rather than to two copies of a hex that
@@ -448,7 +464,7 @@ Two layers, and the arrangement is still load-bearing with one theme:
 
 **Any token that is only ever named from an inline `style` must live in
 `:root`, never in `@theme`.** Tailwind v4 tree-shakes a theme variable that no
-*emitted rule* mentions, and the class scanner cannot see a TSX `style`
+_emitted rule_ mentions, and the class scanner cannot see a TSX `style`
 attribute. That is why `--tint-*` (topic chips) and `--viz-*` (charts) are in
 `:root`. Put them in `@theme` and every chip renders the same colour.
 
@@ -507,15 +523,21 @@ put `font-mono` on Cyrillic text.
 ### 4.5 Syntax highlighting is ours
 
 `highlight()` in `packages/core/src/code.ts` returns **lines of tokens**, not an
-HTML string. Shiki, Prism and highlight.js all return HTML, which is useless to
-`apps/mobile` — the phone has to draw the same snippet with `<Text>` runs. The
-web renders tokens as spans coloured by `--tok-*`, one set, chosen against the
-near-black code ground. It is a lexer, not a parser, which is the right trade
-for teaching snippets of ten to forty lines.
+HTML string. Shiki, Prism and highlight.js all return HTML, and an HTML string
+has to be injected with `dangerouslySetInnerHTML` — a hole opened on every
+lesson page to render something we generated ourselves. Shiki's WASM grammar
+engine is also a heavy thing to start inside a serverless request. Tokens are
+rendered as spans coloured by `--tok-*`, one set, chosen against the near-black
+code ground. It is a lexer, not a parser, which is the right trade for teaching
+snippets of ten to forty lines.
 
 The same reasoning gives us `parseMarkdown()`: a lesson body parses to a small
-typed tree that each platform renders. It also means no
-`dangerouslySetInnerHTML` anywhere in this codebase.
+typed tree that the renderer walks. Between them there is **no
+`dangerouslySetInnerHTML` anywhere in this codebase**, which is the property
+worth keeping.
+
+(Both were also written so an Expo app could draw the same snippet with `<Text>`
+runs. That app is gone — decision #013 — and neither choice depended on it.)
 
 ---
 
@@ -528,8 +550,8 @@ Three things that are decisions rather than details:
 
 1. **`user_id` references `public.profiles`, never `auth.users`.** Same rows
    either way, but `auth.users` is not in the exposed schema, so PostgREST
-   cannot see a relationship to it — and every screen that shows *who did
-   something* needs that join.
+   cannot see a relationship to it — and every screen that shows _who did
+   something_ needs that join.
 2. **`lessons.course_id` is denormalised** from the module and kept honest by a
    trigger. Access checks, progress and "next lesson" are all per course.
 3. **A view's columns are all nullable to TypeScript.** Postgres does not carry
@@ -584,7 +606,7 @@ write to that table through the API.
 ### 6.2 Mutations — `apps/web/src/lib/actions/`
 
 Every action, in this order: `"use server"` → zod-parse the input → re-check
-admin **on the server** → write through the *request-scoped* client so RLS
+admin **on the server** → write through the _request-scoped_ client so RLS
 applies → `revalidatePath`. Return `{ ok: true } | { ok: false, error, fields }`;
 never throw a raw Postgres error at the interface.
 
@@ -609,17 +631,18 @@ header that says who is signed in, so a prerendered copy is one visitor's
 session served to everyone.
 
 **Never wrap `cookies()` or `headers()` in a `try/catch` that swallows.** During
-a prerender they throw a *signal* meaning "this route is dynamic". Swallowing it
+a prerender they throw a _signal_ meaning "this route is dynamic". Swallowing it
 prerenders the page as if nobody were signed in — and every visitor is then
 served one build's worth of "you have no courses" from the CDN.
 
 ### 6.5 Formatting without `Intl`
 
-`packages/core/src/format.ts` formats dates and money by hand. Two reasons:
-`Intl` data differs between Node and a browser engine (a hydration mismatch on a
-page that looked fine), and React Native's Hermes ships without full ICU on
-Android — so `Intl.DateTimeFormat("mn-MN")` silently returns an English-looking
-date on the phone this module is shared with.
+`packages/core/src/format.ts` formats dates and money by hand. The reason is
+hydration: `Intl` data differs between Node and a browser engine, so the server
+and the client can render the same date differently and the page looked fine
+while being wrong. A second reason applied to an Expo app that no longer exists
+(Hermes ships without full ICU on Android, and `Intl.DateTimeFormat("mn-MN")`
+returned an English-looking date there) — the first one alone is enough.
 
 ### 6.6 Signing in
 
@@ -647,21 +670,20 @@ is configured in this repository (SETUP.md step 7 has the two dashboards).
   `code` for email links; Google reuses it.
 - **`next` is validated before it is used.** Only a path on this site — an
   absolute URL there would make the sign-in button an open redirect.
-- **The phone uses the system browser**, not a WebView: `openAuthSessionAsync`
-  with a `Linking.createURL` redirect, which resolves to `exp://…` in Expo Go and
-  `tsstark://…` installed. Both need to be in Supabase's redirect allowlist, and
-  Google requires a real browser anyway.
 - **A redirect Supabase will not allow is not refused — it is replaced by
   `site_url`.** So the failure never says "not allowed"; it says whatever
-  `site_url` says, which in development is `http://localhost:3001` and on a
-  phone is Safari reporting it cannot reach the server. Read that error as "the
-  allowlist rejected my redirect", not as "the site is down".
-- **Supabase rejects any redirect whose host is an IP address**, and no
-  allowlist entry changes it — an exact literal is refused too. Expo Go on a
-  *physical* device serves over the LAN IP, so Google sign-in there can never
-  work: run `npx expo start --tunnel` (the host becomes `*.exp.direct`) or use a
-  development build on `tsstark://`. The simulator is unaffected, which is what
-  makes this look like a device bug rather than a URL rule.
+  `site_url` says. Read that as "the allowlist rejected my redirect", not as
+  "the site is down".
+- **The allowlist entries carry `/**`, and that is load-bearing.** Sign-in never
+  asks for a bare `/auth/confirm` — it asks for `/auth/confirm?locale=mn`, plus
+  `&next=…` when somebody asked for a destination. An entry written as the exact
+  callback path never matches that, so every redirect quietly took the
+  `site_url` branch above. The symptom is the diagnosis read backwards:
+  **signing in at `localhost:3001` landed on the production domain**, because
+  that is what `site_url` is, and on the deployed site the same broken match
+  landed correctly and hid the fault for as long as nobody worked locally.
+  `scripts/supabase/auth.mjs` holds the list; `node scripts/supabase-setup.mjs
+  --auth` pushes it without touching the seed.
 - **Where a new session goes is one function**, `destinationAfterSignIn()` in
   `packages/core/src/courses.ts`, and all three doors call it: the password
   form, the sign-up form, and `/auth/confirm` (which catches Google and every
@@ -671,7 +693,7 @@ is configured in this repository (SETUP.md step 7 has the two dashboards).
   pitch is the one destination somebody who just signed in cannot have meant.
   Otherwise `landingPath()` decides from the role: the team to the console,
   everybody else to their dashboard.
-- **Each door must *read* the role, never assume it.** All three now do
+- **Each door must _read_ the role, never assume it.** All three now do
   (`roleOfCurrentUser()`, or the same query inline in `/auth/confirm`). It is
   read from `profiles` rather than from the token because a role granted a
   moment ago is in the table straight away and in the JWT only after it
@@ -679,8 +701,8 @@ is configured in this repository (SETUP.md step 7 has the two dashboards).
   very sign-up that is about to redirect. `signUp` passed a literal `"student"`
   for a while, which sent the one account that runs the school to a student
   dashboard and made the owner allowlist look broken.
-- **The mark is Google's.** `GOOGLE_MARK` in `packages/core` holds the four-colour
-  path data both platforms draw, unrecoloured. It is the only place in this
+- **The mark is Google's.** `GOOGLE_MARK` in `packages/core` holds the
+  four-colour path data, drawn unrecoloured. It is the only place in this
   codebase where a colour is a literal rather than a token, because those four
   are not ours to theme.
 
@@ -741,84 +763,34 @@ is `priority`; the others are not.
 5. The player — video, markdown, exercise, quiz, progress ✅
 6. Admin — dashboard, course/lesson editors, students, payments ✅
 7. Payments — Bonum checkout, webhook, mock mode ✅
-8. `apps/mobile` — catalogue, course, player, quiz, progress, account ✅
-9. **Connect a Supabase project and push the schema** ← SETUP.md
-10. Ship checklist §7, with numbers. Mobile: run it on a device, not a simulator.
+8. **Connect a Supabase project and push the schema** ← SETUP.md
+9. Ship checklist §7, with numbers — on a real phone's browser, not just a
+   narrowed window.
 
-## §9 The phone
+## §9 There is no phone app
 
-`apps/mobile` is Expo SDK 57 with expo-router. It shares everything worth
-sharing with the web and draws it natively.
+`apps/mobile` was an Expo app — catalogue, course, player, quiz, progress,
+account — and it is **deleted**, along with everything that existed only to
+serve it: the Expo workspace and its lockfile entries, pnpm's `publicHoistPattern`
+for React Native, the three `EXPO_PUBLIC_*` names in `turbo.json`'s build
+environment, `packages/core/src/theme.ts` and its drift test, the `dev:mobile`
+script, and the `tsstark://` and `exp://` redirect entries in Supabase.
 
-**What is shared**, all of it from `packages/core`: the string tables, the zod
-schemas, the Markdown parser, the syntax highlighter, the progress arithmetic,
-date and money formatting, the paths, and — since the phone came along — the
-**palette** (`theme.ts`) and the **row→shape mappers** (`shapes.ts`). A course
-card is assembled by one function for both platforms; only the client differs.
+**Nothing in this repository should assume a second client again.** A feature is
+finished when the website does it. If a review, a skill or an old comment says
+otherwise, that text is stale — fix it rather than building to it.
 
-**Nothing in `packages/core` may import from `apps/*`**, or touch `next/*`,
-`window`, `document` or a React Native module. It runs in three places.
+The reasoning is decision #013. The short version: an app that ships is a second
+product, every lesson-shaped change owes it a screen, and `pnpm test` can never
+see it drifting.
 
-### The three decisions that shape this app
+**Two things that look like leftovers and are not:**
 
-1. **No NativeWind.** Styling is `StyleSheet` over the shared palette and type
-   scale. The same reasoning that gave us our own highlighter: a dependency
-   earns its place, and a second styling dialect that has to be kept in step
-   with Tailwind's does not.
-2. **The session lives in the keychain**, chunked across `expo-secure-store`
-   entries because a Supabase session is larger than the 2KB that store accepts
-   (`src/lib/storage.ts`). AsyncStorage is what most guides show and leaves
-   refresh tokens in plain text.
-3. **Paid courses are not sold in the app.** Apple's guideline 3.1.1 requires
-   in-app purchase for digital content sold inside an iOS app, and Bonum is not
-   that. A free course enrols in-app; a paid one sends the buyer to the website
-   and opens the moment they come back. See docs/decisions #009.
-
-### Building it — EAS
-
-The project is **`@tsstark/tsstark-academy`** on the `tsstark` account, and its
-id lives in `app.json` under `extra.eas.projectId`. `eas.json` carries four
-profiles; `development` is the one to reach for, because a development build is
-the only way Google sign-in works reliably on hardware (§6.6).
-
-**The identifiers are registered now, so they are no longer free to change.**
-`mn.tsstark.app` was registered with Apple under team `X32PU9N9PJ` on
-2026-09-18, hours after it was renamed from `mn.jarvis.app` and before the first
-build. That ordering was the whole saving: a bundle id Apple has seen is a bundle
-id you keep, because a new one is a new App Store listing with its own downloads
-and reviews. Renaming it now costs what renaming it then did not.
-
-**Environment variables live on EAS, not in `.env`.** `apps/mobile/.env` is
-gitignored, so a build machine never sees it; the three `EXPO_PUBLIC_*` values
-are set per environment with `eas env:create` and the build prints which it
-loaded. `.env` remains the local-development copy and the two can drift — if a
-build behaves differently from `pnpm dev:mobile`, compare them first.
-
-```bash
-pnpm exec eas env:list --environment development
-```
-
-**The free plan has a monthly iOS build quota**, and running out reads as
-`Error: build command failed` with a billing link rather than anything about the
-code. Two ways past it without paying:
-
-- `eas build --profile development --platform ios --local` builds on this Mac
-  and spends no quota. It needs Xcode, and it is slower.
-- For *testing* alone, no build is needed at all: `npx expo start --tunnel` in
-  Expo Go reaches Supabase's allowlist through `*.exp.direct` (§6.6).
-
-### Things that bite
-
-- **Metro and pnpm**: `watchFolders` must include the repo root and
-  `nodeModulesPaths` both `node_modules` directories — but
-  `disableHierarchicalLookup` must stay **off**. Every guide that turns it on is
-  written for yarn; pnpm keeps a package's dependencies beside it, so walking up
-  is the only way to reach them.
-- **Fonts**: `pnpm --filter @jarvis/mobile test` reads the bundled Inter TTFs
-  and fails if Ө ө Ү ү are missing. On a phone there is no fallback chain — a
-  missing glyph is a blank box, not a different font.
-- **Weight comes from the family name** (`Inter_500Medium`), and `fontWeight` is
-  never set beside it, or Android synthesises a second bold on top of the first.
-- The API routes on the web already accept a bearer token
-  (`lib/supabase/server.ts` forwards it), so anything the phone cannot do
-  through RLS alone can call them with `useAuth().session.access_token`.
+- **The iOS/Android course.** The school teaches building mobile apps and sells
+  that track inside the bundle. Its lessons, its cover and
+  `components/home/visuals/mobile.tsx` all stay. Deleting a _product_ because we
+  stopped shipping _an app_ would be a different decision.
+- **`packages/core`.** It was built as the seam between two clients, and its
+  rule — nothing from `apps/*`, no `window`, no `document`, no `next/*` — still
+  earns its place: it is what lets the plain-Node runner in `packages/core/test`
+  check this code without a bundler or a browser.

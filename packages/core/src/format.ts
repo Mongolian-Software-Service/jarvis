@@ -3,14 +3,11 @@ import type { Locale } from "./locale";
 /**
  * Dates and money, formatted without `Intl`.
  *
- * Two reasons, both practical:
- *
- * 1. **Hydration.** `Intl` data differs between Node and a browser engine, so a
- *    date rendered on the server and again on the client can disagree — which
- *    React reports as a hydration mismatch on a page that looked fine.
- * 2. **The phone.** React Native's Hermes ships without full ICU on Android, so
- *    `Intl.DateTimeFormat("mn-MN")` quietly returns an English-looking date
- *    there. This module is shared with `apps/mobile`, so it cannot rely on it.
+ * **Hydration.** `Intl` data differs between Node and a browser engine, so a
+ * date rendered on the server and again on the client can disagree — which
+ * React reports as a hydration mismatch on a page that looked fine. That is the
+ * whole reason now; a second one applied to an Expo app that no longer exists
+ * (Hermes ships without full ICU on Android), and the first stands alone.
  *
  * The Mongolian long date is `2026 оны 9-р сарын 11` and is never written in
  * US order.

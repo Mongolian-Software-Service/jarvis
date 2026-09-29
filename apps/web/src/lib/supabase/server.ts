@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@jarvis/types";
@@ -17,7 +17,6 @@ const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
  */
 export function createServerSupabase() {
   return createServerClient<Database>(url, publishableKey, {
-    global: { fetch: forwardBearer },
     cookies: {
       async getAll() {
         return (await cookies()).getAll();
@@ -44,10 +43,14 @@ export function createServerSupabase() {
 /**
  * The service client. SERVER ONLY — it bypasses RLS completely.
  *
- * There is exactly one legitimate caller in this codebase: the Bonum webhook,
- * which has no session and has to settle an invoice on behalf of a buyer who is
- * not making the request. Anything else that reaches for this is a bug —
- * including "the type checker was easier this way".
+ * One legitimate caller in production: the Bonum webhook, which has no session
+ * and has to settle an invoice on behalf of a buyer who is not making the
+ * request.
+ *
+ * One more that cannot reach production: `/api/checkout` settles its own
+ * invoice in mock mode, behind `isMockMode()` — `NODE_ENV !== "production"`
+ * and `BONUM_MOCK === "1"` together. Anything else that reaches for this is a
+ * bug, including "the type checker was easier this way".
  */
 export function createServiceSupabase() {
   const secret = process.env.SUPABASE_SECRET_KEY;
@@ -59,28 +62,18 @@ export function createServiceSupabase() {
   });
 }
 
-/**
- * The access token this request carried in an `Authorization` header, or null.
+/*
+ * There was a second way in here: an `Authorization: Bearer` header was read off
+ * the request and preferred over the cookie, so `apps/mobile` — which has no
+ * cookie jar — could call these API routes with its own session.
  *
- * `apps/mobile` has no cookie jar: it will call the API routes here with a
- * bearer token, and every one of those routes reaches for `getUserId()` the way
- * a page does. Without this they would all answer 401 to a perfectly valid
- * session. A browser never sends this header to its own origin, so a request
- * carrying one is the phone — preferring it cannot hijack a browser session.
+ * That app is gone (CLAUDE.md §9) and the header went with it. Nothing on this
+ * site sends one: the two API routes are `/api/checkout`, called from the
+ * browser with cookies, and the Bonum webhook, which carries an HMAC and no
+ * session at all. Leaving it would have kept a second accepted credential
+ * channel open for no caller — and an auth path nobody exercises is an auth
+ * path nobody notices going wrong.
  */
-const bearerToken = cache(async (): Promise<string | null> => {
-  const header = (await headers()).get("authorization");
-  if (!header || !/^bearer /i.test(header)) return null;
-  return header.slice(7).trim() || null;
-});
-
-async function forwardBearer(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const token = await bearerToken();
-  if (!token) return fetch(input, init);
-  const merged = new Headers(init?.headers);
-  merged.set("Authorization", `Bearer ${token}`);
-  return fetch(input, { ...init, headers: merged });
-}
 
 /**
  * The signed-in user's id, or null.
@@ -102,8 +95,7 @@ async function forwardBearer(input: RequestInfo | URL, init?: RequestInit): Prom
  */
 export const getUserId = cache(async (): Promise<string | null> => {
   if (!url || !publishableKey) return null;
-  const token = await bearerToken();
-  const { data, error } = await createServerSupabase().auth.getClaims(token ?? undefined);
+  const { data, error } = await createServerSupabase().auth.getClaims();
   if (error || !data?.claims?.sub) return null;
   return data.claims.sub;
 });
@@ -111,8 +103,7 @@ export const getUserId = cache(async (): Promise<string | null> => {
 /** The signed-in user's email, from the same verified claims. */
 export const getUserEmail = cache(async (): Promise<string | null> => {
   if (!url || !publishableKey) return null;
-  const token = await bearerToken();
-  const { data, error } = await createServerSupabase().auth.getClaims(token ?? undefined);
+  const { data, error } = await createServerSupabase().auth.getClaims();
   if (error) return null;
   const email = data?.claims?.email;
   return typeof email === "string" && email ? email.toLowerCase() : null;

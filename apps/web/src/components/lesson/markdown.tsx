@@ -10,8 +10,9 @@ import { Diagram } from "./diagram";
  *
  * Deliberately not `dangerouslySetInnerHTML`. The parser hands back a small
  * typed tree, every node of which is rendered by a case below — so a body can
- * contain no markup this file does not already know how to draw, and the same
- * tree renders on the phone with React Native views.
+ * contain no markup this file does not already know how to draw. A lesson is
+ * content our own editor wrote; that is still not a reason to hand it to the
+ * browser as HTML.
  */
 export function Markdown({
   source,

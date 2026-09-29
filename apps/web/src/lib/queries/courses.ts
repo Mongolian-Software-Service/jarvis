@@ -19,9 +19,9 @@ import { createServerSupabase, supabaseConfigured } from "@/lib/supabase/server"
  * returns a shape with the bilingual columns already resolved, so no component
  * holds a `title_mn` and has to remember the fallback rule.
  *
- * The column lists and the row→shape mappers come from `@jarvis/core`, because
- * `apps/mobile` asks the same database the same questions and has to get back
- * the same objects. Only the client differs.
+ * The column lists and the row→shape mappers come from `@jarvis/core`: the
+ * catalogue, a course page and the admin console all ask for the same columns,
+ * and one list is how they cannot answer with three different shapes.
  */
 
 export type { CourseCard, CourseDetail, CourseModule, LessonOutline } from "@jarvis/core";

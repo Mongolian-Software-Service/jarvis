@@ -6,8 +6,8 @@ import { Field, Input } from "@/components/ui/field";
  * Овог, нэр, утас — the three questions, asked the same way everywhere.
  *
  * The account page edits them and the completion dialog fills them in for a
- * Google sign-up. Two copies would drift on the first change to the phone
- * validation, and the placeholder is half of what teaches the format.
+ * Google sign-up. Two copies would drift the first time the validation changed,
+ * and the placeholder is half of what teaches the format.
  */
 export function ProfileFields({
   copy,

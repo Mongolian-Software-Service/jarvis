@@ -3,9 +3,11 @@ import { z } from "zod";
 /**
  * Every shape that crosses a trust boundary.
  *
- * Server actions parse with these **before** doing anything else, and the phone
- * will validate the same forms with the same schemas — which is the reason they
- * live in core rather than next to the route that happens to use them first.
+ * Server actions parse with these **before** doing anything else, and the form
+ * that submits to an action reads the same schema for its own field rules —
+ * which is why they live here rather than next to whichever route used them
+ * first. A form and the action behind it disagreeing about what is valid is a
+ * message the student cannot act on.
  *
  * Admin-facing messages are written in Mongolian here, like the rest of the
  * admin. The two schemas a *student* meets take the string table instead, so

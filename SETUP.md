@@ -72,9 +72,9 @@ console). **Everything else is configuration, and there is a script for it.**
    ```
 
 It applies the three migrations, runs the seed, sets the site URL and the
-redirect allowlist (including `tsstark://**` and `exp://**` for the phone),
-enables Google when both Google values are present, and prints the two public
-values for `.env.local`. It is idempotent — run it again after any change.
+redirect allowlist, enables Google when both Google values are present, and
+prints the two public values for `.env.local`. It is idempotent — run it again
+after any change.
 
 The rest of this step is the same work done by hand, if you would rather see it.
 
@@ -126,7 +126,7 @@ By default Supabase emails a confirmation link before an account can sign in.
 developing, or read the link in **Authentication → Logs**.
 
 For production, set **Authentication → URL Configuration → Site URL** to your
-real domain and add `https://www.tsstark-academy.com/auth/confirm` to the redirect
+real domain and add `https://www.tsstark-academy.com/**` to the redirect
 allowlist, or every confirmation link will point at localhost.
 
 ### Google sign-in
@@ -173,31 +173,26 @@ switched on, and neither of them lives in this repository.
 6. **Authentication → URL Configuration → Redirect URLs** — add all of these:
 
    ```
-   http://localhost:3001/auth/confirm      the web, locally
-   https://www.tsstark-academy.com/auth/confirm      the web, in production
-   tsstark://**                            the app, installed
-   exp://**                                Expo Go on a simulator
-   exp://*.exp.direct/**                   Expo Go on a real phone, --tunnel
+   http://localhost:3000/**                 the web, locally
+   http://localhost:3001/**                 the web, locally — the dev port
+   https://www.tsstark-academy.com/**       the web, in production
    ```
 
    A redirect that is not on this list is **not** refused with an error — it is
    silently replaced by the site URL, so the failure looks like the site being
    broken rather than the list being short.
 
-   **Supabase rejects any redirect whose host is an IP address**, and no
-   allowlist entry changes that — an exact literal is refused too:
+   **The `/**` matters.** These used to read `…/auth/confirm`, with no wildcard,
+   and that is an *exact* URL. Sign-in never asks for it: it asks for
+   `/auth/confirm?locale=mn`, so nothing matched and every redirect fell back to
+   the site URL. In production the site URL is the production site, so the
+   fallback landed correctly and the list looked fine. On a laptop it did not —
+   signing in at `localhost:3001` threw the reader onto the live domain.
 
-   | redirect | result |
-   | --- | --- |
-   | `exp://localhost:8081/--/auth/callback` | accepted |
-   | `exp://ab.anonymous.8081.exp.direct/--/auth/callback` | accepted |
-   | `exp://192.168.0.178:8081/--/auth/callback` | **refused** |
-
-   That last one is exactly what Expo Go hands out on a **physical** device over
-   the LAN — which is why Google sign-in works in the simulator and bounces to
-   `localhost` on a real phone. There is no entry that fixes it. On hardware,
-   either run `npx expo start --tunnel` (the host becomes `*.exp.direct`, a real
-   name) or use a development build, where the scheme is `tsstark://`.
+   Two more entries lived here — `tsstark://**` and `exp://**` — for an Expo app
+   that no longer exists. If any remain in the dashboard they are harmless, but
+   they point at nothing: **remove them**, or the next person reads the list as
+   a promise that an app is coming.
 
 That is all. `/auth/confirm` already exchanges the code for a session — the same
 route the email links use — and `handle_new_user()` fills the new profile's name

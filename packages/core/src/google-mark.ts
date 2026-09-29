@@ -1,11 +1,12 @@
 /**
  * Google's "G", as path data.
  *
- * Both platforms draw this mark and it has to be the *same* mark: Google's
+ * Wherever this mark is drawn it has to be the *same* mark: Google's
  * brand terms let the button around it take the host product's style, but the
  * logo itself must be their four-colour original, unrecoloured and at its own
- * proportions. Defining it once is how the web's `<svg>` and the phone's
- * `react-native-svg` cannot drift apart.
+ * proportions. Defining the path data once, here, is how the sign-in page and
+ * the sign-up page cannot drift apart — and how a well-meaning `currentColor`
+ * has one place to be refused rather than four.
  *
  * This is the only place in the codebase where a colour is a literal rather
  * than a token — because these four are not ours to theme.

@@ -21,25 +21,14 @@ export type Locale = (typeof LOCALES)[number];
 /** What somebody gets when they have not said, and what `/` serves. */
 export const DEFAULT_LOCALE: Locale = "mn";
 
-/**
- * How each language names itself. Never translated — a language picker that
- * says "Mongolian" to somebody who cannot read English has failed at its one job.
- */
-export const LOCALE_NAMES: Record<Locale, string> = {
-  mn: "Монгол",
-};
-
 /** The request header the proxy writes the negotiated locale into. */
 export const LOCALE_HEADER = "x-locale";
 
-/** Where a chosen language is remembered, on both platforms. */
+/** Where a chosen language is remembered. */
 export const LOCALE_COOKIE = "jarvis-locale";
 
 /** Where «Дараа бөглөнө» is remembered, for a day. */
 export const PROFILE_LATER_COOKIE = "jarvis-profile-later";
-
-/** A year: a language preference is not a question to ask again next week. */
-export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 export function isLocale(value: unknown): value is Locale {
   return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
@@ -86,22 +75,4 @@ export function localizedOrNull(
  */
 export function isFallback(_locale: Locale, _en?: string | null): boolean {
   return false;
-}
-
-/**
- * The best match for an `Accept-Language` header.
- *
- * Deliberately crude: it looks for a language subtag this product has, in the
- * order the browser listed them, and ignores quality values. A parser for the
- * header's subtleties does not change the answer when there are two languages.
- */
-export function localeFromAcceptLanguage(header: string | null): Locale | null {
-  if (!header) return null;
-  for (const part of header.split(",")) {
-    const tag = part.split(";")[0]?.trim().toLowerCase();
-    if (!tag) continue;
-    const base = tag.split("-")[0];
-    if (isLocale(base)) return base;
-  }
-  return null;
 }

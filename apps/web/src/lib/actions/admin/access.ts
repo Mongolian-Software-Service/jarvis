@@ -10,7 +10,7 @@ import { revalidateAdmin } from "./shared";
  * Both go through a database function rather than writing `enrollments` from
  * here, and that is the security rather than a tidiness preference: the
  * function re-checks `is_admin()` inside the transaction, so the rule holds for
- * anything that ever calls it — a future screen, the phone, somebody with the
+ * anything that ever calls it — a future screen, or somebody with the
  * publishable key and a REST client.
  *
  * Neither sets `expires_at`. Null means no expiry, which is what «хугацаагүй»

@@ -6,7 +6,8 @@ import { GOOGLE_MARK } from "@jarvis/core";
 import { signInWithGoogle } from "@/lib/actions/auth";
 import { buttonClass } from "@/components/ui/button";
 
-/** The mark, drawn from the shared path data so both platforms show one logo. */
+/** The mark, drawn from the shared path data so sign-in and sign-up cannot
+ *  end up showing two different logos. */
 function GoogleMark() {
   return (
     <svg viewBox={GOOGLE_MARK.viewBox} aria-hidden="true" className="size-4 shrink-0">

@@ -16,9 +16,3 @@ export function excerpt(source: string, limit = 160): string {
   }
   return "";
 }
-
-/** Roughly how long this takes to read, at 180 Cyrillic words a minute. */
-export function readingMinutes(source: string): number {
-  const words = source.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.round(words / 180));
-}

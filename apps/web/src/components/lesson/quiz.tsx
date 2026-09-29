@@ -27,9 +27,8 @@ type Labels = {
  *
  * Marked in the browser, which is a deliberate trade. `correct_index` travels
  * with the question, so a determined student can read the answer out of the
- * network tab — and the cost of stopping that is a round trip per question, a
- * lesson that does not work on a bad connection, and a quiz that cannot run on
- * the phone offline. This is not an exam; when one is needed the answer moves
+ * network tab — and the cost of stopping that is a round trip per question and
+ * a lesson that stops working on a bad connection. This is not an exam; when one is needed the answer moves
  * behind a `check_answer()` RPC and this comment is how you will know that was
  * a decision rather than an oversight.
  */

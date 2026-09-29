@@ -11,7 +11,7 @@ import type { Viewer } from "@/lib/queries/viewer";
  * Where a signed-in person is, whatever they are looking at.
  *
  * A bar at the top, the page, and — on anything narrower than a laptop — a tab
- * bar along the bottom, the same five destinations the phone app carries. The
+ * bar along the bottom carrying the same five destinations. The
  * vertical rail this replaced cost a sixth of the width on a laptop and, on a
  * phone, scrolled out of sight the moment somebody started reading.
  *

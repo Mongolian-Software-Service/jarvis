@@ -20,9 +20,9 @@ import { cn } from "@/lib/cn";
 /**
  * The student's navigation — one set of links, drawn two ways.
  *
- * On a phone it is a **tab bar along the bottom**, the way the TsStark Academy app on
- * their phone does it: five destinations, always visible, inside the thumb's
- * reach. A rail at the top of a small screen means the reader scrolls the
+ * On a phone it is a **tab bar along the bottom**, the shape every app on that
+ * phone already taught the reader: five destinations, always visible, inside
+ * the thumb's reach. A rail at the top of a small screen means the reader scrolls the
  * navigation away the moment they start reading, and then scrolls back up to
  * move anywhere.
  *

@@ -1,7 +1,7 @@
 /**
  * The shape a highlighted snippet takes, and the shape a language is described
- * in. Both platforms draw from these: the web as spans, the phone as nested
- * `<Text>` runs — see `./index.ts` for why this is tokens and not HTML.
+ * in. Tokens are drawn as spans — see `./index.ts` for why this is tokens and
+ * not an HTML string.
  */
 
 export type TokenKind =

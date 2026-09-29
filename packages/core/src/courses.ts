@@ -4,6 +4,20 @@ import type { Role } from "./roles";
 
 export type CourseLevel = Enums<"course_level">;
 export type LessonKind = Enums<"lesson_kind">;
+/**
+ * How somebody came by a course, straight from the database enum.
+ *
+ * A hand-written `"purchase" | "grant" | "free"` is the same type until the day
+ * a fourth value is added, and then it is a lie the compiler agrees with. This
+ * alias exists so the admin query can name the enum instead of copying it
+ * (`queries/admin/people.ts`).
+ *
+ * There used to be a `sourceLabel()` here too, holding the three Mongolian
+ * labels. It was deleted: nothing called it, and `strings/mn/admin/people.ts`
+ * had its own copy of the same three — which had already drifted («Админ
+ * нээсэн» here against «Гараар нээсэн» there). Copy a reader sees lives in the
+ * string tables, and now in one place.
+ */
 export type EnrollmentSource = Enums<"enrollment_source">;
 
 export const COURSE_LEVELS: readonly CourseLevel[] = ["beginner", "intermediate", "advanced"];
@@ -22,14 +36,6 @@ const KIND_LABELS: Record<Locale, Record<LessonKind, string>> = {
 
 export function kindLabel(kind: LessonKind, locale: Locale): string {
   return KIND_LABELS[locale][kind];
-}
-
-const SOURCE_LABELS: Record<Locale, Record<EnrollmentSource, string>> = {
-  mn: { purchase: "Худалдан авсан", grant: "Админ нээсэн", free: "Үнэгүй" },
-};
-
-export function sourceLabel(source: EnrollmentSource, locale: Locale): string {
-  return SOURCE_LABELS[locale][source];
 }
 
 /**

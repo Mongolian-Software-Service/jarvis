@@ -1,13 +1,15 @@
 # TsStark Academy
 
-An online coding school in Mongolian, with an English edition. Students buy a
-course, work through video, written and code lessons, and their progress follows
-them. A small team runs the whole thing from one admin console.
+An online coding school in Mongolian. Students buy one bundle, work through
+video and written lessons, and their progress follows them. A small team runs
+the whole thing from one admin console.
+
+**This is a website, and only a website.** There was an Expo app; it is gone,
+and so is every trace of it — see CLAUDE.md §9.
 
 ```
 apps/web        Next.js 16, the site and the console
-apps/mobile     Expo — planned, not built yet (CLAUDE.md §9)
-packages/core   everything both platforms share: strings, schemas, markdown,
+packages/core   everything that is not a screen: strings, schemas, markdown,
                 the syntax highlighter, formatting, progress arithmetic
 packages/types  generated Supabase types
 supabase/       migrations, RLS, seed

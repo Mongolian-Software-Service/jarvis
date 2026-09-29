@@ -1,6 +1,6 @@
 ---
 name: feature-slice
-description: Build a complete TsStark Academy feature end to end — migration, RLS, shared logic in packages/core, server action, query, web route, and (when apps/mobile exists) the matching screen — in the correct order. Use whenever the request is to add or extend a user-facing feature: courses, lessons, quizzes, progress, enrolments, payments, the admin console. Consult it BEFORE writing any component, so the slice does not end up half-built.
+description: Build a complete TsStark Academy feature end to end — migration, RLS, shared logic in packages/core, server action, query and web route — in the correct order. Use whenever the request is to add or extend a user-facing feature: courses, lessons, quizzes, progress, enrolments, payments, the admin console. Consult it BEFORE writing any component, so the slice does not end up half-built.
 ---
 
 # A feature, end to end
@@ -15,10 +15,10 @@ commit. Run `pnpm db:types`.
 
 ## 2. The shared half — `packages/core`
 
-Anything both platforms must agree on goes here **before** any component:
+Anything that is not a screen goes here **before** any component:
 
-- zod schemas (`schemas.ts`) — one definition, used by the server action and,
-  later, by the phone's form
+- zod schemas (`schemas.ts`) — one definition, validating the form and the
+  server action from the same source
 - labels and copy (`strings/mn/*` then `strings/en/*` — Mongolian first, it is
   the source of meaning)
 - arithmetic and rules (`progress.ts`, `payments.ts`, `courses.ts`)
@@ -47,17 +47,16 @@ component never queries.
 
 Both languages from the start: every string comes from `t`, never a literal.
 
-## 6. The phone
+## 6. Keep the logic out of the component
 
-`apps/mobile` exists (CLAUDE.md §9), so a feature is not done on the web alone —
-it is done when the phone has the matching screen, or when there is a reason
-written down for why it never will (paid checkout, for one: decision #009).
+There is no second client — the Expo app is deleted (CLAUDE.md §9), and a
+feature is finished when the website does it.
 
-The screen is the easy half **if** step 2 was done properly. Every rule the web
-worked out — which lesson «Үргэлжлүүлэх» opens, which course to resume, what a
-valid message is — has to be a function in `packages/core` that both platforms
-call. Leave one inside a web component and the phone's version is a rewrite
-rather than a screen, and the two drift the first time somebody edits one.
+Step 2 still matters for its own sake. Every rule the screen works out — which
+lesson «Үргэлжлүүлэх» opens, which course to resume, what a valid message is —
+belongs in `packages/core`, where it can be read once and tested by the
+plain-Node runner. Left inside a component it is untestable, and the second
+screen that needs it copies it.
 
 ## Finishing
 

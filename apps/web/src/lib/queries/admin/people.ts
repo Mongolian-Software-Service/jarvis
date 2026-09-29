@@ -1,5 +1,5 @@
 import "server-only";
-import { localized, type Locale, type Role } from "@jarvis/core";
+import { localized, type EnrollmentSource, type Locale, type Role } from "@jarvis/core";
 import { createServerSupabase, supabaseConfigured } from "@/lib/supabase/server";
 
 /** Who is enrolled and who has paid — the two lists the team actually works from. */
@@ -15,7 +15,7 @@ export type AdminStudent = {
   role: Role;
   joined: string;
   /** What they hold, and how they came by it — the list the dialog prints. */
-  held: { courseId: string; title: string; source: "purchase" | "grant" | "free" }[];
+  held: { courseId: string; title: string; source: EnrollmentSource }[];
 };
 
 export async function listStudents(locale: Locale): Promise<AdminStudent[]> {

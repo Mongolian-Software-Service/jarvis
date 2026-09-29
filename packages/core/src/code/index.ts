@@ -2,15 +2,13 @@
  * Syntax highlighting, as tokens rather than as HTML.
  *
  * A coding school that renders code as flat grey text looks unfinished, and the
- * obvious answers — Shiki, Prism, highlight.js — all produce an HTML string.
- * An HTML string is useless to `apps/mobile`, which has to draw the same
- * snippet with `<Text>` runs, and Shiki's WASM grammar engine is a heavy thing
- * to start inside a serverless request.
+ * obvious answers — Shiki, Prism, highlight.js — all produce an HTML string,
+ * which has to be injected with `dangerouslySetInnerHTML`. Shiki's WASM grammar
+ * engine is also a heavy thing to start inside a serverless request.
  *
- * So this returns **lines of tokens**, and each platform draws them: the web
- * with spans, the phone with nested Text. It is a lexer, not a parser — it does
- * not know what a type is, only what one looks like — which is the right
- * trade-off for teaching snippets of ten to forty lines.
+ * So this returns **lines of tokens**, drawn as spans. It is a lexer, not a
+ * parser — it does not know what a type is, only what one looks like — which is
+ * the right trade-off for teaching snippets of ten to forty lines.
  */
 
 export type { TokenKind, CodeToken, CodeLine } from "./types";

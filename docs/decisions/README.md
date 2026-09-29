@@ -134,45 +134,22 @@ weight scale is three lines of `@theme`.
 
 ---
 
-## 009 — The phone: no NativeWind, no in-app purchase, keychain sessions
+## 009 — There is no phone app *(superseded by #013)*
 
-**Chose:** `apps/mobile` styles with `StyleSheet` over the shared palette;
-paid courses are bought on the website, not in the app; the Supabase session is
-chunked into `expo-secure-store`.
-
-**Gave up:** Tailwind's vocabulary on the phone, a purchase flow that never
-leaves the app, and the simplicity of AsyncStorage.
-
-**Why, one at a time:**
-
-*No NativeWind* — it would mean a second styling dialect kept in step with the
-web's by hand, plus a babel and metro configuration to maintain across Expo
-upgrades. The palette and type scale already had to exist as data for React
-Native; `StyleSheet` over them is the whole of what NativeWind would have
-bought, without the dependency. This is the same reasoning as #004.
-
-*No in-app purchase* — Apple's guideline 3.1.1 requires IAP for digital content
-sold inside an iOS app, at Apple's commission, and Bonum is not IAP. Shipping a
-Bonum checkout inside the app would fail review. Sending the buyer to the
-website is what every course app does, and the enrolment is waiting for them
-when they come back because it is the same database.
-
-*Keychain, chunked* — `expo-secure-store` refuses values over ~2KB and a
-Supabase session is comfortably past that, which is why the common advice is
-AsyncStorage. AsyncStorage is a plain file: a stolen unlocked phone is somebody
-else's paid courses. Chunking is thirty lines.
-
-**Would change it:** if the school ever sells through the App Store at scale,
-IAP plus a server-side receipt check becomes its own slice — and the enrolment
-it writes is the same row Bonum writes today.
+This recorded how `apps/mobile` was built — `StyleSheet` over a shared palette
+rather than NativeWind, purchases sent to the website rather than IAP, the
+session chunked into the keychain. **The app is gone (#013) and none of that
+guidance applies to anything.** The entry stays, empty, because renumbering the
+ones after it would break every reference to a decision by number.
 
 ---
 
 ## 010 — One theme, and it is dark
 
 **Chose:** the dark palette is the only palette. No `data-theme` attribute, no
-`light:` variant, no toggle in the header, no theme row in the phone's
-settings, no theme cookie — and one `theme-color`.
+`light:` variant, no toggle in the header, no theme cookie — and one
+`theme-color`. (It also named a theme row in the phone's settings; there is no
+phone any more — #013.)
 
 **Gave up:** a reader who prefers a light interface, and the daylight-on-a-train
 case.
@@ -193,8 +170,12 @@ good one that nobody was going to keep honest as the product grew.
 **Would change it:** a real complaint from real students, in numbers. If it
 comes back it comes back as this file's #011 and as a second block in
 `globals.css` plus a second `Palette` in `packages/core` — not as a quiet
-attribute somebody adds mid-feature. `packages/core/test/theme.test.ts` fails if
-one appears without that decision.
+attribute somebody adds mid-feature.
+
+(This used to end by naming `packages/core/test/theme.test.ts` as the guard.
+That test compared the phone's copy of the palette against `globals.css`, and
+it went with the phone — #013. The palette now exists once, in CSS, which is
+the stronger version of the same guarantee: there is no second copy to drift.)
 
 ---
 
@@ -213,6 +194,12 @@ way of making it — they do not yet know whether they need "Кодын суур
 offer become *what you get* rather than *what to choose between*. It also makes
 the tracks free to reorganise: splitting a course in two costs the buyer
 nothing, so the curriculum can follow what teaches best rather than what sells.
+
+That freedom has since been used, which is why "Кодын суурь" above names a
+course that no longer exists: it was deleted outright (CLAUDE.md §1), and
+because nothing was ever sold separately, no buyer lost anything they had paid
+for. The example is left as written — it is what the argument looked like at
+the time, and the deletion is the argument being right.
 
 **Why not a `products` table:** it would be the honest general model, and it is
 three tables and a join for a product with exactly one bundle in it. `course_id
@@ -257,5 +244,50 @@ charged, and `payments.course_id` stays nullable with its branch in
 it bought.
 
 **Would change it:** a real demand to sell one track alone — a corporate order
-for just "Fullstack", say. That is a price column plus this file's #013, not a
-quiet re-read of `is_free`.
+for just "Fullstack", say. That is a price column plus a new entry in this file,
+not a quiet re-read of `is_free`. (This used to name #013; a forward reference
+to a number nobody owns goes stale the moment anything else is decided first,
+which is exactly what happened.)
+
+---
+
+## 013 — The phone app is deleted, not paused
+
+**Chose:** `apps/mobile` is removed from the repository, along with everything
+that existed to serve it: the Expo workspace, the `EXPO_PUBLIC_*` build
+contract, pnpm's hoisting rules for React Native, `packages/core/src/theme.ts`
+and its drift test, the redirect allowlist entries, and §9 of CLAUDE.md.
+TsStark Academy is a website.
+
+**Gave up:** a built and working Expo app — catalogue, player, quiz, progress,
+account — and the option to resume it without redoing that work.
+
+**Why:** an app that ships is a second product. Every lesson-shaped change owes
+it a screen, every string owes it a render, and every release owes it a store
+review; `pnpm test` could never see any of that, so the cost arrives as drift
+rather than as a failure. A second front end is worth that when it does
+something the web cannot — and this one could not: paid courses were bought on
+the website anyway (the old #009), so the app's whole job was reading lessons
+that a browser already reads.
+
+**Why deleted rather than left in place:** an unbuilt app in the tree is worse
+than no app. It keeps `pnpm install` resolving React Native, keeps three
+`EXPO_PUBLIC_*` names in the build's environment contract where a missing
+variable is invisible by design, and keeps a page of instructions telling the
+next person that a feature is only half-finished until the phone has it. Code
+that nobody runs is code nobody notices going wrong.
+
+**What stayed, and why it is not a leftover:**
+
+*The iOS/Android course.* The school teaches building mobile apps and sells
+that track in the bundle. Deleting a product because we stopped shipping one is
+a different decision entirely, and it is not this one.
+
+*`packages/core`.* It was built as the seam between two clients and is still
+where a decision that is not a screen belongs. The constraint it carries — no
+`apps/*`, no `window`, no `next/*` — survives its original reason: it is what
+lets the plain-Node test runner check this code at all.
+
+**Would change it:** a reason a browser cannot serve — offline lessons on a bad
+connection, push notifications somebody actually reads. Then it comes back as
+its own slice and its own entry here, not by restoring a deleted directory.

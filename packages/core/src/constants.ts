@@ -29,11 +29,10 @@ export const SITE_TAGLINE: Record<Locale, string> = {
 };
 
 /** Where the app thinks it lives. Falls back to localhost for a dev machine. */
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_APP_URL ??
-  process.env.EXPO_PUBLIC_API_URL ??
-  "http://localhost:3001"
-).replace(/\/$/, "");
+export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001").replace(
+  /\/$/,
+  "",
+);
 
 /**
  * One price for the whole school, and the only price there is.
@@ -77,8 +76,7 @@ export const BUNDLE_SAVING_MNT = BUNDLE_FULL_PRICE_MNT - BUNDLE_PRICE_MNT;
  * step 10). They sit beside `SITE_NAME` rather than in a web component or an
  * environment variable for the same reason it does: an inbox printed on a
  * poster is a fact about the school, not configuration that differs between a
- * preview deployment and production — and the phone will want the same values
- * the day it grows a support screen.
+ * preview deployment and production.
  *
  * A channel set to an empty string is **not rendered at all**, so removing one
  * is a matter of emptying it rather than of finding every place it is drawn.

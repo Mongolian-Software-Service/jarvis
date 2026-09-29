@@ -5,10 +5,9 @@ import { CopyButton } from "./copy-button";
 /**
  * A code block, highlighted on the server.
  *
- * `highlight()` comes from `@jarvis/core` and returns **tokens**, not HTML — so
- * the phone can draw the same snippet with `<Text>` runs later. Here each token
- * becomes a span with one class; the colours are the `--tok-*` variables, which
- * have a second copy of the highlighter.
+ * `highlight()` comes from `@jarvis/core` and returns **tokens**, not HTML —
+ * which is what keeps `dangerouslySetInnerHTML` out of this file. Each token
+ * becomes a span with one class; the colours are the `--tok-*` variables.
  *
  * No client JavaScript reaches the browser for this, except the copy button.
  */
