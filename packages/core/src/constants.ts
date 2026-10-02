@@ -102,6 +102,18 @@ export const CONTACT: Record<ContactChannel, string> = {
   instagram: "https://www.instagram.com/ts.stark.software/",
 };
 
+/**
+ * What a social channel is called on screen — the account's name, never its
+ * address. `facebook.com/people/TS-Stark-Software-LLC/61591180479626` is a
+ * URL with an id on the end, not something a person reads or remembers, and
+ * the platform is already named on the card above it. The link still goes to
+ * the URL in `CONTACT`; only what is printed changes.
+ */
+export const CONTACT_NAMES: Record<"facebook" | "instagram", string> = {
+  facebook: "TS Stark Software",
+  instagram: "TS Stark Software",
+};
+
 /** `tel:` wants digits and a `+`, not the spacing a person reads. */
 export function telHref(phone: string): string {
   return `tel:${phone.replace(/[^\d+]/g, "")}`;

@@ -1,9 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { parseMarkdown } from "../src/markdown/index.ts";
 import { localized, localizedOrNull, isFallback, toLocale } from "../src/locale.ts";
-import { destinationAfterSignIn, topicTint } from "../src/courses.ts";
+import { destinationAfterSignIn, safeNextPath, topicTint } from "../src/courses.ts";
 import { mn, strings, fmt } from "../src/strings/index.ts";
 
 // ── Locale ───────────────────────────────────────────────────────────────────
@@ -73,18 +72,21 @@ test("topics: an unknown tag still gets a stable tint", () => {
   assert.equal(topicTint("app"), "violet");
 });
 
-// ── The welcome guide ────────────────────────────────────────────────────────
+// ── «Сайн уу» ────────────────────────────────────────────────────────────────
+//
+// The long Markdown guide that used to be parsed here is gone — the showcase
+// took its place (20261002000200). What is left of the page's own copy is the
+// heading and the line under it, and neither may be blank.
 
-test("guide: the welcome text parses, and nothing is left as raw markup", () => {
-  const blocks = parseMarkdown(mn.guide.body);
-  assert.ok(blocks.length > 10, `only ${blocks.length} blocks`);
-  assert.ok(
-    blocks.some((block) => block.type === "heading"),
-    "no headings",
-  );
-  assert.ok(
-    blocks.some((block) => block.type === "list"),
-    "no lists",
-  );
+test("guide: the page heading and its deck are written", () => {
   assert.ok(mn.guide.title.length > 0 && mn.guide.deck.length > 0, "title or deck is empty");
+});
+
+test("next: only a path on this site, whatever a browser would make of it", () => {
+  assert.equal(safeNextPath("/mn/courses/landing-page"), "/mn/courses/landing-page");
+  assert.equal(safeNextPath("/mn/checkout?bundle=1"), "/mn/checkout?bundle=1");
+  for (const hostile of ["//evil.com", "/\\evil.com", "/\\/evil.com", "https://evil.com", "/mn\nSet-Cookie:x", "mn/dashboard", ""]) {
+    assert.equal(safeNextPath(hostile), null, JSON.stringify(hostile));
+  }
+  assert.equal(destinationAfterSignIn("mn", "student", "/\\evil.com"), "/mn/dashboard");
 });

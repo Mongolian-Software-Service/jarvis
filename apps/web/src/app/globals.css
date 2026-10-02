@@ -83,6 +83,12 @@
   --viz-4: #4ea7fc;
   --viz-5: #eb5757;
 
+  /* The student avatar — one picture for every student (StudentAvatar).
+     In :root for the same reason as the charts: the two stops are named from
+     an SVG `style`, which the class scanner cannot see. */
+  --avatar-from: #22b6f6;
+  --avatar-to: #a31cf2;
+
   /* Code */
   --code-bg: #0b0c0d;
   --code-line: rgba(255, 255, 255, 0.06);

@@ -3,7 +3,7 @@
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 import { GOOGLE_MARK } from "@jarvis/core";
-import { signInWithGoogle } from "@/lib/actions/auth";
+import { signInWithGoogle } from "@/lib/actions/google";
 import { buttonClass } from "@/components/ui/button";
 
 /** The mark, drawn from the shared path data so sign-in and sign-up cannot

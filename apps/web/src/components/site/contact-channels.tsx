@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ArrowUpRight, Mail, Phone } from "lucide-react";
-import { CONTACT, telHref, type ContactChannel, type Strings } from "@jarvis/core";
+import { CONTACT, CONTACT_NAMES, telHref, type ContactChannel, type Strings } from "@jarvis/core";
 import { FacebookMark, InstagramMark } from "@/components/ui/brand-icons";
 
 /**
@@ -15,17 +15,12 @@ type Channel = {
   key: ContactChannel;
   icon: ReactNode;
   label: string;
-  /** What the reader sees — a handle, not the URL it resolves to. */
+  /** What the reader sees — an address, a number or a name, never a URL. */
   display: string;
   href: string;
   note: string;
   external: boolean;
 };
-
-/** `instagram.com/ts.stark.software` reads as an address; the full URL reads as markup. */
-function handle(url: string): string {
-  return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
-}
 
 /**
  * Built from `CONTACT` in `packages/core`, and **a channel whose value is empty
@@ -62,7 +57,7 @@ function buildChannels(copy: Strings["marketing"]["contact"]["channels"]): Chann
       key: "facebook",
       icon: <FacebookMark />,
       label: copy.facebook.label,
-      display: handle(CONTACT.facebook),
+      display: CONTACT_NAMES.facebook,
       href: CONTACT.facebook,
       note: copy.facebook.note,
       external: true,
@@ -73,7 +68,7 @@ function buildChannels(copy: Strings["marketing"]["contact"]["channels"]): Chann
       key: "instagram",
       icon: <InstagramMark />,
       label: copy.instagram.label,
-      display: handle(CONTACT.instagram),
+      display: CONTACT_NAMES.instagram,
       href: CONTACT.instagram,
       note: copy.instagram.note,
       external: true,

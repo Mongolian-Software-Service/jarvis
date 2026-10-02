@@ -158,6 +158,20 @@ export function landingPath(locale: Locale, role: Role | null | undefined): stri
 }
 
 /**
+ * A `?next=` that is a path on this site, or null.
+ *
+ * `startsWith("/") && !startsWith("//")` was the rule, and it let
+ * `/\evil.com` through: browsers read a backslash in a `Location` as a slash,
+ * so `/\evil.com` is `//evil.com` — another site — by the time it is followed.
+ * So the second character may be neither slash, and the path may carry no
+ * backslash and no control character anywhere.
+ */
+export function safeNextPath(asked: string | null | undefined): string | null {
+  if (!asked) return null;
+  return /^\/(?![/\\])[^\\\u0000-\u001f\u007f]*$/.test(asked) ? asked : null;
+}
+
+/**
  * Where a new session actually goes — the one rule, in one place.
  *
  * Three doors end here (the password form, the sign-up form and
@@ -180,7 +194,7 @@ export function destinationAfterSignIn(
   role: Role | null | undefined,
   asked?: string | null,
 ): string {
-  const path = asked && asked.startsWith("/") && !asked.startsWith("//") ? asked : null;
+  const path = safeNextPath(asked);
   const isMarketing = path === "/" || LOCALES.some((code) => path === `/${code}`);
   return !path || isMarketing ? landingPath(locale, role) : path;
 }

@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Search } from "lucide-react";
 import { accessLookupSchema } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
-import { findAccessCandidate } from "@/lib/queries/admin";
+import { findAccessCandidate, listGrantedPeople } from "@/lib/queries/admin";
 import { AccessCard } from "@/components/admin/access-card";
+import { GrantedList } from "@/components/admin/granted-list";
 import { Input } from "@/components/ui/field";
 import { buttonClass } from "@/components/ui/button";
 
@@ -17,6 +18,10 @@ export const metadata: Metadata = { robots: { index: false } };
  * the person they are discussing, and the back button does what it looks like
  * it does. It also means this page needs no client component to find anybody —
  * only the two buttons are interactive.
+ *
+ * Under it, everybody the team has already opened the school for. A row puts
+ * that person in the search, so closing somebody's access is one tap from the
+ * list rather than an address to retype.
  */
 export default async function AdminAccessPage({
   searchParams,
@@ -34,7 +39,10 @@ export default async function AdminAccessPage({
    * better the moment they fix it.
    */
   const parsed = typed ? accessLookupSchema.safeParse({ email: typed }) : null;
-  const candidate = parsed?.success ? await findAccessCandidate(parsed.data.email) : null;
+  const [candidate, granted] = await Promise.all([
+    parsed?.success ? findAccessCandidate(parsed.data.email) : null,
+    listGrantedPeople(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -70,6 +78,13 @@ export default async function AdminAccessPage({
       ) : null}
 
       {candidate ? <AccessCard candidate={candidate} locale={locale} t={t} /> : null}
+
+      <GrantedList
+        people={granted}
+        selected={parsed?.success ? parsed.data.email : ""}
+        locale={locale}
+        t={t}
+      />
     </div>
   );
 }

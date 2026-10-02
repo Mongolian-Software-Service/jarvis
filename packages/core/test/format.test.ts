@@ -2,7 +2,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { slugify, isValidSlug } from "../src/slug.ts";
-import { formatDate, formatMoney, formatDuration, groupDigits, percent } from "../src/format.ts";
+import {
+  formatDate,
+  formatFullName,
+  formatMoney,
+  formatDuration,
+  groupDigits,
+  percent,
+} from "../src/format.ts";
 
 // ── Slugs ────────────────────────────────────────────────────────────────────
 
@@ -36,4 +43,12 @@ test("format: durations read as hours and minutes", () => {
 test("format: percent cannot exceed 100 however the counts arrive", () => {
   assert.equal(percent(12, 10), 100);
   assert.equal(percent(0, 0), 0);
+});
+
+// ── Names ────────────────────────────────────────────────────────────────────
+
+test("full name: овог then нэр, and either half may be missing", () => {
+  assert.equal(formatFullName("Батбаяр", "Тэмүүлэн"), "Батбаяр Тэмүүлэн");
+  assert.equal(formatFullName(null, " Тэмүүлэн "), "Тэмүүлэн");
+  assert.equal(formatFullName("  ", undefined), null);
 });

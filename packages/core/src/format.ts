@@ -88,3 +88,19 @@ export function percent(done: number, total: number): number {
   if (total <= 0) return 0;
   return Math.min(100, Math.max(0, Math.round((done / total) * 100)));
 }
+
+/**
+ * Овог нэр, in Mongolian order, skipping whichever half is missing.
+ *
+ * An account that signed up before the two columns existed may have only one
+ * of them, and «null Тэмүүлэн» is worse than «Тэмүүлэн». It lived as a private
+ * helper in the feedback query and then as a copy in two more; three screens
+ * that print a person's name should not have three opinions about how.
+ */
+export function formatFullName(
+  last: string | null | undefined,
+  first: string | null | undefined,
+): string | null {
+  const parts = [last, first].map((part) => part?.trim()).filter(Boolean);
+  return parts.length ? parts.join(" ") : null;
+}

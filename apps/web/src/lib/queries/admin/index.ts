@@ -18,3 +18,4 @@ export * from "./people";
 export * from "./payments";
 export * from "./access";
 export * from "./feedback";
+export * from "./projects";

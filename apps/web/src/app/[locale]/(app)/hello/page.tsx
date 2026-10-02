@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { coursePath, coursePlayerPath, coursesPath } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
 import { listCourses } from "@/lib/queries/courses";
-import { listMyCourses } from "@/lib/queries/learn";
+import { listMyCourses, listShowcase } from "@/lib/queries/learn";
 import { getViewer } from "@/lib/queries/viewer";
 import { CourseTrail, type TrailStep } from "@/components/app/course-trail";
 import { HelloWelcome } from "@/components/app/hello/welcome";
 import { HelloStats } from "@/components/app/hello/stats";
-import { HelloGuide } from "@/components/app/hello/guide";
+import { HelloShowcase } from "@/components/app/hello/showcase";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getIntl();
@@ -17,10 +17,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HelloPage() {
   const { locale, t } = await getIntl();
 
-  const [courses, mine, viewer] = await Promise.all([
+  const [courses, mine, viewer, showcase] = await Promise.all([
     listCourses(locale),
     listMyCourses(locale),
     getViewer(),
+    listShowcase(),
   ]);
 
   const held = new Map(mine.map((course) => [course.id, course.progress]));
@@ -95,7 +96,8 @@ export default async function HelloPage() {
       {/* ── The map ───────────────────────────────────────────────────────── */}
       <CourseTrail steps={steps} locale={locale} t={t} />
 
-      <HelloGuide locale={locale} t={t} />
+      {/* ── What everybody else built ─────────────────────────────────────── */}
+      <HelloShowcase projects={showcase} locale={locale} t={t} />
     </div>
   );
 }

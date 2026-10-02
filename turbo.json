@@ -30,6 +30,14 @@
         "NEXT_PUBLIC_APP_URL",
 
         /*
+         * Google sign-in on our own domain (lib/auth/google.ts). Both unset
+         * means the Supabase redirect, which still works; the secret is
+         * server-only and read in that one file.
+         */
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+
+        /*
          * Bonum (the payment gateway). `BONUM_MERCHANT_CHECKSUM_KEY` verifies
          * the callback signature: without it every callback throws and no
          * payment is ever confirmed. `BONUM_MOCK=1` settles locally and is

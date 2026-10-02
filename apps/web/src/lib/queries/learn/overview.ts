@@ -1,5 +1,5 @@
 import "server-only";
-import { resumeCourse, type Locale } from "@jarvis/core";
+import { nextLesson, resumeCourse, type Locale } from "@jarvis/core";
 import { createServerSupabase, getUserId, supabaseConfigured } from "@/lib/supabase/server";
 import { getCourseBySlug } from "../courses";
 import { listMyCourses, type EnrolledCourse } from "./courses";
@@ -17,8 +17,13 @@ export type StudentOverview = {
   resume: {
     courseSlug: string;
     courseTitle: string;
+    coverUrl: string | null;
     lessonSlug: string;
     lessonTitle: string;
+    /** Where that lesson sits in the course: «2/5 хичээл». One-based. */
+    lessonNumber: number;
+    lessonCount: number;
+    progress: EnrolledCourse["progress"];
   } | null;
 };
 
@@ -66,7 +71,7 @@ export async function getStudentOverview(locale: Locale): Promise<StudentOvervie
   const detail = await getCourseBySlug(target.slug, locale);
   const ordered = detail?.modules.flatMap((section) => section.lessons) ?? [];
   const done = new Set(rows.filter((row) => row.completed_at).map((row) => row.lesson_id));
-  const next = ordered.find((lesson) => !done.has(lesson.id)) ?? ordered[0];
+  const next = nextLesson(ordered, done);
 
   return {
     courses,
@@ -76,8 +81,12 @@ export async function getStudentOverview(locale: Locale): Promise<StudentOvervie
       ? {
           courseSlug: target.slug,
           courseTitle: target.title,
+          coverUrl: target.coverUrl,
           lessonSlug: next.slug,
           lessonTitle: next.title,
+          lessonNumber: ordered.indexOf(next) + 1,
+          lessonCount: ordered.length,
+          progress: target.progress,
         }
       : null,
   };

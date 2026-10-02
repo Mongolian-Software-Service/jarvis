@@ -7,6 +7,7 @@ export const content = {
     payments: "Төлбөр",
     access: "Эрх олголт",
     feedback: "Санал хүсэлт",
+    projects: "Төслүүд",
     viewSite: "Сайт харах",
   },
   overview: {

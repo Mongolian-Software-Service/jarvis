@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, CheckCircle2, Clock } from "lucide-react";
-import {
-  coursesPath,
-  fmt,
-  formatDuration,
-  groupDigits,
-  learnPath,
-  lessonPath,
-} from "@jarvis/core";
+import { BookOpen, CheckCircle2, Clock, Globe } from "lucide-react";
+import { coursesPath, fmt, formatDuration, groupDigits } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
-import { getStudentOverview } from "@/lib/queries/learn";
+import { getStudentOverview, listMyProjects } from "@/lib/queries/learn";
 import { listCourses } from "@/lib/queries/courses";
 import { getViewer } from "@/lib/queries/viewer";
 import { CourseCard } from "@/components/course/course-card";
-import { Progress } from "@/components/ui/progress";
-import { buttonClass } from "@/components/ui/button";
+import { ResumeCard } from "@/components/dashboard/resume-card";
+import { StatStrip } from "@/components/dashboard/stat-strip";
+import { CourseRows } from "@/components/dashboard/course-rows";
+import { ProjectsPanel } from "@/components/dashboard/projects-panel";
+import { cn } from "@/lib/cn";
 
 export const metadata: Metadata = { robots: { index: false } };
 
@@ -25,109 +21,66 @@ export const metadata: Metadata = { robots: { index: false } };
  * The resume card is the whole point: a list of courses is something they can
  * get from the catalogue, but "you were on lesson four of Flexbox, carry on" is
  * only possible here.
+ *
+ * Below it, two columns on a laptop: what is still open on the left, what they
+ * have built on the right. It was one 64rem column down the middle of a 78rem
+ * page — a third of the screen spent on nothing (§3, "a page spends the width
+ * it is given"). On a phone the two simply stack, courses first.
  */
 export default async function DashboardPage() {
   const { locale, t } = await getIntl();
-  const [viewer, overview] = await Promise.all([getViewer(), getStudentOverview(locale)]);
+  const [viewer, overview, projects] = await Promise.all([
+    getViewer(),
+    getStudentOverview(locale),
+    listMyProjects(),
+  ]);
 
   const firstName = viewer?.fullName?.trim().split(/\s+/)[0];
   const started = overview.courses.filter((course) => !course.progress.finished);
+  const holdsCourses = overview.courses.length > 0;
 
   // A student holding nothing sees what they could start, not an empty panel.
-  const catalogue = overview.courses.length === 0 ? await listCourses(locale) : [];
+  const catalogue = holdsCourses ? [] : await listCourses(locale);
+
+  const copy = t.learn.overview;
+  const stats = [
+    { icon: BookOpen, label: copy.statCourses, value: groupDigits(overview.courses.length) },
+    { icon: CheckCircle2, label: copy.statLessons, value: groupDigits(overview.lessonsDone) },
+    {
+      icon: Clock,
+      label: copy.statMinutes,
+      value: formatDuration(overview.minutesWatched, locale),
+    },
+    { icon: Globe, label: copy.statProjects, value: groupDigits(projects.length) },
+  ];
 
   return (
-    <div className="shell max-w-5xl space-y-8 py-8 sm:py-12">
+    <div className="shell space-y-8 py-8 sm:py-12">
       <header>
         <h1 className="font-display text-[28px] leading-[1.1] sm:text-[32px]">
-          {firstName
-            ? fmt(t.learn.overview.greeting, { name: firstName })
-            : t.learn.overview.greetingPlain}
+          {firstName ? fmt(copy.greeting, { name: firstName }) : copy.greetingPlain}
         </h1>
-        <p className="mt-2 text-[15px] text-ink-3">{t.learn.overview.deck}</p>
+        <p className="text-ink-3 mt-2 text-[15px]">{copy.deck}</p>
       </header>
 
-      {/* Carry on */}
-      {overview.resume ? (
-        <section className="panel-raised relative overflow-hidden p-6">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-60"
-            style={{
-              background:
-                "radial-gradient(32rem 12rem at 100% 0%, var(--accent-soft), transparent 70%)",
-            }}
-          />
-          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0">
-              <p className="kicker">{overview.resume.courseTitle}</p>
-              <h2 className="font-display mt-2 text-[22px] leading-tight">
-                {overview.resume.lessonTitle}
-              </h2>
-            </div>
-            <Link
-              href={lessonPath(locale, overview.resume.courseSlug, overview.resume.lessonSlug)}
-              className={buttonClass("primary", "lg", "shrink-0")}
-            >
-              {t.learn.overview.resume}
-              <ArrowRight className="size-3.5" />
-            </Link>
-          </div>
-        </section>
-      ) : null}
+      {overview.resume ? <ResumeCard resume={overview.resume} locale={locale} t={t} /> : null}
 
-      {/* Three numbers */}
-      <section className="grid gap-4 sm:grid-cols-3">
-        <Stat
-          icon={BookOpen}
-          label={t.learn.overview.statCourses}
-          value={groupDigits(overview.courses.length)}
-        />
-        <Stat
-          icon={CheckCircle2}
-          label={t.learn.overview.statLessons}
-          value={groupDigits(overview.lessonsDone)}
-        />
-        <Stat
-          icon={Clock}
-          label={t.learn.overview.statMinutes}
-          value={formatDuration(overview.minutesWatched, locale)}
-        />
-      </section>
+      {holdsCourses ? <StatStrip stats={stats} /> : null}
 
-      {/* What is open */}
-      {started.length > 0 ? (
-        <section>
-          <h2 className="font-display mb-4 text-[20px]">{t.learn.overview.inProgress}</h2>
-          <div className="panel divide-y divide-line overflow-hidden">
-            {/*
-              * Every row goes to «Миний сургалт», not into its own course.
-              * Resuming already has a screen of its own directly above — the
-              * course, the lesson and a button straight into it. A second way
-              * to resume, hidden behind a progress bar, would be the same
-              * journey twice; this list is here to be read, and the place it
-              * leads to is the fuller version of itself.
-              */}
-            {started.map((course) => (
-              <Link
-                key={course.id}
-                href={learnPath(locale)}
-                className="flex items-center gap-4 px-4 py-3.5 transition-colors hover:bg-panel-2"
-              >
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[14px]">{course.title}</span>
-                  <span className="mt-2 block">
-                    <Progress value={course.progress.percent} />
-                  </span>
-                </span>
-                <span className="shrink-0 text-[12px] text-ink-3 tabular">
-                  {course.progress.completed}/{course.progress.total}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
+      {/* Projects are open to everybody signed in, course or no course
+          (20261002000300), so the panel is not behind `holdsCourses`. */}
+      <div
+        className={cn(
+          // `minmax(0, …)` at every width: an implicit `auto` column
+          // grows to its widest unbreakable line, and a 60-character host
+          // would push a 360px phone sideways past every `truncate` inside.
+          "grid grid-cols-[minmax(0,1fr)] items-start gap-8",
+          started.length > 0 && "lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]",
+        )}
+      >
+        {started.length > 0 ? <CourseRows courses={started} locale={locale} t={t} /> : null}
+        <ProjectsPanel projects={projects} locale={locale} t={t} />
+      </div>
 
       {/* A student who holds nothing */}
       {catalogue.length > 0 ? (
@@ -136,7 +89,7 @@ export default async function DashboardPage() {
             <h2 className="font-display text-[20px]">{t.learn.dashboard.browseTitle}</h2>
             <Link
               href={coursesPath(locale)}
-              className="shrink-0 text-[13px] text-ink-3 transition-colors hover:text-ink"
+              className="text-ink-3 hover:text-ink shrink-0 text-[13px] transition-colors"
             >
               {t.actions.seeAll} →
             </Link>
@@ -154,26 +107,6 @@ export default async function DashboardPage() {
           </div>
         </section>
       ) : null}
-    </div>
-  );
-}
-
-function Stat({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof BookOpen;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="panel p-5">
-      <span className="mb-3 grid size-8 place-items-center rounded-md bg-panel-2 text-ink-3">
-        <Icon className="size-4" />
-      </span>
-      <p className="font-display text-[26px] tabular">{value}</p>
-      <p className="mt-0.5 text-[13px] text-ink-3">{label}</p>
     </div>
   );
 }

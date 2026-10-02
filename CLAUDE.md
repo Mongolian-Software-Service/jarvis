@@ -278,6 +278,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=    # safe in a browser bundle; RLS protects the data
 SUPABASE_SECRET_KEY=                     # server-only, bypasses RLS. NEVER NEXT_PUBLIC_
 NEXT_PUBLIC_APP_URL=
+GOOGLE_CLIENT_ID= GOOGLE_CLIENT_SECRET=  # §6.6 — server-only; both unset = Supabase's redirect
 BONUM_MOCK=1                             # dev only; ignored when NODE_ENV=production
 BONUM_API_BASE_URL= BONUM_APP_SECRET= BONUM_TERMINAL_ID=
 BONUM_MERCHANT_CHECKSUM_KEY= BONUM_CALLBACK_URL=
@@ -613,7 +614,34 @@ runs. That app is gone — decision #013 — and neither choice depended on it.)
 ## §5 Data model
 
 See `supabase/migrations/`. Tables: `profiles`, `courses`, `modules`, `lessons`,
-`quiz_questions`, `enrollments`, `lesson_progress`, `payments`.
+`quiz_questions`, `enrollments`, `lesson_progress`, `payments`, `feedback`,
+`projects`.
+
+`projects` is «Миний төслүүд»: the address of what a student built, with an
+optional name and description. **It belongs to the student, not to a course** —
+there was a course picker, filing one project under each track, and it is gone
+(20261002000300). Anybody signed in may post — holding a course is not
+required — and keeps up to ten; `PROJECT_LIMIT` in core and a trigger in the
+database say the same number. A student keeps it
+on their dashboard; **every signed-in student** reads everybody's on «Сайн уу»
+— the showcase that replaced the long guide there — and the team reads them at
+`/admin/projects`.
+
+- **Classmates read the view, never the table.** `project_showcase` is
+  owner-invoked like `lesson_outline` (§5.1), because the author's name lives
+  on `profiles` beside their phone and email. It gives out a first name and the
+  initial of the овог («Б.Тэмүүлэн», `authorName()` in core), `is_mine`, and
+  nothing else about the person — no `user_id`. Signed in only; anon has no
+  grant.
+- **The URL is an `href` on three screens**, so it is checked by one rule —
+  `normalizeProjectUrl()` (the form and the action) — and a `check` on the
+  column (everybody else). Only http and https, no credentials, a real domain.
+  Rendered with `rel="noopener noreferrer nofollow ugc"`.
+- **The team can take a link down and never rewrite it.** A link everybody
+  opens has to be removable by somebody other than its author; a description
+  changed by somebody else is no longer the student's own words.
+- **Every student wears the same picture** (`StudentAvatar`), not the photo
+  Google hands over.
 
 Three things that are decisions rather than details:
 
@@ -733,10 +761,27 @@ is configured in this repository (SETUP.md step 7 has the two dashboards).
   school's only reliable way to reach somebody; so `AppShell` shows
   `ProfileGate` once to anybody missing any of the three. «Дараа бөглөнө» is a
   day's cookie, not a column.
-- **The web starts OAuth on the server** (`signInWithGoogle` in
-  `lib/actions/auth.ts`), so `@supabase/ssr` writes the PKCE verifier into the
-  same cookie jar `/auth/confirm` reads it back from. That route already handled
-  `code` for email links; Google reuses it.
+- **Google returns to our own domain, not Supabase's.** Through Supabase's
+  OAuth redirect, Google's account chooser said «to continue to
+  dhdrcjhrznkgdizkuolo.supabase.co», because Google names the domain the
+  sign-in returns to; Supabase changes that only with a paid custom domain. So
+  `signInWithGoogle` (`lib/actions/google.ts`) sends the browser to Google
+  itself, Google returns to **`/auth/google`**, the code is traded for an ID
+  token server to server (`lib/auth/google.ts`), and Supabase is handed that
+  token with `signInWithIdToken` — which still verifies signature, audience
+  and nonce. State, nonce and the PKCE verifier ride in one HttpOnly cookie
+  scoped to the callback, good for ten minutes and one trip.
+  - It needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (the same OAuth
+    client Supabase's Google provider uses), and **both callback URLs on that
+    client's redirect list** in Google Cloud Console:
+    `https://www.tsstark-academy.com/auth/google` and
+    `http://localhost:3001/auth/google`. Add the URLs **before** setting the
+    keys anywhere: with the keys and without the URL, Google answers
+    `redirect_uri_mismatch` and nobody can sign in with it.
+  - Without the keys, or on an origin Google would not accept (a Vercel
+    preview), `googleDirect()` says no and the old path runs: Supabase's
+    redirect through `/auth/confirm`, where `@supabase/ssr` keeps the PKCE
+    verifier in the same cookie jar it reads back from.
 - **`next` is validated before it is used.** Only a path on this site — an
   absolute URL there would make the sign-in button an open redirect.
 - **A redirect Supabase will not allow is not refused — it is replaced by

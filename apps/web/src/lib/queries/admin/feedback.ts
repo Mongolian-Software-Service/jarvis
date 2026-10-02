@@ -1,4 +1,5 @@
 import "server-only";
+import { formatFullName } from "@jarvis/core";
 import { createServerSupabase, supabaseConfigured } from "@/lib/supabase/server";
 
 /**
@@ -56,23 +57,9 @@ export async function listFeedback(limit = 200): Promise<FeedbackMessage[]> {
     createdAt: row.created_at,
     author: {
       id: row.profiles?.id ?? "",
-      name: fullName(row.profiles?.last_name, row.profiles?.first_name),
+      name: formatFullName(row.profiles?.last_name, row.profiles?.first_name),
       phone: row.profiles?.phone ?? null,
       email: row.profiles?.email ?? null,
     },
   }));
-}
-
-/**
- * Овог нэр, in Mongolian order, skipping whichever half is missing.
- *
- * An account that signed up before the two columns existed may have only one
- * of them, and «null Тэмүүлэн» is worse than «Тэмүүлэн».
- */
-function fullName(
-  last: string | null | undefined,
-  first: string | null | undefined,
-): string | null {
-  const parts = [last, first].map((part) => part?.trim()).filter(Boolean);
-  return parts.length ? parts.join(" ") : null;
 }

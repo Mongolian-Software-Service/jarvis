@@ -6,6 +6,7 @@ import {
   BarChart3,
   BookOpen,
   CreditCard,
+  Globe,
   KeyRound,
   LogOut,
   MessageSquare,
@@ -44,6 +45,7 @@ export function AdminSidebar({ locale, t }: { locale: Locale; t: Strings }) {
     { href: adminPath(locale, "/students"), label: t.admin.nav.students, icon: Users },
     { href: adminPath(locale, "/payments"), label: t.admin.nav.payments, icon: CreditCard },
     { href: adminPath(locale, "/access"), label: t.admin.nav.access, icon: KeyRound },
+    { href: adminPath(locale, "/projects"), label: t.admin.nav.projects, icon: Globe },
     { href: adminPath(locale, "/feedback"), label: t.admin.nav.feedback, icon: MessageSquare },
   ];
 

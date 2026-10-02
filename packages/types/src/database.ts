@@ -468,6 +468,44 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          title: string | null
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string | null
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string | null
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_questions: {
         Row: {
           correct_index: number
@@ -580,6 +618,19 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      project_showcase: {
+        Row: {
+          author_first_name: string | null
+          author_initial: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          is_mine: boolean | null
+          title: string | null
+          url: string | null
+        }
+        Relationships: []
       }
     }
     Functions: {

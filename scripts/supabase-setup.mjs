@@ -23,6 +23,11 @@
  * Usage:
  *   node scripts/supabase-setup.mjs            everything
  *   node scripts/supabase-setup.mjs --schema   migrations + seed only
+ *   node scripts/supabase-setup.mjs --migrations   migrations only, no seed
+ *
+ * `--migrations` is the one to use against the live project. The seed upserts
+ * every course, module and lesson by id, so re-running it overwrites whatever
+ * the team has since edited in the console — and nothing records that it did.
  *   node scripts/supabase-setup.mjs --auth     auth settings only
  */
 import { readFileSync, readdirSync } from "node:fs";
@@ -75,7 +80,8 @@ async function sql(query, label) {
 }
 
 const only = process.argv[2];
-const doSchema = !only || only === "--schema";
+const doSchema = !only || only === "--schema" || only === "--migrations";
+const doSeed = !only || only === "--schema";
 const doAuth = !only || only === "--auth";
 
 const project = await api(`/projects/${ref}`);
@@ -164,8 +170,10 @@ if (doSchema) {
   }
 
   if (applied === 0) console.log("  migrations … up to date");
+}
 
-  // The seed upserts by id, so re-running it updates the courses in place.
+// The seed upserts by id, so re-running it updates the courses in place.
+if (doSeed) {
   await sql(readFileSync(join(root, "supabase/seed.sql"), "utf8"), "seed.sql");
 
   const counts = await api(`/projects/${ref}/database/query`, {
