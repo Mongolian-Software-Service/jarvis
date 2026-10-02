@@ -102,8 +102,13 @@ export function dashboardPath(locale: Locale): string {
 export function helloPath(locale: Locale): string {
   return `/${locale}/hello`;
 }
-export function accountPath(locale: Locale): string {
-  return `/${locale}/account`;
+/**
+ * Settings, and the categories under it: `accountPath(locale, "/terms")`.
+ * Same shape as `adminPath` — one prefix, so the tab bar's longest-prefix match
+ * keeps «Тохиргоо» lit on every category without knowing their names.
+ */
+export function accountPath(locale: Locale, rest = ""): string {
+  return `/${locale}/account${rest}`;
 }
 export function coursePlayerPath(locale: Locale, courseSlug: string): string {
   return `/${locale}/learn/${courseSlug}`;

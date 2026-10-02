@@ -116,6 +116,10 @@ starts.forEach((start, n) => {
    *
    * So these are counted and named on every run. `pnpm test` stays green and
    * still says out loud which lessons are showing the MDN sample clip.
+   *
+   * The replacement is one command — `pnpm video:upload <file> <slug>` puts the
+   * film in R2 and rewrites this column (SETUP.md §11) — which is why this list
+   * is a list of things to do rather than a list of things to think about.
    */
   if (/interactive-examples\.mdn\.mozilla\.net\/media\/cc0-videos\//.test(at("video_url"))) {
     placeholders.push([start + 1, slug]);
@@ -179,13 +183,13 @@ for (const match of source.matchAll(/\$md\$([\s\S]*?)\$md\$/g)) {
 }
 
 /*
- * And one thing about courses, which Postgres cannot catch.
+ * And two things about courses, which Postgres cannot catch.
  *
  * `courses.is_free` defaults to false. Drop it from the insert's column list
- * and the seed still applies cleanly — it just quietly makes every course paid,
- * including the free intro track, and the only symptom is that nobody can start
- * anything without buying. A default that silently means "no" is exactly the
- * kind of omission worth a line of arithmetic here.
+ * and the seed still applies cleanly — it just quietly decides the money
+ * question by omission. That was worth catching when the intro track was free
+ * and is worth catching now that nothing is: a default is not a decision, and
+ * the seed has to say which one it means.
  */
 const courseBlock = source.split("insert into public.courses")[1]?.split("on conflict")[0] ?? "";
 
@@ -195,11 +199,32 @@ if (!/\(.*\bis_free\b/s.test(courseBlock.split("values")[0] ?? "")) {
     "courses",
     "the insert does not name is_free — every course would default to paid",
   ]);
-} else if (!/,\s*true,\s*true,/.test(courseBlock)) {
+}
+
+/*
+ * The flag and the prose have to agree.
+ *
+ * This used to assert the opposite thing — that *some* course had to be free,
+ * "or nobody can start". That was the model at the time and is not any more
+ * (CLAUDE.md §1, decision #012): the bundle is the only way in, and every
+ * course is paid. The rule was deleted rather than inverted, because a free
+ * course is allowed again the moment somebody wants one.
+ *
+ * What replaced it is the failure that change actually produced. Flipping
+ * `is_free` left the intro's own `description_mn` saying «Энэ сургалт үнэгүй»
+ * underneath a card already printing «Багцад багтсан» — a page contradicting
+ * itself about money, which no constraint and no type can see. The narrow
+ * phrasings below are claims about *this course*; «Бүгд үнэгүй» about VS Code
+ * or a Vercel plan is a different sentence and stays legal.
+ */
+const anyFree = /'[a-z]+',\s*'[a-z]+',\s*true,/.test(courseBlock);
+const claimsFree = /сургалт\s+(нь\s+)?үнэгүй|course is free/i.exec(courseBlock);
+
+if (!anyFree && claimsFree) {
   problems.push([
     0,
     "courses",
-    "no course is free — the intro track has to be, or nobody can start",
+    `no course is free, but a description still says «${claimsFree[0]}»`,
   ]);
 }
 

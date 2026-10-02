@@ -32,12 +32,24 @@ import { dirname, join, relative, extname } from "node:path";
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const LIMIT = 160;
 
-/** Directories that hold no source of ours. */
+/**
+ * Directories that hold no source of ours.
+ *
+ * `.claude` is the one worth explaining. The desktop app checks a whole second
+ * copy of this repository out under `.claude/worktrees/<name>/` for every
+ * background task, and without this the walk descends into each of them: the
+ * same files are counted twice, and — worse — the exemptions below stop
+ * matching, because they are anchored paths like `supabase/seed.sql` and a
+ * worktree's copy is `.claude/worktrees/foo/supabase/seed.sql`. So `pnpm test`
+ * fails, naming files that are exempt, for as long as somebody has a task
+ * running. The report was about the checker, not the code.
+ */
 const SKIP_DIRS = new Set([
   "node_modules",
   ".next",
   ".expo",
   ".git",
+  ".claude",
   ".turbo",
   "dist",
   "build",

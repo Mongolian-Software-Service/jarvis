@@ -19,6 +19,7 @@
     "db:reset": "supabase db reset",
     "db:types": "set -a && . ./.env && set +a && supabase gen types typescript --project-id $SUPABASE_PROJECT_REF > .db-types.tmp && mv .db-types.tmp packages/types/src/database.ts || (rm -f .db-types.tmp && exit 1)",
     "supabase:setup": "node scripts/supabase-setup.mjs",
+    "video:upload": "node scripts/upload-video.mjs",
     "check:seed": "node scripts/check-seed.mjs",
     "check:lines": "node scripts/check-lines.mjs"
   },

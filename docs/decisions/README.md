@@ -134,7 +134,7 @@ weight scale is three lines of `@theme`.
 
 ---
 
-## 009 — There is no phone app *(superseded by #013)*
+## 009 — There is no phone app _(superseded by #013)_
 
 This recorded how `apps/mobile` was built — `StyleSheet` over a shared palette
 rather than NativeWind, purchases sent to the website rather than IAP, the
@@ -191,7 +191,7 @@ Also the simplicity of `course_id` being NOT NULL.
 **Why:** five prices is a decision a beginner has to make before they have any
 way of making it — they do not yet know whether they need "Кодын суурь" or
 "Landing page". One price removes the decision, and the five cards below the
-offer become *what you get* rather than *what to choose between*. It also makes
+offer become _what you get_ rather than _what to choose between_. It also makes
 the tracks free to reorganise: splitting a course in two costs the buyer
 nothing, so the curriculum can follow what teaches best rather than what sells.
 
@@ -249,6 +249,20 @@ not a quiet re-read of `is_free`. (This used to name #013; a forward reference
 to a number nobody owns goes stale the moment anything else is decided first,
 which is exactly what happened.)
 
+**Since written, `is_free` is false on every course.** Танилцуулга was the free
+intro; the school decided the bundle is the only way in, so nothing opens
+without a payment. That is a change of _setting_, not of model — which is the
+boolean earning its keep, because the alternative design would have needed a
+migration to say the same thing.
+
+It also showed where the model leaks. Access is one flag, but the _claim_ about
+access was in three places: `courses.is_free`, `lessons.is_preview` — a second
+door that opens one lesson to somebody not even signed in — and the course's
+own `description_mn`, which went on saying «Энэ сургалт үнэгүй» under a card
+that had already started printing «Багцад багтсан». Postgres cannot notice
+prose disagreeing with a boolean, and neither can TypeScript. If free courses
+ever come back, all three move together.
+
 ---
 
 ## 013 — The phone app is deleted, not paused
@@ -279,11 +293,11 @@ that nobody runs is code nobody notices going wrong.
 
 **What stayed, and why it is not a leftover:**
 
-*The iOS/Android course.* The school teaches building mobile apps and sells
+_The iOS/Android course._ The school teaches building mobile apps and sells
 that track in the bundle. Deleting a product because we stopped shipping one is
 a different decision entirely, and it is not this one.
 
-*`packages/core`.* It was built as the seam between two clients and is still
+_`packages/core`._ It was built as the seam between two clients and is still
 where a decision that is not a screen belongs. The constraint it carries — no
 `apps/*`, no `window`, no `next/*` — survives its original reason: it is what
 lets the plain-Node test runner check this code at all.
@@ -291,3 +305,60 @@ lets the plain-Node test runner check this code at all.
 **Would change it:** a reason a browser cannot serve — offline lessons on a bad
 connection, push notifications somebody actually reads. Then it comes back as
 its own slice and its own entry here, not by restoring a deleted directory.
+
+---
+
+## 014 — Lesson video sits in Cloudflare R2, in a public bucket
+
+**Chose:** the films live in an R2 bucket, `lessons.video_url` holds the
+absolute URL, and `scripts/upload-video.mjs` is the only thing in the repository
+that holds an R2 credential. The bucket is **public**: the URL, once known, is
+fetchable by anyone.
+
+**Gave up:** paying per gigabyte watched, which is what almost every
+alternative charges for — and, with it, adaptive bitrate. R2 serves the one file
+it was given, so the encode has to be right for the worst connection a student
+has rather than negotiated per viewer.
+
+**Why R2:** egress is free. That is the only number that matters here, because
+it is the only one that grows with the thing the school wants to grow. The
+curriculum is a few gigabytes stored — cents a month, inside the free 10GB for a
+long while — and a hundred students watching all of it moves tens of gigabytes
+that would be billed anywhere else. Cloudflare Stream would give us the
+adaptive ladder and signed playback, and charges per minute delivered; that is
+the right trade for a video business and the wrong one for a school whose videos
+are screen recordings.
+
+**Why the website needs no R2 configuration at all:** because the column holds a
+whole URL and the player is a plain `<video src>`. So no R2 name appears in
+`turbo.json`'s build `env`, in Vercel, or in a browser bundle — and a name that
+is not in the build contract cannot be the _missing_ variable that breaks a
+deploy invisibly (§2). The cost is that moving to a different host means
+rewriting every `video_url`; a base-URL variable would fix that and would put
+media hosting back into the build's environment, which is the more expensive of
+the two problems.
+
+**Why public, which is the part worth arguing about:** §5.1's rule is that a
+lesson you have not paid for is not _readable_, and that rule is kept —
+`lesson_outline`, the view a stranger reads, does not project `video_url`, and
+the `lessons` policy hands the row out only for a preview lesson or to somebody
+with access. So you must have paid to **learn** the URL. What a public bucket
+gives up is the step after that: a student who shares the link has shared the
+film, and we cannot take it back.
+
+Signed URLs would close that, and here is the bill — an R2 credential in the web
+app's environment and therefore in `turbo.json`, a route to mint a token per
+play, a TTL short enough to matter that has to survive somebody pausing a
+lesson for an hour, and `LessonVideo` growing a refresh path. That is real
+machinery against a leak we have no evidence of, for a course sold once at
+199,000₮ rather than by the seat.
+
+**Would change it:** evidence of sharing at a scale that costs money — a
+referrer log full of origins that are not ours. Signing is a contained change
+when it comes: one route, one prop, no schema.
+
+**What r2.dev is not:** Cloudflare rate-limits the managed `*.r2.dev` origin and
+puts no cache in front of it, so it is for checking a lesson on a laptop.
+Production serves from a custom domain through Cloudflare —
+`R2_PUBLIC_BASE` — and that is also what makes the CDN, and therefore the
+free egress, actually fast in Mongolia. SETUP.md §11 has it.

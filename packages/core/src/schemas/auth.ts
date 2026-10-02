@@ -50,6 +50,35 @@ export function profileSchema(copy: ValidationCopy) {
 }
 
 /**
+ * Changing a password, from «Хувийн мэдээлэл».
+ *
+ * The bounds are `signUpSchema`'s, said once more: eight because Supabase
+ * enforces eight (`scripts/supabase/auth.mjs`) and the form should refuse what
+ * the server would, 72 because bcrypt reads no further — a longer password is
+ * silently cut, and a person should not find that out by being locked out.
+ *
+ * The repeat is checked here rather than in the browser, so the message lands
+ * under the field that is wrong, like every other message on the form.
+ */
+export function passwordSchema(copy: {
+  current: string;
+  next: string;
+  mismatch: string;
+  same: string;
+}) {
+  return z
+    .object({
+      current: z.string().min(1, copy.current),
+      next: z.string().min(8, copy.next).max(72, copy.next),
+      confirm: z.string(),
+    })
+    .refine((value) => value.next === value.confirm, { path: ["confirm"], message: copy.mismatch })
+    // Supabase refuses this too (`same_password`), but only after the current
+    // password has been checked — said here, it costs no round trip.
+    .refine((value) => value.next !== value.current, { path: ["next"], message: copy.same });
+}
+
+/**
  * zod's issues, flattened to `{ field: message }`.
  *
  * Server actions return this straight to the form, which renders one message

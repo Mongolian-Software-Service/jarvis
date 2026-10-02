@@ -1,3 +1,12 @@
+import { PageHeading } from "@/components/ui/page-heading";
+
+type LegalCopy = {
+  title: string;
+  deck: string;
+  updated: string;
+  sections: readonly { readonly heading: string; readonly body: string }[];
+};
+
 /**
  * Both legal pages, from one component.
  *
@@ -8,25 +17,17 @@
  * Prose here keeps `.measure` (§3): these are the two screens on the site where
  * a long line genuinely is harder to read, and nobody is skimming them for
  * pleasure. The numbers down the left are so somebody can say "point 5".
+ *
+ * The document is drawn in two places. `LegalPage` is the public URL, with its
+ * own column, for a stranger reading before they sign up — the footer links
+ * there. A student reads the same `LegalDocument` inside
+ * «Тохиргоо», whose layout already owns the column, which is why the document
+ * itself carries no `.shell` (§3: two nested double the gutter).
  */
-export function LegalPage({
-  title,
-  deck,
-  updated,
-  sections,
-}: {
-  title: string;
-  deck: string;
-  updated: string;
-  sections: readonly { readonly heading: string; readonly body: string }[];
-}) {
+export function LegalDocument({ title, deck, updated, sections }: LegalCopy) {
   return (
-    <article className="shell py-12 sm:py-16">
-      <header className="border-line border-b pb-8">
-        <h1 className="font-display text-[30px] leading-[1.15] sm:text-[38px]">{title}</h1>
-        <p className="text-ink-3 measure mt-3 text-[15px]">{deck}</p>
-        <p className="text-ink-3 mt-4 text-xs">{updated}</p>
-      </header>
+    <article>
+      <PageHeading title={title} deck={deck} note={updated} />
 
       <ol className="mt-10 space-y-8">
         {sections.map((section, index) => (
@@ -45,5 +46,13 @@ export function LegalPage({
         ))}
       </ol>
     </article>
+  );
+}
+
+export function LegalPage(copy: LegalCopy) {
+  return (
+    <div className="shell py-12 sm:py-16">
+      <LegalDocument {...copy} />
+    </div>
   );
 }

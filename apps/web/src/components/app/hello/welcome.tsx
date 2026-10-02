@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, LifeBuoy } from "lucide-react";
-import { contactPath, fmt, type Locale, type Strings } from "@jarvis/core";
+import { accountPath, fmt, type Locale, type Strings } from "@jarvis/core";
 import { buttonClass } from "@/components/ui/button";
 import type { TrailStep } from "@/components/app/course-trail";
 
@@ -36,7 +36,7 @@ export function HelloWelcome({
               {next?.percent ? t.learn.course.continue : t.learn.course.startFree}
               <ArrowRight className="size-4" />
             </Link>
-            <Link href={contactPath(locale)} className={buttonClass("secondary", "lg")}>
+            <Link href={accountPath(locale, "/help")} className={buttonClass("secondary", "lg")}>
               <LifeBuoy className="size-4" />
               {t.nav.tab.contact}
             </Link>

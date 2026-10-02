@@ -72,6 +72,28 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   };
 });
 
+/**
+ * How this account signs in — which decides whether it has a password to change.
+ *
+ * An account made with the sign-up form carries an `email` identity; one made
+ * with Google carries only `google`, and has no password at all, because
+ * Supabase never asked it for one. Read from the auth server rather than from
+ * `profiles`, which does not know how anybody signs in.
+ */
+export const getSignIn = cache(
+  async (): Promise<{ email: string; hasPassword: boolean } | null> => {
+    if (!supabaseConfigured()) return null;
+    const supabase = createServerSupabase();
+    const { data } = await supabase.auth.getUser();
+    const user = data.user;
+    if (!user?.email) return null;
+    return {
+      email: user.email,
+      hasPassword: (user.identities ?? []).some((identity) => identity.provider === "email"),
+    };
+  },
+);
+
 /** The viewer's role, or null when nobody is signed in. */
 export async function getViewerRole(): Promise<Role | null> {
   return (await getViewer())?.role ?? null;

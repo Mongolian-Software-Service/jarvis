@@ -1,7 +1,8 @@
 # Setting TsStark Academy up
 
-Ten steps, about twenty minutes. Steps 1–2 get the site running with no data;
-3–7 give it a real database; 8–10 put it on the internet.
+Eleven steps, about half an hour. Steps 1–2 get the site running with no data;
+3–7 give it a real database; 8–10 put it on the internet; 11 is where the films
+go, and it can wait until there is one.
 
 ---
 
@@ -36,11 +37,11 @@ set). Save the database password somewhere real — it is shown once.
 
 **Project Settings → API**:
 
-| Dashboard | Variable |
-| --- | --- |
-| Project URL | `NEXT_PUBLIC_SUPABASE_URL` |
-| Publishable / anon key | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` |
-| Secret / service_role key | `SUPABASE_SECRET_KEY` |
+| Dashboard                 | Variable                               |
+| ------------------------- | -------------------------------------- |
+| Project URL               | `NEXT_PUBLIC_SUPABASE_URL`             |
+| Publishable / anon key    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` |
+| Secret / service_role key | `SUPABASE_SECRET_KEY`                  |
 
 The publishable key is meant to be in the browser — RLS is what protects the
 data. **The secret key bypasses RLS entirely**: it belongs in `.env.local` and in
@@ -80,7 +81,6 @@ The rest of this step is the same work done by hand, if you would rather see it.
 
 ### By hand
 
-
 ```bash
 pnpm dlx supabase login
 pnpm dlx supabase link --project-ref <your-project-ref>   # the ref is in the project URL
@@ -91,7 +91,7 @@ That applies the three migrations in `supabase/migrations/`: the tables, the
 functions and triggers, then RLS and every policy.
 
 Check it took: **Table Editor** should list eight tables, and each should show
-*RLS enabled*.
+_RLS enabled_.
 
 ## 6. Seed the courses
 
@@ -122,7 +122,7 @@ Sign out and in again, and `/mn/admin` opens.
 ### Email confirmation
 
 By default Supabase emails a confirmation link before an account can sign in.
-**Authentication → Providers → Email** → turn *Confirm email* off while
+**Authentication → Providers → Email** → turn _Confirm email_ off while
 developing, or read the link in **Authentication → Logs**.
 
 For production, set **Authentication → URL Configuration → Site URL** to your
@@ -142,7 +142,7 @@ switched on, and neither of them lives in this repository.
 
    **The app name is `TsStark Academy`, and it is not a formality.** It is the
    line a student reads at the moment they decide whether to hand over their
-   Google account: the chooser says *"to continue to <app name>"*. Left unset,
+   Google account: the chooser says _"to continue to <app name>"_. Left unset,
    Google falls back to the OAuth client's own host — so the school introduces
    itself as `<your-project-ref>.supabase.co`, which is a string nobody
    recognises and every phishing warning has taught them to distrust. Fill in
@@ -154,8 +154,9 @@ switched on, and neither of them lives in this repository.
    Google has something of ours to print. Until then the app name is the whole
    of the branding, which is why it has to be right.
 
-   While it is in *Testing* only the addresses you list under *Test users* can
+   While it is in _Testing_ only the addresses you list under _Test users_ can
    sign in — publish it when you are ready for real students.
+
 2. **Credentials → Create credentials → OAuth client ID → Web application.**
 3. Under **Authorised redirect URIs** add exactly one:
 
@@ -165,6 +166,7 @@ switched on, and neither of them lives in this repository.
 
    That is Supabase's URL, not ours. Google talks to Supabase; Supabase talks to
    us. Putting `localhost:3001` here instead is the mistake that costs an hour.
+
 4. Copy the **Client ID** and **Client secret**.
 
 **In Supabase** — **Authentication → Sign In / Providers → Google**:
@@ -183,7 +185,7 @@ switched on, and neither of them lives in this repository.
    broken rather than the list being short.
 
    **The `/**` matters.** These used to read `…/auth/confirm`, with no wildcard,
-   and that is an *exact* URL. Sign-in never asks for it: it asks for
+   and that is an _exact_ URL. Sign-in never asks for it: it asks for
    `/auth/confirm?locale=mn`, so nothing matched and every redirect fell back to
    the site URL. In production the site URL is the production site, so the
    fallback landed correctly and the list looked fine. On a laptop it did not —
@@ -248,6 +250,97 @@ the sitemap, the OG tags and the payment callback are built from.
   with the real inbox, phone and social accounts. They are what `/mn/contact`
   shows; a channel left empty is not rendered at all.
 - Walk the ship checklist in CLAUDE.md §7, with numbers.
+
+---
+
+## 11. The lesson videos
+
+They live in **Cloudflare R2**, because egress is free and egress is the only
+bill that grows with the school (decision #014). `lessons.video_url` holds a
+whole URL and the player is a plain `<video src>`, so **the website itself needs
+no R2 configuration** — nothing here goes into `turbo.json` or Vercel. Only the
+upload script reads these.
+
+### Once, in the Cloudflare dashboard
+
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → **R2** → the overview
+   page shows your **Account ID**. (R2 asks for a card even while you stay
+   inside the free 10GB.)
+2. **R2 → Manage API tokens → Create API token.** Permission **Admin Read &
+   Write**. Copy the token — it is shown once.
+
+   **Admin**, not the narrower _Object Read & Write_, and the difference is not
+   cosmetic: Object can put a file and nothing else. Creating the bucket and
+   switching on public access are both bucket _configuration_, which only Admin
+   may change. The narrow token is still the better one if you would rather do
+   those two things by hand — make the bucket in the dashboard, turn public
+   access on, put the address in `R2_PUBLIC_BASE`, and the upload script will
+   say it could not check the bucket and carry on regardless.
+
+3. Add both to the `.env` at the repo root, beside the Supabase pair:
+
+   ```
+   CLOUDFLARE_ACCOUNT_ID=...
+   CLOUDFLARE_API_TOKEN=...
+   R2_BUCKET=tsstark-videos        # optional, this is the default
+   R2_PUBLIC_BASE=https://video.tsstark-academy.com   # see below
+   ```
+
+The bucket is created on the first upload, so there is nothing to click for it.
+
+### `R2_PUBLIC_BASE`, and why it is not optional for real students
+
+Without it the script switches on the bucket's managed `*.r2.dev` address and
+uses that. **That is a development address.** Cloudflare rate-limits it and puts
+no cache in front of it, so a class watching one lesson at the same time is
+precisely the traffic it is not for.
+
+For production, connect a custom domain — the domain has to be on Cloudflare:
+
+**R2 → your bucket → Settings → Public access → Custom domains → Connect
+domain** → `video.tsstark-academy.com`. Cloudflare writes the DNS record itself.
+Then put `https://video.tsstark-academy.com` in `R2_PUBLIC_BASE`. Now the CDN is
+in front of the bucket, which is what makes free egress fast from Mongolia as
+well as free.
+
+> A URL already written into a lesson does not move when this changes. Re-run
+> the upload for that lesson, or update the column.
+
+### Uploading one
+
+```bash
+pnpm video:upload ~/Movies/ehlehiin-umnu.mp4 ehlehiin-umnu
+```
+
+The second argument is the lesson's own slug. Given one, the script uploads the
+file to `lessons/<slug>.mp4`, writes the URL into `supabase/seed.sql` **and**
+updates that one live row with a single `update` — not a re-run of the seed,
+which on a project students are reading would rewrite every lesson from a file
+that may be ahead of them. Pass `--seed-only` to skip the live half. Leave the
+slug off to upload a poster frame or a subtitle file and just be told its URL.
+
+`pnpm test` names every lesson still pointing at the MDN sample clip, so a
+forgotten film is reported on every run rather than discovered by a student.
+
+### Encode it for a phone on mobile data
+
+A lesson is a screen recording: mostly still frames, which compress to almost
+nothing if asked properly. Free egress does not make a student's data plan free,
+and there is no adaptive bitrate here — one file is served to everybody, so that
+file has to suit the worst connection in the class.
+
+```bash
+ffmpeg -i raw.mov -vf scale=-2:720 -c:v libx264 -crf 26 -preset slow \
+  -profile:v high -pix_fmt yuv420p -movflags +faststart \
+  -c:a aac -b:a 96k ehlehiin-umnu.mp4
+```
+
+`+faststart` is the one that is not taste: it moves the index to the front of
+the file, which is what lets playback begin before the whole thing has landed.
+Without it a ten-minute lesson looks broken for its first several seconds.
+
+Ten minutes should come out in the tens of megabytes. The script warns past
+100MB, and refuses nothing — the warning is about the student, not the bucket.
 
 ---
 

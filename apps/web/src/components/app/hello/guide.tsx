@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { contactPath, type Locale, type Strings } from "@jarvis/core";
+import { accountPath, type Locale, type Strings } from "@jarvis/core";
 import { Markdown } from "@/components/lesson/markdown";
 import { buttonClass } from "@/components/ui/button";
 
@@ -39,7 +39,7 @@ export function HelloGuide({
           <div className="panel p-5 sm:p-6">
             <p className="text-ink-2 text-[13.5px] leading-[1.7]">{t.guide.tips.help}</p>
             <Link
-              href={contactPath(locale)}
+              href={accountPath(locale, "/help")}
               className={buttonClass("secondary", "md", "mt-4 w-full")}
             >
               {t.nav.contact}

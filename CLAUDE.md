@@ -19,7 +19,7 @@ and a phone" means the browser on both, which is what `.shell`, the tab bar and
 the 360px check in §7 are for. If a request says "the app", it means this site.
 
 **There is one price, and it buys everything, for good.** Five tracks —
-Танилцуулга (free), Landing page, Fullstack website, iOS/Android, 2D/3D
+Танилцуулга, Landing page, Fullstack website, iOS/Android, 2D/3D
 тоглоом. «Кодын суурь» was a sixth and is deleted: it taught the pieces of a
 language to a school that stopped teaching typing, and every other lesson that
 pointed at it now points at Landing page instead. A course is **not sold on its own**: no screen shows a per-course
@@ -28,10 +28,26 @@ to read. Six prices is a decision somebody has to make before they have any way
 of making it; one price is no decision at all, which is the point.
 
 So a course says one thing about money — `courses.is_free`. Free means anyone
-signed in may take it (the intro track); anything else opens with the bundle.
-That flag is the whole model: the free-enrolment RLS policy reads it, the card
-prints «Үнэгүй» or «Багцад багтсан» from it, and the admin console offers a
-checkbox rather than an amount.
+signed in may take it; anything else opens with the bundle. That flag is the
+whole model: the free-enrolment RLS policy reads it, the card prints «Үнэгүй» or
+«Багцад багтсан» from it, and the admin console offers a checkbox rather than an
+amount.
+
+**Right now nothing is free, and that is a setting rather than a rewrite.**
+Танилцуулга was the free intro and is not any more: `is_free` is false on all
+five, and `lessons.is_preview` — a _second_, separate door, which opens one
+lesson to somebody who is not even signed in — is false everywhere too. Turning
+one off and not the other is the version of this change that looks finished and
+is not, so both are named here.
+
+The flag stays because the model is still the right one and the decision is
+reversible in one `update`. What is not reversible in one `update` is the
+course's own prose: the intro's `description_mn` said «Энэ сургалт үнэгүй»
+and would have gone on saying it under a card marked «Багцад багтсан». **A
+claim about money lives in three places — the flag, the preview column and the
+copy — and they have to be changed together.** `apps/web` needs no change for
+any of it: the hero already renders a plain kicker when no course is free, and
+the «үнэгүй үзэх» button simply stops existing.
 
 Two constants in `packages/core/src/constants.ts` carry the price:
 `BUNDLE_PRICE_MNT` is what is charged and `BUNDLE_FULL_PRICE_MNT` is the number
@@ -176,6 +192,7 @@ that, and is wired into `pnpm test`.
 | Styling  | Tailwind **v4** (CSS-first `@theme`, no `tailwind.config.js`)                    |
 | Data     | Supabase — Postgres + RLS + Auth + Storage                                       |
 | Payments | **Bonum** (MNT). `BONUM_MOCK=1` settles locally (§6.7)                           |
+| Video    | **Cloudflare R2**, public bucket. The app holds no R2 credential (decision #014) |
 | Deploy   | Vercel                                                                           |
 | i18n     | Hand-rolled string tables in `packages/core` — **not** next-intl (decision #003) |
 | Motion   | CSS transitions, plus one keyframe loop (`.marquee`). No animation library.      |
@@ -285,6 +302,36 @@ not passed to the build however carefully it was set on Vercel, _and_ is not par
 of the cache key — so a build can be restored from a cache made with a different
 value and nobody is told.
 
+### Credentials the site does not have
+
+Three things talk to services the _app_ never talks to, and their credentials
+live in a gitignored `.env` **at the repo root** — not in `apps/web/.env.local`,
+not in `turbo.json`, not in Vercel:
+
+```
+SUPABASE_ACCESS_TOKEN= SUPABASE_PROJECT_REF=   # scripts/supabase-setup.mjs
+CLOUDFLARE_ACCOUNT_ID= CLOUDFLARE_API_TOKEN=   # scripts/upload-video.mjs
+R2_BUCKET= R2_PUBLIC_BASE=                     #   (both optional)
+```
+
+`scripts/env.mjs` is what reads that file, and the real environment beats it, so
+a token nobody wants on disk can be passed per command.
+
+**The video half is the interesting one.** Lesson films live in Cloudflare R2
+(decision #014), and yet no R2 name belongs in the build's environment — because
+`lessons.video_url` holds an **absolute URL** and the player is a plain
+`<video src>`. Nothing at request time has to know where the file is. A
+`NEXT_PUBLIC_R2_BASE` would be the obvious design and is the worse one: it puts
+media hosting into the contract above, where a missing variable is invisible by
+design. The price is that changing host means rewriting the column —
+`pnpm video:upload <file> <lesson-slug>` does that for one lesson, in
+`supabase/seed.sql` and in the live row, and SETUP.md §11 is the rest.
+
+R2's bucket is public, which is a decision and not a shortcut: read #014 before
+changing it. The short version — `lesson_outline` does not project `video_url`
+and the `lessons` policy hands it only to a preview lesson or a buyer, so you
+must have paid to _learn_ the URL; what is given up is the step after that.
+
 ---
 
 ## §3 Layout
@@ -340,7 +387,7 @@ app/[locale]/layout.tsx     THE ROOT LAYOUT. There is no app/layout.tsx — see 
 app/[locale]/(site)/        public URLs: landing, catalogue, course page, about,
                             contact, checkout — marketing shell for a visitor,
                             the app rail for anybody signed in
-app/[locale]/(app)/         signed in only: guide, dashboard, my courses, account
+app/[locale]/(app)/         signed in only: guide, dashboard, my courses, settings
 app/[locale]/(study)/       the course screen and the lesson player
 app/[locale]/(auth)/        sign-in, sign-up
 app/[locale]/(admin)/       the console
@@ -351,7 +398,7 @@ lib/{supabase,queries,actions}/  lib/bonum.ts  lib/seo.ts  lib/locale.ts
 
 **Four shells, and the split is deliberate.** `(site)` is for somebody deciding
 about the product; `(app)` is for somebody who already decided, and it carries
-the student's own five destinations rather than the site header's eight.
+the student's own four destinations rather than the site header's eight.
 `(study)` is separate from `(app)` because a lesson already has its own syllabus
 column — a second navigation beside it would squeeze the thing the reader came
 for. The groups do not appear in the URL, so `/mn/learn` and
@@ -404,6 +451,27 @@ link back to the shop floor is a way to lose your place mid-edit. Previewing a
 course still has its own link, on that course's row, where the thing being
 previewed is unambiguous. `t.admin.nav.viewSite` is that row's label and is
 still used — it is the rail-level version that is gone.
+
+**«Тохиргоо» is a section with categories, not one form.**
+`(app)/account/layout.tsx` owns the column and draws `SettingsNav` — groups in a
+column beside the page on a laptop, one scrolling row of pills on a phone, both
+from one array. `/account` is the profile form, the password and the way out, `/account/help`
+is the school's channels and the feedback form, and the terms and the privacy
+policy follow at `/account/terms` and `/account/privacy`.
+
+**Help is not a tab.** It was a fifth one, pointing at the public contact page;
+it moved into settings because what a student needs help with is nearly always
+their account. `ContactChannels` draws the channels in both places, so the
+public `/contact` (for a visitor) and `/account/help` cannot list different
+inboxes.
+
+Those two documents exist at two URLs **on purpose**. The public `/terms` and
+`/privacy` are for a stranger deciding whether to sign up, and the footer links
+there; the copies in settings are where a student looks for "what do you keep
+about me", because the app rail has no footer. Both render `LegalDocument`
+from the same string table, so they cannot disagree, and the settings copies are
+`noindex`. Do not "deduplicate" them into one. A new category is one entry in
+`buildGroups()` and one route under `account/`.
 
 **There is no `app/layout.tsx`.** `app/[locale]/layout.tsx` is the root layout,
 and that is load-bearing rather than a preference: `next/root-params` only
@@ -702,6 +770,13 @@ is configured in this repository (SETUP.md step 7 has the two dashboards).
   very sign-up that is about to redirect. `signUp` passed a literal `"student"`
   for a while, which sent the one account that runs the school to a student
   dashboard and made the owner allowlist look broken.
+- **Changing a password checks the current one by signing in with it**
+  (`lib/actions/password.ts`) — Supabase has no verify call, and the attempt
+  counts against the sign-in rate limit, so the form is no faster a way to
+  guess. It is a check, not a wall: the session cookie is readable in the
+  browser and can ask Supabase for a new password directly. An account with no
+  `email` identity — Google only — has no password, and sees a line saying so
+  instead of the form.
 - **The mark is Google's.** `GOOGLE_MARK` in `packages/core` holds the
   four-colour path data, drawn unrecoloured. It is the only place in this
   codebase where a colour is a literal rather than a token, because those four

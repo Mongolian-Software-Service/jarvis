@@ -25,25 +25,12 @@
  *   node scripts/supabase-setup.mjs --schema   migrations + seed only
  *   node scripts/supabase-setup.mjs --auth     auth settings only
  */
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { configureAuth } from "./supabase/auth.mjs";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
+import { loadEnvFile, REPO_ROOT as root } from "./env.mjs";
 
-const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const API = "https://api.supabase.com/v1";
-
-/** `.env` is not loaded for us here — this is plain Node, not Next. */
-function loadEnvFile() {
-  const file = join(root, ".env");
-  if (!existsSync(file)) return;
-  for (const line of readFileSync(file, "utf8").split("\n")) {
-    const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)$/.exec(line);
-    if (!match?.[1]) continue;
-    const value = (match[2] ?? "").trim().replace(/^["']|["']$/g, "");
-    if (value && !process.env[match[1]]) process.env[match[1]] = value;
-  }
-}
 
 loadEnvFile();
 
@@ -191,7 +178,9 @@ if (doSchema) {
     }),
   });
   const row = counts?.[0] ?? {};
-  console.log(`  ${row.courses} courses, ${row.lessons} lessons, ${row.questions} quiz questions\n`);
+  console.log(
+    `  ${row.courses} courses, ${row.lessons} lessons, ${row.questions} quiz questions\n`,
+  );
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -210,7 +199,8 @@ const publishable = keys.find((key) => key.type === "publishable" || key.name ==
 
 console.log("For apps/web/.env.local:\n");
 console.log(`  NEXT_PUBLIC_SUPABASE_URL=https://${ref}.supabase.co`);
-if (publishable?.api_key) console.log(`  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${publishable.api_key}`);
+if (publishable?.api_key)
+  console.log(`  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${publishable.api_key}`);
 console.log(
   "\n  SUPABASE_SECRET_KEY — copy it yourself from Project Settings → API keys.\n" +
     "  It bypasses RLS, so this script does not print it.\n",

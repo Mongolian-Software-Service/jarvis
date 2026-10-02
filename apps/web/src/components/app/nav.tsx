@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, Hand, LayoutGrid, LifeBuoy, Settings, Shield } from "lucide-react";
+import { GraduationCap, Hand, LayoutGrid, Settings, Shield } from "lucide-react";
 import {
   accountPath,
   adminPath,
   canSeeAdmin,
-  contactPath,
   dashboardPath,
   helloPath,
   learnPath,
@@ -21,7 +20,7 @@ import { cn } from "@/lib/cn";
  * The student's navigation — one set of links, drawn two ways.
  *
  * On a phone it is a **tab bar along the bottom**, the shape every app on that
- * phone already taught the reader: five destinations, always visible, inside
+ * phone already taught the reader: four destinations, always visible, inside
  * the thumb's reach. A rail at the top of a small screen means the reader scrolls the
  * navigation away the moment they start reading, and then scrolls back up to
  * move anywhere.
@@ -45,11 +44,11 @@ function buildLinks(locale: Locale, t: Strings, role: Role | null): NavLink[] {
     { href: helloPath(locale), label: t.nav.tab.hello, icon: Hand },
     { href: dashboardPath(locale), label: t.nav.tab.dashboard, icon: LayoutGrid },
     { href: learnPath(locale), label: t.nav.tab.learn, icon: GraduationCap },
+    /* «Тусламж» was a fifth tab, pointing at the public contact page. It is a
+       category of settings now (`/account/help`): the rail has no footer, and
+       somebody whose payment went wrong still has to reach a person — they
+       reach them from their own account, which is where they were looking. */
     { href: accountPath(locale), label: t.nav.tab.account, icon: Settings },
-    /* The rail has no footer under it, and this is the one page from the site's
-       footer a student still needs: somebody whose payment went wrong has to be
-       able to reach a person. */
-    { href: contactPath(locale), label: t.nav.tab.contact, icon: LifeBuoy },
   ];
 
   if (canSeeAdmin(role)) {
