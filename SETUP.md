@@ -149,25 +149,35 @@ switched on, and neither of them lives in this repository.
    the support email and the developer email as well; the form will not save
    without both.
 
-   The host disappears from that screen only with a Supabase **custom domain**
-   (a paid add-on): the callback then lives on a domain that is ours, and
-   Google has something of ours to print. Until then the app name is the whole
-   of the branding, which is why it has to be right.
+   That screen names the domain the sign-in **returns to**. Through Supabase's
+   redirect that is `<ref>.supabase.co`; with the direct flow (CLAUDE.md §6.6)
+   it returns to `/auth/google` on our own domain, and the chooser says
+   «to continue to tsstark-academy.com» — no paid custom domain needed. The app
+   name still matters wherever Google prints it, so get it right.
 
    While it is in _Testing_ only the addresses you list under _Test users_ can
    sign in — publish it when you are ready for real students.
 
 2. **Credentials → Create credentials → OAuth client ID → Web application.**
-3. Under **Authorised redirect URIs** add exactly one:
+3. Under **Authorised redirect URIs** add all three:
 
    ```
-   https://<your-project-ref>.supabase.co/auth/v1/callback
+   https://www.tsstark-academy.com/auth/google      the direct flow, production
+   http://localhost:3001/auth/google                the direct flow, locally
+   https://<your-project-ref>.supabase.co/auth/v1/callback   the fallback
    ```
 
-   That is Supabase's URL, not ours. Google talks to Supabase; Supabase talks to
-   us. Putting `localhost:3001` here instead is the mistake that costs an hour.
+   The first two are ours: Google returns there, and the app hands Supabase
+   the ID token. The third is Supabase's, for wherever the direct flow is off
+   (no keys set, or a Vercel preview). The exact path matters — `/auth/google`
+   with no trailing slash and no locale.
 
-4. Copy the **Client ID** and **Client secret**.
+4. Copy the **Client ID** and **Client secret** — the secret starts `GOCSPX-`,
+   and the console shows it only when it is created. They go in two places:
+   Supabase (step 5), and the app's own environment as `GOOGLE_CLIENT_ID` /
+   `GOOGLE_CLIENT_SECRET` (`apps/web/.env.local`, and Vercel). **Not** from
+   Supabase's API afterwards: it hands back a hash of the secret, not the
+   secret, and Google refuses the hash as `invalid_client`.
 
 **In Supabase** — **Authentication → Sign In / Providers → Google**:
 

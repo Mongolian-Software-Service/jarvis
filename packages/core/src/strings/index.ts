@@ -6,6 +6,7 @@ import { auth } from "./mn/auth";
 import { learn } from "./mn/learn";
 import { admin } from "./mn/admin";
 import { guide } from "./mn/guide";
+import { ask } from "./mn/ask";
 
 /**
  * Every user-facing string, in one place.
@@ -23,6 +24,7 @@ export const mn = {
   learn,
   admin,
   guide,
+  ask,
 } as const;
 
 /**

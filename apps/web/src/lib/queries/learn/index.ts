@@ -13,3 +13,4 @@ export * from "./lesson";
 export * from "./overview";
 export * from "./projects";
 export * from "./showcase";
+export * from "./chat";

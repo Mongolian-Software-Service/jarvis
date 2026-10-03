@@ -30,7 +30,23 @@ export const GOOGLE_COOKIE = "tsa-google";
 export const GOOGLE_COOKIE_MAX_AGE = 600;
 
 const clientId = process.env.GOOGLE_CLIENT_ID ?? "";
-const clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? "";
+const configuredSecret = process.env.GOOGLE_CLIENT_SECRET ?? "";
+
+/*
+ * A 64-character hex string is never a Google client secret — it is the
+ * SHA-256 that Supabase's Management API hands back in place of one
+ * (CLAUDE.md §6.6). Used anyway, every sign-in dies at the token exchange
+ * with `invalid_client`. Treated as unset instead, so the Supabase redirect
+ * keeps working and the log says which value is wrong.
+ */
+const looksHashed = /^[0-9a-f]{64}$/.test(configuredSecret);
+if (looksHashed) {
+  console.warn(
+    "[auth] GOOGLE_CLIENT_SECRET is a SHA-256 hash, not a secret — ignored. " +
+      "Copy the real one (GOCSPX-…) from Google Cloud Console.",
+  );
+}
+const clientSecret = looksHashed ? "" : configuredSecret;
 
 /**
  * Whether this origin may use the direct flow.
@@ -52,7 +68,7 @@ export function googleDirect(origin: string): boolean {
 
 // Half a configuration falls back silently, which reads as "the change did
 // nothing". Said once, at start-up, where whoever set one of them will look.
-if (Boolean(clientId) !== Boolean(clientSecret)) {
+if (!looksHashed && Boolean(clientId) !== Boolean(clientSecret)) {
   console.warn("[auth] GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set together");
 }
 

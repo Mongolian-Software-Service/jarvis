@@ -27,6 +27,7 @@ const PRIVATE = [
   /^\/hello(\/.*)?$/,
   /^\/dashboard(\/.*)?$/,
   /^\/learn(\/.*)?$/,
+  /^\/ask(\/.*)?$/,
   /^\/account(\/.*)?$/,
   /^\/admin(\/.*)?$/,
 ];

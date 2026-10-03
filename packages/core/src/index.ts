@@ -23,6 +23,7 @@ export * from "./shapes";
 export * from "./progress";
 export * from "./payments";
 export * from "./projects";
+export * from "./chat";
 export * from "./slug";
 export * from "./markdown";
 export * from "./code";

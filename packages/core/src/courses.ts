@@ -102,6 +102,10 @@ export function dashboardPath(locale: Locale): string {
 export function helloPath(locale: Locale): string {
   return `/${locale}/hello`;
 }
+/** «Мэдэхгүй зүйлээ асуу» — the room. */
+export function askPath(locale: Locale): string {
+  return `/${locale}/ask`;
+}
 /**
  * Settings, and the categories under it: `accountPath(locale, "/terms")`.
  * Same shape as `adminPath` — one prefix, so the tab bar's longest-prefix match

@@ -388,18 +388,22 @@ app/[locale]/layout.tsx     THE ROOT LAYOUT. There is no app/layout.tsx — see 
 app/[locale]/(site)/        public URLs: landing, catalogue, course page, about,
                             contact, checkout — marketing shell for a visitor,
                             the app rail for anybody signed in
-app/[locale]/(app)/         signed in only: guide, dashboard, my courses, settings
+app/[locale]/(app)/         signed in only: «Сайн уу» (the trail and the project
+                            showcase), dashboard, my courses, «Чат» (the live
+                            chat room), settings
 app/[locale]/(study)/       the course screen and the lesson player
 app/[locale]/(auth)/        sign-in, sign-up
 app/[locale]/(admin)/       the console
 app/api/                    checkout, the Bonum webhook
-components/{ui,layout,course,lesson,admin}/
-lib/{supabase,queries,actions}/  lib/bonum.ts  lib/seo.ts  lib/locale.ts
+app/auth/                   confirm (Supabase's redirect, email links) and
+                            google (our own Google callback, §6.6) — no locale
+components/{ui,layout,course,lesson,admin,app,ask,auth,dashboard,home,settings,site}/
+lib/{supabase,queries,actions}/  lib/auth/  lib/bonum.ts  lib/seo.ts  lib/locale.ts
 ```
 
 **Four shells, and the split is deliberate.** `(site)` is for somebody deciding
 about the product; `(app)` is for somebody who already decided, and it carries
-the student's own four destinations rather than the site header's eight.
+the student's own five destinations rather than the site header's eight.
 `(study)` is separate from `(app)` because a lesson already has its own syllabus
 column — a second navigation beside it would squeeze the thing the reader came
 for. The groups do not appear in the URL, so `/mn/learn` and
@@ -535,8 +539,8 @@ Two layers, and the arrangement is still load-bearing with one theme:
 **Any token that is only ever named from an inline `style` must live in
 `:root`, never in `@theme`.** Tailwind v4 tree-shakes a theme variable that no
 _emitted rule_ mentions, and the class scanner cannot see a TSX `style`
-attribute. That is why `--tint-*` (topic chips) and `--viz-*` (charts) are in
-`:root`. Put them in `@theme` and every chip renders the same colour.
+attribute. That is why `--tint-*` (topic chips), `--viz-*` (charts) and
+`--avatar-*` (the student avatar's gradient stops) are in `:root`. Put them in `@theme` and every chip renders the same colour.
 
 ### 4.2 One typeface, and the detail that breaks Mongolian
 
@@ -615,7 +619,33 @@ runs. That app is gone — decision #013 — and neither choice depended on it.)
 
 See `supabase/migrations/`. Tables: `profiles`, `courses`, `modules`, `lessons`,
 `quiz_questions`, `enrollments`, `lesson_progress`, `payments`, `feedback`,
-`projects`.
+`projects`, `chat_messages`, `chat_authors`, `teacher_emails`.
+
+`chat_messages` is «Мэдэхгүй зүйлээ асуу»: one room for everybody signed in,
+live through Supabase Realtime (`postgres_changes`, the only read a client
+component makes — writes are still server actions).
+
+- **Who wrote a message is in another table.** A Realtime event delivers the
+  whole row to every browser in the room, so `chat_messages` carries only what
+  the room may read — the words, the printed name («Б.Тэмүүлэн», copied in by
+  the insert trigger) and `is_team` — and the author's id lives in
+  `chat_authors`, readable only by that author. Column grants on one table were
+  rejected: whether Realtime honours them is an internal detail, and when it
+  does not, the failure is silent. A table with nothing to hide needs no such
+  detail. `is_mine` on the first screen comes from asking `chat_authors` about
+  those ids; afterwards the browser knows its own by the ids it sent.
+- **The trigger is the author.** It takes `auth.uid()`, never a client value,
+  overwrites the name and team flag from `profiles`, and refuses an eleventh
+  message in a minute (`chat_rate_limit`). Insert is granted on `body` alone.
+- **«Багш» is a list, not a role.** `teacher_emails` (the `admin_emails`
+  shape, §5: writable by no API) names who answers with a teacher's mark; the
+  trigger copies `is_teacher` onto each message, and the room draws it apart —
+  accent rule, ring and badge. A teacher need not be an admin. Adding one is
+  `insert into public.teacher_emails (email) values ('…')` in the SQL editor;
+  their earlier messages keep the old flag unless updated by hand.
+- **Delete, never edit:** your own, or the team's on anybody's. Times print in
+  Ulaanbaatar's clock (`formatClock`), so the server's render and the
+  browser's agree without `Intl` (§6.5).
 
 `projects` is «Миний төслүүд»: the address of what a student built, with an
 optional name and description. **It belongs to the student, not to a course** —
@@ -778,12 +808,29 @@ is configured in this repository (SETUP.md step 7 has the two dashboards).
     `http://localhost:3001/auth/google`. Add the URLs **before** setting the
     keys anywhere: with the keys and without the URL, Google answers
     `redirect_uri_mismatch` and nobody can sign in with it.
+  - **The secret comes from Google Cloud Console, never from Supabase.** The
+    Management API's `GET /config/auth` answers `external_google_secret` with
+    a 64-character SHA-256 **hash** of the secret, which looks like a value and
+    is not one: set as `GOOGLE_CLIENT_SECRET`, Google refuses the code exchange
+    with `401 invalid_client` and the sign-in page says only «Google-ээр
+    нэвтэрч чадсангүй». A real one starts `GOCSPX-`. `lib/auth/google.ts` refuses a
+    64-hex value outright — it is treated as unset, with a warning in the
+    log, so a pasted hash degrades to the Supabase redirect instead of
+    breaking sign-in.
+  - **Diagnosing it:** every refusal on this path logs one `[auth]` line —
+    the Google error name, never the code or the secret — and `next dev`
+    keeps them in `apps/web/.next/dev/logs/next-development.log`.
   - Without the keys, or on an origin Google would not accept (a Vercel
     preview), `googleDirect()` says no and the old path runs: Supabase's
     redirect through `/auth/confirm`, where `@supabase/ssr` keeps the PKCE
     verifier in the same cookie jar it reads back from.
-- **`next` is validated before it is used.** Only a path on this site — an
-  absolute URL there would make the sign-in button an open redirect.
+- **`next` is validated before it is used, by one function:** `safeNextPath()`
+  in `packages/core/src/courses.ts`. Only a path on this site — an absolute URL
+  there would make the sign-in button an open redirect. "Starts with `/` and
+  not `//`" was the rule and was not enough: browsers read a backslash in a
+  `Location` header as a slash, so `/\evil.com` went to another site through
+  the password form. The second character may be neither, and the path may
+  carry no backslash or control character. Never re-implement it inline.
 - **A redirect Supabase will not allow is not refused — it is replaced by
   `site_url`.** So the failure never says "not allowed"; it says whatever
   `site_url` says. Read that as "the allowlist rejected my redirect", not as
@@ -799,16 +846,20 @@ is configured in this repository (SETUP.md step 7 has the two dashboards).
   `scripts/supabase/auth.mjs` holds the list; `node scripts/supabase-setup.mjs
 --auth` pushes it without touching the seed.
 - **Where a new session goes is one function**, `destinationAfterSignIn()` in
-  `packages/core/src/courses.ts`, and all three doors call it: the password
-  form, the sign-up form, and `/auth/confirm` (which catches Google and every
-  email link). It honours an explicit `next` — "sign in to buy this course" —
+  `packages/core/src/courses.ts`, and all four doors call it: the password
+  form, the sign-up form, `/auth/google` (our own Google callback) and
+  `/auth/confirm` (Supabase's Google redirect, the fallback, and every email
+  link) — the two routes through `landingAfterSignIn()` in
+  `lib/auth/session.ts`. It honours an explicit `next` — "sign in to buy this course" —
   but only a path on this site, and **never the marketing page**: signing in
   from the front page sets `next` to the front page, and landing back on the
   pitch is the one destination somebody who just signed in cannot have meant.
   Otherwise `landingPath()` decides from the role: the team to the console,
   everybody else to their dashboard.
-- **Each door must _read_ the role, never assume it.** All three now do
-  (`roleOfCurrentUser()`, or the same query inline in `/auth/confirm`). It is
+- **Each door must _read_ the role, never assume it.** All four do, through
+  `roleOfCurrentUser()` in `lib/auth/session.ts` — server-only rather than in
+  a `"use server"` file, because a route handler importing from one would turn
+  the helper into a public action. It is
   read from `profiles` rather than from the token because a role granted a
   moment ago is in the table straight away and in the JWT only after it
   refreshes — and the owner's role is granted by `handle_new_user()` during the
@@ -856,7 +907,8 @@ that test is the safety, not a convention.
 `pnpm test` clean — which includes the seed guard and the 160-line cap (§3.1) —
 no `console.log`, no unused dependency, no placeholder copy on a public route.
 
-**Security** — grep `.next/static` for the secret key. `is_admin()` reads
+**Security** — grep `.next/static` for the two secrets: `SUPABASE_SECRET_KEY`
+and `GOOGLE_CLIENT_SECRET`. `is_admin()` reads
 `app_metadata`. RLS on every table; anon cannot read a paid lesson and cannot
 write. Every action zod-validates and re-checks admin. Storage denies anonymous
 writes.

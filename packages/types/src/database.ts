@@ -69,6 +69,69 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_authors: {
+        Row: {
+          created_at: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_authors_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_authors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          author_first_name: string | null
+          author_initial: string | null
+          body: string
+          created_at: string
+          id: string
+          is_teacher: boolean
+          is_team: boolean
+        }
+        Insert: {
+          author_first_name?: string | null
+          author_initial?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          is_teacher?: boolean
+          is_team?: boolean
+        }
+        Update: {
+          author_first_name?: string | null
+          author_initial?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          is_teacher?: boolean
+          is_team?: boolean
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           cover_url: string | null
@@ -562,6 +625,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      teacher_emails: {
+        Row: {
+          created_at: string
+          email: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+        }
+        Relationships: []
       }
     }
     Views: {

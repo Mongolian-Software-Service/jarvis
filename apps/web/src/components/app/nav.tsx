@@ -2,10 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, Hand, LayoutGrid, Settings, Shield } from "lucide-react";
+import {
+  GraduationCap,
+  Hand,
+  LayoutGrid,
+  MessageCircleQuestion,
+  Settings,
+  Shield,
+} from "lucide-react";
 import {
   accountPath,
   adminPath,
+  askPath,
   canSeeAdmin,
   dashboardPath,
   helloPath,
@@ -44,6 +52,9 @@ function buildLinks(locale: Locale, t: Strings, role: Role | null): NavLink[] {
     { href: helloPath(locale), label: t.nav.tab.hello, icon: Hand },
     { href: dashboardPath(locale), label: t.nav.tab.dashboard, icon: LayoutGrid },
     { href: learnPath(locale), label: t.nav.tab.learn, icon: GraduationCap },
+    /* «Мэдэхгүй зүйлээ асуу». Five tabs fit 360px at 72px each — the width the
+       labels were written for; an admin's sixth is the team's own cost. */
+    { href: askPath(locale), label: t.nav.tab.ask, icon: MessageCircleQuestion },
     /* «Тусламж» was a fifth tab, pointing at the public contact page. It is a
        category of settings now (`/account/help`): the rail has no footer, and
        somebody whose payment went wrong still has to reach a person — they
@@ -87,9 +98,7 @@ export function AppNavBar({ locale, t, role }: { locale: Locale; t: Strings; rol
             aria-current={active ? "page" : undefined}
             className={cn(
               "flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors",
-              active
-                ? "bg-accent-soft text-accent"
-                : "text-ink-3 hover:bg-panel-2 hover:text-ink",
+              active ? "bg-accent-soft text-accent" : "text-ink-3 hover:bg-panel-2 hover:text-ink",
             )}
           >
             <link.icon className="size-4" aria-hidden="true" />
@@ -115,10 +124,7 @@ export function AppTabBar({ locale, t, role }: { locale: Locale; t: Strings; rol
   const current = currentHref(pathname, links);
 
   return (
-    <nav
-      aria-label={t.nav.tab.menu}
-      className="tabbar fixed inset-x-0 bottom-0 z-40 lg:hidden"
-    >
+    <nav aria-label={t.nav.tab.menu} className="tabbar fixed inset-x-0 bottom-0 z-40 lg:hidden">
       <ul className="mx-auto flex max-w-lg items-stretch">
         {links.map((link) => {
           const active = current === link.href;
