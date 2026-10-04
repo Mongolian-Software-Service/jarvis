@@ -631,9 +631,19 @@ See `supabase/migrations/`. Tables: `profiles`, `courses`, `modules`, `lessons`,
 `quiz_questions`, `enrollments`, `lesson_progress`, `payments`, `feedback`,
 `projects`, `chat_messages`, `chat_authors`, `teacher_emails`.
 
-`chat_messages` is «Мэдэхгүй зүйлээ асуу»: one room for everybody signed in,
-live through Supabase Realtime (`postgres_changes`, the only read a client
-component makes — writes are still server actions).
+`chat_messages` is «Мэдэхгүй зүйлээ асуу»: one room, live through Supabase
+Realtime (`postgres_changes`, the only read a client component makes — writes
+are still server actions).
+
+- **The room is part of what the bundle buys.** It is open to a student with a
+  live enrolment that was paid for (`purchase`, or the console's `grant`), to a
+  teacher and to the team — `is_chat_member()` (20261004000100), and nobody
+  else. `free` does not count: taking a free course is not having paid (§1).
+  The `chat_read` and `chat_insert` policies call that function and so does the
+  page, which shows anybody outside the same box closed — `ChatLocked`, with
+  the bundle's button — and reads no messages for them. The tab stays in the
+  nav for everybody: a closed door with the way in written on it sells the room
+  better than a missing one.
 
 - **Who wrote a message is in another table.** A Realtime event delivers the
   whole row to every browser in the room, so `chat_messages` carries only what

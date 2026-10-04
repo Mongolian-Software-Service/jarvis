@@ -715,6 +715,7 @@ export type Database = {
       grant_all_courses: { Args: { p_user: string }; Returns: number }
       has_course_access: { Args: { course: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      is_chat_member: { Args: never; Returns: boolean }
       revoke_all_courses: { Args: { p_user: string }; Returns: number }
       set_user_role: {
         Args: {

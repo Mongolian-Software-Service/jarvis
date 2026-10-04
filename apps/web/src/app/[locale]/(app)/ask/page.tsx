@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { getIntl } from "@/lib/locale";
-import { listChat } from "@/lib/queries/learn";
+import { isChatMember, listChat } from "@/lib/queries/learn";
 import { getViewer } from "@/lib/queries/viewer";
 import { ChatRoom } from "@/components/ask/chat-room";
+import { ChatLocked } from "@/components/ask/chat-locked";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getIntl();
@@ -19,10 +20,15 @@ export async function generateMetadata(): Promise<Metadata> {
  *
  * Beside the room on a laptop: three lines on asking well. A 78rem chat would
  * be lines too long to read; the aside is what earns the rest of the width.
+ *
+ * The room is the paid students', their teachers' and the team's
+ * (20261004000100). Anybody else gets the same box, closed, with the way in —
+ * and no messages are read for them, because the policy would return none.
  */
 export default async function AskPage() {
-  const { t } = await getIntl();
-  const [messages, viewer] = await Promise.all([listChat(), getViewer()]);
+  const { locale, t } = await getIntl();
+  const [member, viewer] = await Promise.all([isChatMember(), getViewer()]);
+  const messages = member ? await listChat() : [];
   const copy = t.ask;
 
   return (
@@ -32,7 +38,11 @@ export default async function AskPage() {
         <p className="text-ink-3 mt-1.5 text-[14px]">{copy.deck}</p>
       </header>
 
-      <ChatRoom initial={messages} canModerate={viewer?.role === "admin"} t={t} />
+      {member ? (
+        <ChatRoom initial={messages} canModerate={viewer?.role === "admin"} t={t} />
+      ) : (
+        <ChatLocked locale={locale} t={t} />
+      )}
 
       <aside className="hidden lg:block">
         <div className="panel-raised p-5">
