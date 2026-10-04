@@ -937,7 +937,18 @@ two deliveries harmless.
 **A deployment without the keys sells nothing, and writes nothing.**
 `paymentsConfigured()` is asked before the `payments` row is inserted; without
 the three credentials `/api/checkout` answers 503 with a sentence the button
-shows. That is what a laptop or a Vercel preview does, by design.
+shows. That is what a Vercel preview — or a laptop without the keys — does,
+by design.
+
+**Localhost takes real payments too**, because the owner tests purchases
+there exactly as on the live site. `pnpm bonum:keys` writes the live keys into
+`apps/web/.env.local` as well as Vercel, with `BONUM_CALLBACK_URL` pointing at
+**production's** webhook: Bonum cannot reach a laptop, and production verifies
+the callback and settles the row in the one database both share. A checkout
+started on a laptop adds its port to `?to=` (`mn:<paymentId>:3001`), and the
+webhook's GET sends the payer back to `http://localhost:<port>` — only ever
+localhost and only a number, never a host from the query. A purchase on
+localhost is real money; `bonum.ts` says so in the dev log.
 
 **The payer comes back to the checkout page for their own payment.** `?to=`
 on the callback carries `locale:paymentId`; the webhook's GET sends the browser

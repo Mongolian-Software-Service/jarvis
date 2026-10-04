@@ -35,20 +35,25 @@ import { createServiceSupabase } from "@/lib/supabase/server";
  *
  * Without a payment id (the merchant-level webhook URL carries no `to`), the
  * dashboard is the right place: the courses appear there once settled.
+ *
+ * A third part is a port: the purchase was started on a laptop (see
+ * `/api/checkout`), so the browser goes back to `http://localhost:<port>`.
+ * Only ever localhost and only a number — a host taken from the query string
+ * would make this an open redirect anybody could aim anywhere.
  */
 const PAYMENT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PORT = /^\d{2,5}$/;
 
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const app = (process.env.NEXT_PUBLIC_APP_URL ?? url.origin).replace(/\/$/, "");
-  const marker = url.searchParams.get("to") ?? "";
-  const cut = marker.indexOf(":");
-  const locale = toLocale(cut > 0 ? marker.slice(0, cut) : null);
-  const paymentId = cut > 0 ? marker.slice(cut + 1) : "";
+  const [rawLocale = "", paymentId = "", port = ""] = (url.searchParams.get("to") ?? "").split(":");
+  const locale = toLocale(rawLocale || null);
+  const base = PORT.test(port) ? `http://localhost:${port}` : app;
   const destination = PAYMENT_ID.test(paymentId)
     ? checkoutPath(locale, paymentId)
     : learnPath(locale);
-  return Response.redirect(`${app}${destination}`, 303);
+  return Response.redirect(`${base}${destination}`, 303);
 }
 
 export async function POST(request: Request): Promise<Response> {

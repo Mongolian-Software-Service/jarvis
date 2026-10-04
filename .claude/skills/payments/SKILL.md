@@ -40,9 +40,12 @@ database the machine pointed at — and `.env.local` points at the live project,
 so a "test" purchase on a laptop opened every course in production for free.
 Do not bring it back without a separate development database.
 
-To test, buy once on www.tsstark-academy.com with a real card. The keys are in
-Vercel Production only (Secret type — unreadable, even to `vercel env pull`);
-SETUP.md §8 has how they were set and how to rotate them.
+To test, buy once with a real card — on www.tsstark-academy.com, or on
+localhost once `pnpm bonum:keys` has written the keys into `.env.local` too
+(the laptop's callback is production's webhook; the payer comes back to
+`localhost:<port>` through the `:port` on `?to=`). In Vercel the keys are
+Secret type — unreadable, even to `vercel env pull`; SETUP.md §8 has how they
+are set and rotated.
 
 The payer returns through the webhook's **GET** with `?to=locale:paymentId` and
 lands on `/checkout?payment=…`, which polls until the POST has settled it.

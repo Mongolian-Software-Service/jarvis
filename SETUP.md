@@ -230,6 +230,9 @@ Done on 2026-10-04 — this is what to redo if the keys are ever rotated:
    pnpm bonum:keys
    ```
 
+   It writes Vercel Production **and** `apps/web/.env.local`, so localhost
+   takes real payments the same way (CLAUDE.md §6.7 has why the laptop's
+   callback is production's webhook).
    It asks for the terminal id, the app secret and the checksum key with the
    echo off, asks Bonum for a token with the first two, and writes all three
    as Secret-type variables **only** if Bonum says yes — a refusal prints

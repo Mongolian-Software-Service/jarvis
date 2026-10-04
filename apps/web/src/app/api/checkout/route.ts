@@ -101,12 +101,21 @@ export async function POST(request: Request): Promise<Response> {
    *
    * `returnTo` carries the payment's own id, so the payer comes back to the
    * page that waits for exactly this payment to settle (see the webhook's GET).
+   *
+   * On a laptop it also carries the port. The owner tests purchases on
+   * localhost against the live gateway; Bonum cannot call a laptop, so the
+   * callback is production's webhook, which settles the shared row — and the
+   * port is how that webhook knows to send the payer's browser back to
+   * `localhost:<port>` rather than to the live site, where they are not signed
+   * in. Never in a production build: there the marker is `locale:id` only.
    */
+  const port = process.env.NODE_ENV === "production" ? "" : new URL(request.url).port;
+
   try {
     const invoice = await createInvoice({
       transactionId: payment.id,
       amountMnt: amount,
-      returnTo: `${locale}:${payment.id}`,
+      returnTo: port ? `${locale}:${payment.id}:${port}` : `${locale}:${payment.id}`,
       items: [{ title, amount, count: 1, remark: COURSE_REMARK_MN }],
     });
 

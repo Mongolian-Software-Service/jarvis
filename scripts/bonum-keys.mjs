@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Bonum's three credentials, into Vercel Production — after Bonum has said yes.
+ * Bonum's three credentials, into Vercel Production and this laptop — after
+ * Bonum has said yes.
  *
  *   pnpm bonum:keys
  *
@@ -12,29 +13,39 @@
  * three was wrong, or that any was.
  *
  * So each value is asked for with the echo off — never in shell history, a chat
- * or a file — and the terminal id and app secret are tried against Bonum's own
- * token endpoint first. Only a token back writes anything. The checksum key
- * cannot be tried that way (only Bonum signs with it), so it is checked for
- * shape and nothing more; a wrong one shows up after a real payment, as
+ * or a file — described by its shape (length and alphabet, never content), and
+ * the terminal id and app secret are tried against Bonum's production token
+ * endpoint. Only a token back writes anything. When production refuses, the
+ * sandbox is asked the same question: a yes there means the keys are test
+ * keys, which is worth knowing and still writes nothing, because this site
+ * takes real money.
+ *
+ * The checksum key cannot be tried that way (only Bonum signs with it), so it
+ * is checked for shape; a wrong one shows up after a real payment, as
  * `[bonum] webhook rejected: bad checksum` in the Vercel log.
  *
- * Writes go through the Vercel CLI this repo is linked with (`.vercel/`), value
- * on stdin, as Secret-type variables nobody can read back. A variable reaches
- * only builds made after it is set, so the last line says to redeploy.
+ * Every refusal ends with exit code 0 on purpose. The owner runs this, and
+ * pnpm prints a red `ELIFECYCLE Command failed` under any non-zero exit — which
+ * read as the script having crashed when it had done exactly its job.
  *
  * The prompts are Mongolian because the person who runs this is the owner, not
  * a developer; the reasoning stays in English like every other script here.
  */
-import { spawnSync } from "node:child_process";
 import { createInterface } from "node:readline";
 import { Writable } from "node:stream";
+import { join } from "node:path";
 import { REPO_ROOT } from "./env.mjs";
+import { PRODUCTION, SANDBOX, describe, looksLabelled, tryBonum, verdict } from "./bonum/probe.mjs";
+import { setEnvFile, setVercelSecret } from "./bonum/targets.mjs";
 
-const BASE = (process.env.BONUM_API_BASE_URL || "https://apis.bonum.mn").replace(/\/$/, "");
+const CALLBACK =
+  process.env.BONUM_CALLBACK_URL || "https://www.tsstark-academy.com/api/webhooks/bonum";
+const LOCAL_ENV = join(REPO_ROOT, "apps/web/.env.local");
 
-function fail(line) {
-  console.error(`\n  ✗ ${line}\n\n  Vercel-д юу ч бичигдээгүй.\n`);
-  process.exit(1);
+/** A handled outcome: say it, write nothing, leave with 0 (see above). */
+function stop(lines) {
+  console.log(`\n  ✗ ${lines}\n\n  Юу ч бичигдээгүй — Vercel ч, энэ компьютер ч хэвээрээ.\n`);
+  process.exit(0);
 }
 
 /**
@@ -63,79 +74,87 @@ function ask(question, hidden) {
   });
 }
 
-/** Ask Bonum for a token. Reports the status and Bonum's error code — never the token. */
-async function tryBonum(terminalId, appSecret) {
-  try {
-    const response = await fetch(`${BASE}/bonum-gateway/ecommerce/auth/create`, {
-      headers: { Authorization: `AppSecret ${appSecret}`, "X-TERMINAL-ID": terminalId },
-      signal: AbortSignal.timeout(15_000),
-    });
-    const body = await response.json().catch(() => null);
-    return {
-      ok: response.ok && Boolean(body?.accessToken),
-      status: response.status,
-      code: body?.errorCode ?? null,
-    };
-  } catch (error) {
-    return { ok: false, status: 0, code: error instanceof Error ? error.message : String(error) };
-  }
+if (!process.stdin.isTTY) {
+  console.error("\n  ✗ Терминал дотор ажиллуулна уу — түлхүүрүүдийг нууцаар асуудаг.\n");
+  process.exit(1);
 }
-
-function vercel(args, input) {
-  return spawnSync("pnpm", ["dlx", "vercel", ...args], { cwd: REPO_ROOT, input, encoding: "utf8" });
-}
-
-/** Replace one Production variable. `rm` first, because `add` refuses a name that exists. */
-function setSecret(name, value) {
-  vercel(["env", "rm", name, "production", "-y"]);
-  const added = vercel(["env", "add", name, "production"], value);
-  if (added.status !== 0) {
-    const why = `${added.stderr ?? ""}${added.stdout ?? ""}`.trim().split("\n").pop();
-    fail(`${name} бичигдсэнгүй: ${why}`);
-  }
-  console.log(`  ✓ ${name}`);
-}
-
-if (!process.stdin.isTTY) fail("Терминал дотор ажиллуулна уу — түлхүүрүүдийг нууцаар асуудаг.");
 
 console.log(
-  "\n  Bonum → Vercel Production.\n" +
-    "  Утга бүрийг нааж Enter дарна. Нууц утгууд дэлгэцэнд харагдахгүй — энэ хэвийн.\n",
+  "\n  Bonum → Vercel Production + энэ компьютер (localhost).\n" +
+    "  Утга бүрийг Bonum самбараас НЭГ НЭГЭЭР нь хуулж, нааж Enter дарна.\n" +
+    "  Нууц утгууд дэлгэцэнд харагдахгүй — энэ хэвийн.\n",
 );
 
 const terminalId = await ask("  Terminal ID: ", false);
 const appSecret = await ask("  App Secret (нууц): ", true);
 const checksumKey = await ask("  Merchant checksum key (нууц): ", true);
 
-if (!terminalId) fail("Terminal ID хоосон байна.");
-if (!appSecret) fail("App Secret хоосон байна — юу ч наагдаагүй.");
-if (!checksumKey) fail("Checksum key хоосон байна — юу ч наагдаагүй.");
+console.log(`\n  App Secret:   ${describe(appSecret)}`);
+console.log(`  Checksum key: ${describe(checksumKey)}\n`);
+
+if (!/^\d+$/.test(terminalId)) stop("Terminal ID зөвхөн цифр байх ёстой (жишээ нь 17173165).");
+if (!appSecret) stop("App Secret хоосон байна — юу ч наагдаагүй.");
+if (!checksumKey) stop("Checksum key хоосон байна — юу ч наагдаагүй.");
+if (looksLabelled(appSecret)) {
+  stop(
+    "App Secret дотор «:» эсвэл кирилл үсэг байна — нэг түлхүүр биш, хэд хэдэн мөр\n" +
+      "    хамт хуулагдсан байна. Зөвхөн түлхүүрийг өөрийг нь хуулж дахин оролдоно уу.",
+  );
+}
 if (!/^[0-9a-f]+$/i.test(checksumKey)) {
-  fail("Checksum key зөвхөн 0-9, a-f тэмдэгтээс бүрдэх ёстой. Буруу зүйл хуулагдсан байна.");
+  stop("Checksum key зөвхөн 0-9, a-f тэмдэгтээс бүрдэх ёстой. Буруу зүйл хуулагдсан байна.");
 }
 
-console.log(
-  `\n  App Secret: ${appSecret.length} тэмдэгт · checksum key: ${checksumKey.length} тэмдэгт`,
-);
-process.stdout.write(`  Bonum-аас token авч үзэж байна (${BASE}) … `);
+process.stdout.write(`  Bonum production (${PRODUCTION}) … `);
+const live = await tryBonum(PRODUCTION, terminalId, appSecret);
 
-const probe = await tryBonum(terminalId, appSecret);
-if (!probe.ok) {
-  console.log(`татгалзлаа: HTTP ${probe.status}${probe.code ? ` · ${probe.code}` : ""}`);
-  fail(
-    "Bonum энэ Terminal ID, App Secret хоёрыг хүлээж авсангүй.\n" +
-      "    Bonum самбар → Мерчант → «Терминал» табаас терминалын дугаарыг,\n" +
-      "    «Secret Key» табаас тэр терминалын App Secret-ийг хуулж дахин оролдоно уу.\n" +
-      "    Тэгсэн ч 401 гарвал Bonum-ын дэмжлэгээс ecommerce API-ийн түлхүүрийг асуугаарай.",
+if (!live.ok) {
+  console.log(`татгалзлаа: ${verdict(live)}`);
+  process.stdout.write(`  Bonum test (${SANDBOX}) … `);
+  const sandbox = await tryBonum(SANDBOX, terminalId, appSecret);
+
+  if (sandbox.ok) {
+    console.log("зөв ✓");
+    stop(
+      "Эдгээр нь TEST түлхүүр байна: Bonum-ын туршилтын сервер хүлээж авсан, бодит сервер\n" +
+        "    татгалзсан. Бодит мөнгө авахын тулд Bonum-аас production-ий App Secret авах хэрэгтэй.",
+    );
+  }
+  console.log(`татгалзлаа: ${verdict(sandbox)}`);
+  stop(
+    "Bonum энэ Terminal ID, App Secret хоёрыг аль ч сервер дээр хүлээж авсангүй.\n" +
+      "    1. Bonum самбар → Мерчант → «Secret Key» табаас App Secret-ийг дахин хуулна уу.\n" +
+      "    2. Тэгсэн ч ингэж гарвал Bonum-ын дэмжлэг (+976 7200-5000) рүү дээрх\n" +
+      "       «trace» дугаартай нь хандаж, ecommerce API-ийн App Secret-ийг асуугаарай.",
   );
 }
 console.log("зөв ✓\n");
 
-setSecret("BONUM_TERMINAL_ID", terminalId);
-setSecret("BONUM_APP_SECRET", appSecret);
-setSecret("BONUM_MERCHANT_CHECKSUM_KEY", checksumKey);
+for (const [name, value] of [
+  ["BONUM_TERMINAL_ID", terminalId],
+  ["BONUM_APP_SECRET", appSecret],
+  ["BONUM_MERCHANT_CHECKSUM_KEY", checksumKey],
+]) {
+  const failed = setVercelSecret(name, value);
+  if (failed) stop(`Vercel: ${name} бичигдсэнгүй — ${failed}`);
+  console.log(`  ✓ Vercel  ${name}`);
+}
+
+setEnvFile(
+  LOCAL_ENV,
+  {
+    BONUM_API_BASE_URL: PRODUCTION,
+    BONUM_CALLBACK_URL: CALLBACK,
+    BONUM_TERMINAL_ID: terminalId,
+    BONUM_APP_SECRET: appSecret,
+    BONUM_MERCHANT_CHECKSUM_KEY: checksumKey,
+  },
+  ["BONUM_MOCK"],
+);
+console.log("  ✓ localhost  apps/web/.env.local");
 
 console.log(
-  "\n  Vercel Production-д бичигдлээ. Шинэ утгууд дараагийн deploy-оос л орно —\n" +
-    "  production-ийг redeploy хийнэ үү (Claude-д «болсон» гэж хэлэхэд хангалттай).\n",
+  "\n  Бүгд бичигдлээ. Production шинэ утгуудыг дараагийн deploy-оос авна —\n" +
+    "  Claude-д «болсон» гэж хэлэхэд redeploy хийнэ. Localhost шууд шинэчлэгдэнэ.\n" +
+    "  Анхаар: одоо localhost дээрх худалдан авалт ч жинхэнэ мөнгө авна.\n",
 );
