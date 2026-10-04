@@ -191,7 +191,7 @@ values
   -- `pnpm video:upload` use it as the worked example.
   ('30000000-0000-4000-8000-000000000800', '20000000-0000-4000-8000-000000001101', '10000000-0000-4000-8000-000000000001',
    'ehlehiin-umnu', 'Эхлэхийн өмнө', null, 'video',
-   'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', 6,
+   'https://pub-9a482c29633c419cac5f020cd2878e0a.r2.dev/lessons/ehlehiin-umnu.mp4', 3,
    null, null, null, null, null, false, 1),
 
   ('30000000-0000-4000-8000-000000000808', '20000000-0000-4000-8000-000000001101', '10000000-0000-4000-8000-000000000001',
@@ -243,7 +243,7 @@ Firefox, Safari ч болно. Хамгийн чухал нь хөгжүүлэг
   -- Landing page
   ('30000000-0000-4000-8000-000000000111', '20000000-0000-4000-8000-000000001107', '10000000-0000-4000-8000-000000000003',
    'nemelt-lavlagaa', 'Landing page хийх хичээлийн нэмэлт лавлагаа', null, 'video',
-   'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', 0,
+   'https://pub-9a482c29633c419cac5f020cd2878e0a.r2.dev/lessons/nemelt-lavlagaa.mp4', 38,
    null, null, null, null, null, false, 1),
 
   -- The links the video leans on, in one place a student can come back to.
@@ -377,7 +377,7 @@ $md$,
   -- Бүтэн вэб апп
   ('30000000-0000-4000-8000-000000000310', '20000000-0000-4000-8000-000000001110', '10000000-0000-4000-8000-000000000004',
    'fullstack-lavlagaa', 'Бүтэн вэб апп хийх хичээлийн нэмэлт лавлагаа', null, 'video',
-   'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', 0,
+   'https://pub-9a482c29633c419cac5f020cd2878e0a.r2.dev/lessons/fullstack-lavlagaa.mp4', 88,
    null, null, null, null, null, false, 1),
 
   ('30000000-0000-4000-8000-000000000311', '20000000-0000-4000-8000-000000001110', '10000000-0000-4000-8000-000000000004',
@@ -509,7 +509,7 @@ App Store, Google Play | Хүмүүс татаж суулгана
   -- Тоглоом
   ('30000000-0000-4000-8000-000000000707', '20000000-0000-4000-8000-000000001116', '10000000-0000-4000-8000-000000000006',
    'toglom-lavlagaa', 'Тоглоом хийх хичээлийн нэмэлт лавлагаа', null, 'video',
-   'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', 0,
+   'https://pub-9a482c29633c419cac5f020cd2878e0a.r2.dev/lessons/toglom-lavlagaa.mp4', 15,
    null, null, null, null, null, false, 1),
 
   ('30000000-0000-4000-8000-000000000708', '20000000-0000-4000-8000-000000001116', '10000000-0000-4000-8000-000000000006',
