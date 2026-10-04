@@ -110,11 +110,26 @@ export async function POST(request: Request): Promise<Response> {
       items: [{ title, amount, count: 1, remark: COURSE_REMARK_MN }],
     });
 
-    await supabase.from("payments").update({ invoice_id: invoice.invoiceId }).eq("id", payment.id);
+    /*
+     * Nothing is written back here, and that is the policy, not an omission.
+     * A buyer may insert their pending row and read it — never update it,
+     * because a buyer who can write `payments` can write `status`. This used
+     * to `update` the invoice id and, on failure, the status: both matched no
+     * policy and changed nothing, silently. The webhook finds the row by
+     * `transactionId` (our `payments.id`) and attaches the invoice id itself.
+     */
     return Response.json({ ok: true, url: invoice.followUpLink });
   } catch (error) {
+    // A failed attempt stays `pending` with no invoice: nothing can pay it, and
+    // the console reads it as abandoned once INVOICE_LIFETIME_MS has passed.
     console.error("[checkout] bonum invoice failed", error);
-    await supabase.from("payments").update({ status: "failed" }).eq("id", payment.id);
-    return Response.json({ ok: false, error: "gateway-unreachable" }, { status: 502 });
+    return Response.json(
+      {
+        ok: false,
+        error: "gateway-unreachable",
+        message: strings(locale).learn.bundle.gatewayFailed,
+      },
+      { status: 502 },
+    );
   }
 }
