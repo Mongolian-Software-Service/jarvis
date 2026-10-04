@@ -224,19 +224,22 @@ without the keys refuses a purchase with a sentence and writes nothing.
 
 Done on 2026-10-04 — this is what to redo if the keys are ever rotated:
 
-1. **Vercel → Production**, as Secret-type variables. Paste each value from the
-   clipboard so it never passes through a chat or a file:
+1. **Vercel → Production**, through the one command that checks first:
 
    ```bash
-   [ -n "$(pbpaste)" ] && pbpaste | tr -d '[:space:]' | pnpm dlx vercel env add BONUM_APP_SECRET production
+   pnpm bonum:keys
    ```
 
-   — and the same for `BONUM_TERMINAL_ID` and `BONUM_MERCHANT_CHECKSUM_KEY`.
+   It asks for the terminal id, the app secret and the checksum key with the
+   echo off, asks Bonum for a token with the first two, and writes all three
+   as Secret-type variables **only** if Bonum says yes — a refusal prints
+   Bonum's status and error code and writes nothing. That order is the lesson
+   of 2026-10-04: typed in by hand, an empty paste was saved as a value
+   (`Value is empty`, and on it went), and production then answered every
+   purchase with `401 NO_AUTH` with no way to tell which key was wrong.
    `BONUM_API_BASE_URL=https://apis.bonum.mn` and
    `BONUM_CALLBACK_URL=https://www.tsstark-academy.com/api/webhooks/bonum` are
-   not secret. An interactive `vercel env add` with nothing pasted saves an
-   **empty** value and says only `Value is empty` — the guarded pipe is why.
-   To change one: `vercel env rm NAME production -y`, then add it again.
+   not secret and are set once with `vercel env add`.
 
 2. **Redeploy** — a variable reaches only builds made after it was set.
 3. **Bonum merchant panel** (merchant.bonum.mn) → Мерчант → **Web Hook** → URL:
