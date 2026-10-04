@@ -82,6 +82,7 @@ export default async function HelloPage() {
         firstName={firstName}
         next={next}
         nextHref={nextHref}
+        locked={!courses.some(opened)}
       />
 
       <HelloStats

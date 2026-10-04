@@ -95,7 +95,7 @@ export function EnrollButton({
           {pending ? <Loader2 className="size-4 animate-spin" /> : null}
           {labels.startFree}
         </button>
-        {error ? <p className="text-xs text-bad">{error}</p> : null}
+        {error ? <p className="text-bad text-xs">{error}</p> : null}
       </div>
     );
   }
@@ -109,16 +109,17 @@ export function EnrollButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bundle: true }),
       });
-      const result = (await response.json()) as { ok: boolean; url?: string };
+      const result = (await response.json()) as { ok: boolean; url?: string; message?: string };
       if (!result.ok || !result.url) {
-        setError(labels.error);
+        // The route's own sentence when it has one (no keys on this
+        // deployment), the generic one when it does not.
+        setError(result.message ?? labels.error);
         setBusy(false);
         return;
       }
       /*
        * `location.assign`, not `router.push`: the gateway's payment page is
-       * another origin, and the mock path returns a URL on this one. One line
-       * handles both, and neither wants a client-side transition.
+       * another origin, and a client-side transition cannot leave this one.
        */
       window.location.assign(result.url);
     } catch {
@@ -138,7 +139,7 @@ export function EnrollButton({
         {busy ? <Loader2 className="size-4 animate-spin" /> : null}
         {busy ? labels.buying : labels.buy}
       </button>
-      {error ? <p className="text-xs text-bad">{error}</p> : null}
+      {error ? <p className="text-bad text-xs">{error}</p> : null}
     </div>
   );
 }

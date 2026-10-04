@@ -28,33 +28,47 @@ const DEFAULT_EXPIRES_IN = 1800;
  */
 const TIMEOUT_MS = 15_000;
 
-/**
- * The development shortcut: skip the gateway and settle locally.
+/*
+ * There is no mock mode (decision #015).
  *
- * This is how the whole purchase → enrolment path is walked without a merchant
- * account. **It cannot be switched on in production** — the `NODE_ENV` test is
- * not a convention here, it is the safety.
+ * `BONUM_MOCK=1` used to settle a purchase on the spot, without the gateway —
+ * and it settled it in whatever database the machine was pointed at. This
+ * project has one database, the live one, so every "test" purchase on a laptop
+ * was a real enrolment in production, granted for nothing. The only way a
+ * course opens now is a signed callback from Bonum.
  */
-export function isMockMode(): boolean {
-  return process.env.NODE_ENV !== "production" && process.env.BONUM_MOCK === "1";
+
+/** The three values without which no invoice can be made or verified. */
+const CREDENTIALS = ["BONUM_APP_SECRET", "BONUM_TERMINAL_ID", "BONUM_MERCHANT_CHECKSUM_KEY"];
+
+/**
+ * Whether this deployment can take a payment at all.
+ *
+ * Asked **before** a `payments` row is written. Without it a laptop with no
+ * keys wrote a pending row into the live table, failed inside `accessToken()`,
+ * and left the admin console a «failed» payment for every click — none of them
+ * anybody's money.
+ */
+export function paymentsConfigured(): boolean {
+  return CREDENTIALS.every((name) => Boolean(process.env[name]));
 }
 
 /**
  * Say it out loud when a development machine is pointed at the live gateway.
  *
- * `BONUM_MOCK=0` with `BONUM_API_BASE_URL=https://apis.bonum.mn` is a working
- * configuration and an alarming one: every purchase on localhost mints a real
- * invoice against the real terminal, and the callback goes to production, so
- * nothing on this machine ever hears the answer. It presents as a checkout that
- * opens the payment page and then appears to hang for ever.
+ * With the live keys and `BONUM_API_BASE_URL=https://apis.bonum.mn`, every
+ * purchase on localhost mints a real invoice against the real terminal and
+ * takes real money. It does work end to end — the callback goes to production,
+ * which settles the row in the one database both share — which is exactly why
+ * it should not happen quietly.
  */
 let warned = false;
 function warnIfLiveInDevelopment(): void {
-  if (warned || process.env.NODE_ENV === "production" || isMockMode()) return;
+  if (warned || process.env.NODE_ENV === "production") return;
   if (!/apis\.bonum\.mn/.test(BASE_URL)) return;
   warned = true;
   console.error(
-    "[bonum] development is pointed at the LIVE gateway (%s). Purchases here are real. Set BONUM_MOCK=1 to settle locally.",
+    "[bonum] development is pointed at the LIVE gateway (%s). Purchases here take real money.",
     BASE_URL,
   );
 }

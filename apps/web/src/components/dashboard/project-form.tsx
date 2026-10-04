@@ -58,10 +58,13 @@ export function ProjectForm({
   const fields = state && !state.ok ? (state.fields ?? {}) : {};
 
   return (
-    <form ref={form} onSubmit={onSubmit} className="space-y-3" noValidate>
+    <form ref={form} onSubmit={onSubmit} className="@container space-y-3" noValidate>
       {initial ? <input type="hidden" name="id" value={initial.id} /> : null}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      {/* Side by side when *the form* is wide, not when the window is: the
+          add form lives in a 20rem column on a laptop, and the edit form in a
+          card two columns across. `sm:` would split the narrow one in two. */}
+      <div className="grid gap-3 @md:grid-cols-2">
         <Field label={copy.url} hint={copy.urlHint} htmlFor={`${id}-url`} error={fields.url}>
           {/* Text, not `type="url"`: the browser would refuse the bare host the
               schema is happy to complete with https. */}

@@ -11,7 +11,7 @@ import { ResumeCard } from "@/components/dashboard/resume-card";
 import { StatStrip } from "@/components/dashboard/stat-strip";
 import { CourseRows } from "@/components/dashboard/course-rows";
 import { ProjectsPanel } from "@/components/dashboard/projects-panel";
-import { cn } from "@/lib/cn";
+import { ProjectAdd } from "@/components/dashboard/project-add";
 
 export const metadata: Metadata = { robots: { index: false } };
 
@@ -22,10 +22,13 @@ export const metadata: Metadata = { robots: { index: false } };
  * get from the catalogue, but "you were on lesson four of Flexbox, carry on" is
  * only possible here.
  *
- * Below it, two columns on a laptop: what is still open on the left, what they
- * have built on the right. It was one 64rem column down the middle of a 78rem
- * page — a third of the screen spent on nothing (§3, "a page spends the width
- * it is given"). On a phone the two simply stack, courses first.
+ * Below it, two columns on a laptop: the work on the left — courses still
+ * open, then the projects as a grid of cards — and «Төсөл нэмэх» in a narrow
+ * column on the right that stays put as the list scrolls. The projects used to
+ * be full-width rows with the add form at their foot: a name at one edge of the
+ * screen, its buttons at the other, and the form below the fold by the fifth
+ * project (§3, "a page spends the width it is given"). On a phone everything
+ * stacks in reading order, the form last.
  */
 export default async function DashboardPage() {
   const { locale, t } = await getIntl();
@@ -60,7 +63,7 @@ export default async function DashboardPage() {
         <h1 className="font-display text-[28px] leading-[1.1] sm:text-[32px]">
           {firstName ? fmt(copy.greeting, { name: firstName }) : copy.greetingPlain}
         </h1>
-        <p className="text-ink-3 mt-2 text-[15px]">{copy.deck}</p>
+        <p className="text-ink-3 mt-2 text-[15px]">{overview.resume ? copy.deck : copy.deckIdle}</p>
       </header>
 
       {overview.resume ? <ResumeCard resume={overview.resume} locale={locale} t={t} /> : null}
@@ -68,18 +71,18 @@ export default async function DashboardPage() {
       {holdsCourses ? <StatStrip stats={stats} /> : null}
 
       {/* Projects are open to everybody signed in, course or no course
-          (20261002000300), so the panel is not behind `holdsCourses`. */}
-      <div
-        className={cn(
-          // `minmax(0, …)` at every width: an implicit `auto` column
-          // grows to its widest unbreakable line, and a 60-character host
-          // would push a 360px phone sideways past every `truncate` inside.
-          "grid grid-cols-[minmax(0,1fr)] items-start gap-8",
-          started.length > 0 && "lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]",
-        )}
-      >
-        {started.length > 0 ? <CourseRows courses={started} locale={locale} t={t} /> : null}
-        <ProjectsPanel projects={projects} locale={locale} t={t} />
+          (20261002000300), so neither column is behind `holdsCourses`.
+          `minmax(0, …)` at every width: an implicit `auto` column grows to
+          its widest unbreakable line, and a 60-character host would push a
+          360px phone sideways past every `truncate` inside. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="space-y-10">
+          {started.length > 0 ? <CourseRows courses={started} locale={locale} t={t} /> : null}
+          <ProjectsPanel projects={projects} locale={locale} t={t} />
+        </div>
+        <aside className="lg:sticky lg:top-20">
+          <ProjectAdd count={projects.length} t={t} />
+        </aside>
       </div>
 
       {/* A student who holds nothing */}

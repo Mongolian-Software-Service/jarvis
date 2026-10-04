@@ -40,15 +40,14 @@
         /*
          * Bonum (the payment gateway). `BONUM_MERCHANT_CHECKSUM_KEY` verifies
          * the callback signature: without it every callback throws and no
-         * payment is ever confirmed. `BONUM_MOCK=1` settles locally and is
-         * refused in production.
+         * payment is ever confirmed. There is no `BONUM_MOCK` any more
+         * (decision #015).
          */
         "BONUM_API_BASE_URL",
         "BONUM_APP_SECRET",
         "BONUM_TERMINAL_ID",
         "BONUM_MERCHANT_CHECKSUM_KEY",
-        "BONUM_CALLBACK_URL",
-        "BONUM_MOCK"
+        "BONUM_CALLBACK_URL"
       ],
       "outputs": [".next/**", "!.next/cache/**"]
     },

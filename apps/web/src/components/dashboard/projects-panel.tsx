@@ -1,6 +1,6 @@
-import { fmt, PROJECT_LIMIT, type Locale, type Strings } from "@jarvis/core";
+import { FolderOpen } from "lucide-react";
+import { PROJECT_LIMIT, type Locale, type Strings } from "@jarvis/core";
 import type { StudentProject } from "@/lib/queries/learn";
-import { ProjectForm } from "./project-form";
 import { ProjectItem } from "./project-item";
 
 /**
@@ -12,9 +12,10 @@ import { ProjectItem } from "./project-item";
  * the dashboard is the screen they open the day they finish.
  *
  * No course to file it under (20261002000300): a student keeps up to
- * `PROJECT_LIMIT` of them, newest first. At the limit the add form gives way to
- * a line saying so — the database would refuse the eleventh anyway, and a form
- * that can only fail is worse than no form.
+ * `PROJECT_LIMIT` of them, newest first, as a grid of cards. The form that adds
+ * one is `ProjectAdd`, which the page puts beside this on a laptop and under it
+ * on a phone — it used to sit at the foot of this list, where the fifth project
+ * pushed it below the fold of the screen it exists on.
  */
 export function ProjectsPanel({
   projects,
@@ -26,37 +27,33 @@ export function ProjectsPanel({
   t: Strings;
 }) {
   const copy = t.learn.projects;
-  const full = projects.length >= PROJECT_LIMIT;
 
   return (
     <section id="projects" className="scroll-mt-20">
-      <div className="mb-4">
-        <h2 className="font-display text-[20px]">{copy.title}</h2>
-        <p className="text-ink-3 measure mt-1 text-[13px]">{copy.deck}</p>
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="font-display text-[20px]">{copy.title}</h2>
+          <p className="text-ink-3 measure mt-1 text-[13px]">{copy.deck}</p>
+        </div>
+        {/* How many of the ten — the add form disappears at the limit, and
+            this is what says it is coming. */}
+        <p className="text-ink-3 tabular shrink-0 text-[13px]">
+          {projects.length} / {PROJECT_LIMIT}
+        </p>
       </div>
 
-      <div className="panel divide-line divide-y overflow-hidden">
-        {projects.length === 0 ? (
-          <p className="text-ink-3 px-4 py-4 text-[13px]">{copy.empty}</p>
-        ) : (
-          projects.map((project) => (
+      {projects.length === 0 ? (
+        <div className="border-line text-ink-3 flex items-center gap-3 rounded-[var(--radius-lg)] border border-dashed px-4 py-6 text-[13px]">
+          <FolderOpen className="size-5 shrink-0" aria-hidden="true" />
+          <p>{copy.empty}</p>
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {projects.map((project) => (
             <ProjectItem key={project.id} project={project} locale={locale} t={t} />
-          ))
-        )}
-
-        {full ? (
-          <p className="text-ink-3 px-4 py-3 text-[12.5px]">
-            {fmt(copy.limit, { count: PROJECT_LIMIT })}
-          </p>
-        ) : (
-          <div className="bg-panel-2/40 px-4 py-4">
-            <p className="mb-3 text-[13px] font-medium">{copy.add}</p>
-            {/* Keyed by how many there are: after a save the list grows by
-                one, and the form starts again clean. */}
-            <ProjectForm key={projects.length} t={t} />
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

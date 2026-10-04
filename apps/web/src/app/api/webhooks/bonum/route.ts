@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { toPaymentStatus } from "@jarvis/core";
+import { checkoutPath, learnPath, toLocale, toPaymentStatus } from "@jarvis/core";
 import type { Json } from "@jarvis/types";
 import { verifyChecksum, type BonumWebhook } from "@/lib/bonum";
 import { createServiceSupabase } from "@/lib/supabase/server";
@@ -25,16 +25,30 @@ import { createServiceSupabase } from "@/lib/supabase/server";
  * Bonum reuses the callback URL to return the browser after payment, and a
  * signed webhook is always a POST — so a GET here is a person, and a person
  * must not be answered with a bare 405. `?to=` was set when the invoice was
- * created and carries `locale:slug`.
+ * created and carries `locale:paymentId`.
+ *
+ * They go to the checkout page for that payment, which polls until the POST
+ * has settled it and then sends them into their courses. It used to carry
+ * `locale:slug` from the days of one course per payment; the bundle sent
+ * `mn:/mn/learn`, which this read as a slug and turned into
+ * `/mn/courses//mn/learn` — a 404 for everybody who had just paid.
+ *
+ * Without a payment id (the merchant-level webhook URL carries no `to`), the
+ * dashboard is the right place: the courses appear there once settled.
  */
+const PAYMENT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const app = (process.env.NEXT_PUBLIC_APP_URL ?? url.origin).replace(/\/$/, "");
   const marker = url.searchParams.get("to") ?? "";
-  const [locale, slug] = marker.split(":");
-  const safeLocale = locale === "en" ? "en" : "mn";
-  const destination = slug ? `/${safeLocale}/courses/${slug}` : `/${safeLocale}/learn`;
-  return Response.redirect(`${app}${destination}?payment=returned`, 303);
+  const cut = marker.indexOf(":");
+  const locale = toLocale(cut > 0 ? marker.slice(0, cut) : null);
+  const paymentId = cut > 0 ? marker.slice(cut + 1) : "";
+  const destination = PAYMENT_ID.test(paymentId)
+    ? checkoutPath(locale, paymentId)
+    : learnPath(locale);
+  return Response.redirect(`${app}${destination}`, 303);
 }
 
 export async function POST(request: Request): Promise<Response> {

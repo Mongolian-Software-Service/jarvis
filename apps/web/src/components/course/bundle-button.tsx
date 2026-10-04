@@ -52,14 +52,15 @@ export function BundleButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bundle: true }),
       });
-      const result = (await response.json()) as { ok: boolean; url?: string };
+      const result = (await response.json()) as { ok: boolean; url?: string; message?: string };
       if (!result.ok || !result.url) {
-        setError(labels.error);
+        // The route's own sentence when it has one (no keys on this
+        // deployment), the generic one when it does not.
+        setError(result.message ?? labels.error);
         setBusy(false);
         return;
       }
-      // The gateway's page is another origin; the mock path returns one on this
-      // one. `location.assign` handles both, and neither wants a soft transition.
+      // The gateway's page is another origin, which a soft transition cannot reach.
       window.location.assign(result.url);
     } catch {
       setError(labels.error);
@@ -74,7 +75,7 @@ export function BundleButton({
         {busy ? labels.buying : labels.buy}
         {busy ? null : <ArrowRight className="size-3.5" />}
       </button>
-      {error ? <p className="text-xs text-bad">{error}</p> : null}
+      {error ? <p className="text-bad text-xs">{error}</p> : null}
     </div>
   );
 }

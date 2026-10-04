@@ -1,6 +1,6 @@
 ---
 name: payments
-description: Work on TsStark Academy's payment path — the Bonum checkout, the webhook, invoice settlement, enrolment on purchase, the admin payments screen, or the mock mode used for local testing. Use for anything involving money, invoices, `settle_payment`, `BONUM_*` environment variables, or a purchase that did not open a course.
+description: Work on TsStark Academy's payment path — the Bonum checkout, the webhook, invoice settlement, enrolment on purchase, the admin payments screen, or the live Bonum keys on Vercel (there is no mock mode). Use for anything involving money, invoices, `settle_payment`, `BONUM_*` environment variables, or a purchase that did not open a course.
 ---
 
 # Payments
@@ -18,8 +18,9 @@ EnrollButton → POST /api/checkout → payments row (pending) → Bonum invoice
 1. **The gateway is the only authority on whether money moved.** Nothing opens a
    course anywhere else. If you find yourself writing an enrolment next to a
    successful HTTP response, stop.
-2. **The price is read from the course row on the server.** A price that arrives
-   with the request is a price the buyer chose.
+2. **The price is `BUNDLE_PRICE_MNT`, read on the server.** A course has no
+   price column (§1). A price that arrives with the request is a price the
+   buyer chose.
 3. **The buyer is the signed-in user**, never an id from the body.
 4. The `payments` row is written **as the buyer**, so the policy checks it
    (`user_id = auth.uid()`, `status = 'pending'`) instead of this code promising.
@@ -29,21 +30,22 @@ EnrollButton → POST /api/checkout → payments row (pending) → Bonum invoice
 6. The checksum is HMAC-SHA256 over the **raw request body**, compared in
    constant time. `JSON.parse` then `JSON.stringify` is not the raw body.
 7. `createServiceSupabase()` has exactly one legitimate caller: the webhook.
-   (Mock mode borrows it, behind `NODE_ENV !== "production"`.)
+8. `paymentsConfigured()` is asked **before** the `payments` row is written. No
+   keys → 503 with a sentence, and nothing in the table.
 
-## Testing without a merchant account
+## There is no mock mode
 
-```bash
-BONUM_MOCK=1   # in apps/web/.env.local
-```
+Decision #015. `BONUM_MOCK` settled invoices with the service key in whatever
+database the machine pointed at — and `.env.local` points at the live project,
+so a "test" purchase on a laptop opened every course in production for free.
+Do not bring it back without a separate development database.
 
-The checkout route then settles the invoice itself and returns a local URL, so
-buy → enrol → lesson unlocked can be walked end to end. It is refused in
-production by the `NODE_ENV` test — that test is the safety, not a convention.
+To test, buy once on www.tsstark-academy.com with a real card. The keys are in
+Vercel Production only (Secret type — unreadable, even to `vercel env pull`);
+SETUP.md §8 has how they were set and how to rotate them.
 
-To test the real gateway, set `BONUM_MOCK=0` and point `BONUM_API_BASE_URL` at
-`https://testapi.bonum.mn`. The callback must be reachable from the internet
-(a tunnel), or the invoice is created and nothing ever hears the answer.
+The payer returns through the webhook's **GET** with `?to=locale:paymentId` and
+lands on `/checkout?payment=…`, which polls until the POST has settled it.
 
 ## When a payment did not open a course
 

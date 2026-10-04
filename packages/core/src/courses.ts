@@ -96,6 +96,10 @@ export function coursePath(locale: Locale, slug: string): string {
 export function learnPath(locale: Locale): string {
   return `/${locale}/learn`;
 }
+/** Where a buyer lands from Bonum: the page that waits for the webhook. */
+export function checkoutPath(locale: Locale, paymentId: string): string {
+  return `/${locale}/checkout?payment=${encodeURIComponent(paymentId)}`;
+}
 export function dashboardPath(locale: Locale): string {
   return `/${locale}/dashboard`;
 }

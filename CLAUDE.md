@@ -46,8 +46,18 @@ course's own prose: the intro's `description_mn` said «Энэ сургалт ү
 and would have gone on saying it under a card marked «Багцад багтсан». **A
 claim about money lives in three places — the flag, the preview column and the
 copy — and they have to be changed together.** `apps/web` needs no change for
-any of it: the hero already renders a plain kicker when no course is free, and
-the «үнэгүй үзэх» button simply stops existing.
+any of it — **for copy that is keyed on the flag.** The hero renders a plain
+kicker when no course is free, and the «үнэгүй үзэх» button simply stops
+existing.
+
+Copy that is _not_ keyed on the flag is the trap. This paragraph used to end at
+"needs no change", and for weeks a student who had bought nothing was greeted on
+«Сайн уу» by «Үнэгүй эхлэх», while the front page and «Бидний тухай» closed on
+«Эхний сургалт бүхэлдээ үнэгүй» — three unconditional strings nobody re-read
+because the flag had been turned off. So: **a string that is always rendered
+never mentions «үнэгүй».** A string that says it is shown only behind
+`is_free` or `is_preview`. `«Сайн уу»` with nothing open offers the bundle
+itself, through `BundleButton`.
 
 Two constants in `packages/core/src/constants.ts` carry the price:
 `BUNDLE_PRICE_MNT` is what is charged and `BUNDLE_FULL_PRICE_MNT` is the number
@@ -191,7 +201,7 @@ that, and is wired into `pnpm test`.
 | Web      | Next.js **16** App Router, React 19, TypeScript strict                           |
 | Styling  | Tailwind **v4** (CSS-first `@theme`, no `tailwind.config.js`)                    |
 | Data     | Supabase — Postgres + RLS + Auth + Storage                                       |
-| Payments | **Bonum** (MNT). `BONUM_MOCK=1` settles locally (§6.7)                           |
+| Payments | **Bonum** (MNT), live. No mock mode (§6.7, decision #015)                        |
 | Video    | **Cloudflare R2**, public bucket. The app holds no R2 credential (decision #014) |
 | Deploy   | Vercel                                                                           |
 | i18n     | Hand-rolled string tables in `packages/core` — **not** next-intl (decision #003) |
@@ -279,8 +289,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=    # safe in a browser bundle; RLS protect
 SUPABASE_SECRET_KEY=                     # server-only, bypasses RLS. NEVER NEXT_PUBLIC_
 NEXT_PUBLIC_APP_URL=
 GOOGLE_CLIENT_ID= GOOGLE_CLIENT_SECRET=  # §6.6 — server-only; both unset = Supabase's redirect
-BONUM_MOCK=1                             # dev only; ignored when NODE_ENV=production
-BONUM_API_BASE_URL= BONUM_APP_SECRET= BONUM_TERMINAL_ID=
+BONUM_API_BASE_URL= BONUM_APP_SECRET= BONUM_TERMINAL_ID=   # §6.7 — Vercel Production only
 BONUM_MERCHANT_CHECKSUM_KEY= BONUM_CALLBACK_URL=
 ```
 
@@ -290,12 +299,13 @@ BONUM_MERCHANT_CHECKSUM_KEY= BONUM_CALLBACK_URL=
 `createServiceSupabase()` in production: the Bonum webhook, which has no session
 and has to settle an invoice for a buyer who is not making the request.
 
-There is a second caller, and it is the exception that shows the shape of the
-rule: `/api/checkout` settles its own invoice in **mock mode**, and that branch
-sits behind `isMockMode()`, which is `NODE_ENV !== "production" && BONUM_MOCK === "1"`.
-It cannot exist in a production bundle. Anything reaching for the service client
-outside those two is a bug, including "the type checker was easier this way" —
-and any third caller has to arrive with a guard as unambiguous as that one.
+There used to be a second: `/api/checkout` settling its own invoice in **mock
+mode**, guarded by `NODE_ENV !== "production"`. The guard was sound and the
+premise was not — it assumed a laptop has a database of its own, and this one
+is pointed at the live project, so every "test" purchase opened every course in
+production for nothing (decision #015). It is gone. Anything else reaching for
+the service client is a bug, including "the type checker was easier this way" —
+and a second caller has to arrive with an ADR, not a guard.
 
 **Every variable must also be listed in `turbo.json`'s build `env` array.**
 Turborepo 2 runs builds in strict env mode: a variable missing from that list is
@@ -895,9 +905,39 @@ branch so payments taken for one course before that was true still say what
 they bought. A course added later is not retroactively granted;
 `grant_all_courses()` is how the console does that by hand.
 
-`BONUM_MOCK=1` settles locally so the whole purchase → enrolment path can be
-walked without a merchant account. It requires `NODE_ENV !== "production"`, and
-that test is the safety, not a convention.
+**There is no mock mode** (decision #015). A course opens on a signed Bonum
+callback and nowhere else — not on a laptop, not "just to test the flow".
+
+**`settle_payment()` is executable by `service_role` alone**, and its own
+migration (20261004000200) refuses to apply otherwise. It checks nothing about
+its caller, so the grant is the whole gate — and until that migration, `anon`
+and `authenticated` held it through Supabase's named default grants: any
+student could start a checkout, read back their invoice id and settle it
+themselves from the browser console. A `security definer` function that moves
+money gets its grants asserted, not assumed.
+
+**Where it is configured.** The five `BONUM_*` values live in Vercel's
+**Production** environment as Secret-type variables, so nothing — not
+`vercel env pull`, not the dashboard — can read them back. The merchant panel
+(merchant.bonum.mn → Мерчант → Web Hook) carries the same callback URL,
+`https://www.tsstark-academy.com/api/webhooks/bonum`, as `BONUM_CALLBACK_URL`;
+each invoice also sends it, and `settle_payment()` being idempotent is what makes
+two deliveries harmless.
+
+**A deployment without the keys sells nothing, and writes nothing.**
+`paymentsConfigured()` is asked before the `payments` row is inserted; without
+the three credentials `/api/checkout` answers 503 with a sentence the button
+shows. That is what a laptop or a Vercel preview does, by design.
+
+**The payer comes back to the checkout page for their own payment.** `?to=`
+on the callback carries `locale:paymentId`; the webhook's GET sends the browser
+to `/checkout?payment=…`, which polls until the POST has settled the row. It
+carried `locale:/mn/learn` for a while and read the path as a course slug —
+`/mn/courses//mn/learn`, a 404 for everybody who had just paid.
+
+To try a purchase, buy on www.tsstark-academy.com with a real card. The
+admin console's payments screen and the panel's «WebHook Жагсаалт» both show
+what happened.
 
 ---
 
@@ -907,8 +947,8 @@ that test is the safety, not a convention.
 `pnpm test` clean — which includes the seed guard and the 160-line cap (§3.1) —
 no `console.log`, no unused dependency, no placeholder copy on a public route.
 
-**Security** — grep `.next/static` for the two secrets: `SUPABASE_SECRET_KEY`
-and `GOOGLE_CLIENT_SECRET`. `is_admin()` reads
+**Security** — grep `.next/static` for the secrets: `SUPABASE_SECRET_KEY`,
+`GOOGLE_CLIENT_SECRET`, `BONUM_APP_SECRET` and `BONUM_MERCHANT_CHECKSUM_KEY`. `is_admin()` reads
 `app_metadata`. RLS on every table; anon cannot read a paid lesson and cannot
 write. Every action zod-validates and re-checks admin. Storage denies anonymous
 writes.
@@ -935,7 +975,7 @@ is `priority`; the others are not.
 4. Auth — sign-in, sign-up, account ✅
 5. The player — video, markdown, exercise, quiz, progress ✅
 6. Admin — dashboard, course/lesson editors, students, payments ✅
-7. Payments — Bonum checkout, webhook, mock mode ✅
+7. Payments — Bonum checkout, webhook, live keys on Vercel ✅
 8. **Connect a Supabase project and push the schema** ← SETUP.md
 9. Ship checklist §7, with numbers — on a real phone's browser, not just a
    narrowed window.

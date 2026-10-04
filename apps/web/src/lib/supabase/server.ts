@@ -43,14 +43,13 @@ export function createServerSupabase() {
 /**
  * The service client. SERVER ONLY — it bypasses RLS completely.
  *
- * One legitimate caller in production: the Bonum webhook, which has no session
- * and has to settle an invoice on behalf of a buyer who is not making the
- * request.
+ * Exactly one legitimate caller: the Bonum webhook, which has no session and
+ * has to settle an invoice on behalf of a buyer who is not making the request.
  *
- * One more that cannot reach production: `/api/checkout` settles its own
- * invoice in mock mode, behind `isMockMode()` — `NODE_ENV !== "production"`
- * and `BONUM_MOCK === "1"` together. Anything else that reaches for this is a
- * bug, including "the type checker was easier this way".
+ * There used to be a second, `/api/checkout` settling its own invoice in a
+ * mock mode — and on a laptop pointed at the one live database it opened
+ * every course for nothing (decision #015). Anything else that reaches for
+ * this is a bug, including "the type checker was easier this way".
  */
 export function createServiceSupabase() {
   const secret = process.env.SUPABASE_SECRET_KEY;

@@ -440,7 +440,7 @@ Supabase хоёр түлхүүр өгнө. **Publishable** түлхүүр хөт
   -- Утасны апп
   ('30000000-0000-4000-8000-000000000609', '20000000-0000-4000-8000-000000001114', '10000000-0000-4000-8000-000000000005',
    'mobile-app-lavlagaa', 'Утасны апп хийх хичээлийн нэмэлт лавлагаа', null, 'video',
-   'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', 0,
+   'https://pub-9a482c29633c419cac5f020cd2878e0a.r2.dev/lessons/mobile-app-lavlagaa.mp4', 35,
    null, null, null, null, null, false, 1),
 
   ('30000000-0000-4000-8000-000000000610', '20000000-0000-4000-8000-000000001114', '10000000-0000-4000-8000-000000000005',

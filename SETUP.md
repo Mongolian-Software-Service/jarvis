@@ -219,14 +219,32 @@ separate "sign up with Google".
 
 ## 8. Payments
 
-Nothing to do yet. `BONUM_MOCK=1` is already in `.env.example`, so a purchase
-settles locally and opens the course — the whole flow is walkable without a
-merchant account.
+Payments are live only. There is no mock mode (decision #015): a laptop
+without the keys refuses a purchase with a sentence and writes nothing.
 
-When Bonum issues real credentials, fill in `BONUM_APP_SECRET`,
-`BONUM_TERMINAL_ID` and `BONUM_MERCHANT_CHECKSUM_KEY`, set `BONUM_MOCK=0`, and
-point `BONUM_CALLBACK_URL` at `https://www.tsstark-academy.com/api/webhooks/bonum`. See
-`.claude/skills/payments`.
+Done on 2026-10-04 — this is what to redo if the keys are ever rotated:
+
+1. **Vercel → Production**, as Secret-type variables. Paste each value from the
+   clipboard so it never passes through a chat or a file:
+
+   ```bash
+   [ -n "$(pbpaste)" ] && pbpaste | tr -d '[:space:]' | pnpm dlx vercel env add BONUM_APP_SECRET production
+   ```
+
+   — and the same for `BONUM_TERMINAL_ID` and `BONUM_MERCHANT_CHECKSUM_KEY`.
+   `BONUM_API_BASE_URL=https://apis.bonum.mn` and
+   `BONUM_CALLBACK_URL=https://www.tsstark-academy.com/api/webhooks/bonum` are
+   not secret. An interactive `vercel env add` with nothing pasted saves an
+   **empty** value and says only `Value is empty` — the guarded pipe is why.
+   To change one: `vercel env rm NAME production -y`, then add it again.
+
+2. **Redeploy** — a variable reaches only builds made after it was set.
+3. **Bonum merchant panel** (merchant.bonum.mn) → Мерчант → **Web Hook** → URL:
+   the same callback URL. Configuration → App Secret should name the same
+   terminal as `BONUM_TERMINAL_ID`.
+4. Check: `curl -X POST -d '{}' https://www.tsstark-academy.com/api/webhooks/bonum`
+   answers **400 Invalid checksum** (a 500 means the checksum key is missing).
+   Then buy once with a real card. See `.claude/skills/payments`.
 
 ## 9. Deploy to Vercel
 
@@ -239,8 +257,8 @@ In the Vercel project settings:
 - **Root directory**: `apps/web`
 - **Build command**: `cd ../.. && pnpm build --filter @jarvis/web`
 - **Install command**: `pnpm install`
-- **Environment variables**: every name from `.env.example` except the
-  `BONUM_MOCK=1` line — set it to `0`, or leave it unset.
+- **Environment variables**: every name in CLAUDE.md §2's environment block.
+  The `BONUM_*` five go in as in §8 above.
 
 > Every variable must **also** appear in `turbo.json`'s build `env` array.
 > Turborepo runs builds in strict env mode: a name missing from that list is not

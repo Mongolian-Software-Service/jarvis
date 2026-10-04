@@ -362,3 +362,32 @@ puts no cache in front of it, so it is for checking a lesson on a laptop.
 Production serves from a custom domain through Cloudflare —
 `R2_PUBLIC_BASE` — and that is also what makes the CDN, and therefore the
 free egress, actually fast in Mongolia. SETUP.md §11 has it.
+
+---
+
+## 015 — There is no mock payment mode
+
+**Chose:** `BONUM_MOCK` and `isMockMode()` are deleted. `/api/checkout` has one
+path — create a Bonum invoice — and a course opens on a signed Bonum callback
+and in no other way. A deployment without the three Bonum credentials refuses a
+purchase with a sentence and writes nothing (`paymentsConfigured()`).
+
+**Gave up:** walking purchase → enrolment on a laptop without a card. Trying the
+flow now means a real purchase on www.tsstark-academy.com.
+
+**Why:** mock mode settled the invoice with the service key in whatever database
+the machine was pointed at, and assumed that database was a local one. It never
+was: `apps/web/.env.local` points at the live project, because that is the only
+project there is. So on 2026-10-04 two "test" purchases on localhost wrote paid
+payments into production and opened all five courses for an account that had
+paid nothing — each reverted by hand, row by row. The `NODE_ENV !== "production"`
+guard did exactly what it said; what it said was the wrong thing to guard.
+
+It also left the service client with a second caller, which CLAUDE.md §2 had to
+explain as an exception. The webhook is now the only one.
+
+**Would change it:** a separate Supabase project for development — a real one,
+with its own URL in `.env.local` and nothing else in common with production.
+Then a mock that settles locally is harmless again, and it should come back
+guarded by *that* (the Supabase URL is not the production one), not by
+`NODE_ENV`.

@@ -1,7 +1,12 @@
-import { BUNDLE_PRICE_MNT, COURSE_REMARK_MN, checkoutSchema, learnPath, toLocale } from "@jarvis/core";
-import type { Json } from "@jarvis/types";
-import { createServerSupabase, createServiceSupabase, getUserId } from "@/lib/supabase/server";
-import { createInvoice, isMockMode } from "@/lib/bonum";
+import {
+  BUNDLE_PRICE_MNT,
+  COURSE_REMARK_MN,
+  checkoutSchema,
+  strings,
+  toLocale,
+} from "@jarvis/core";
+import { createServerSupabase, getUserId } from "@/lib/supabase/server";
+import { createInvoice, paymentsConfigured } from "@/lib/bonum";
 
 /**
  * Start a purchase. There is one thing to buy: every published course, once.
@@ -37,6 +42,23 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return Response.json({ ok: false, error: "bad-request" }, { status: 400 });
 
   const locale = toLocale(new URL(request.url).searchParams.get("locale"));
+
+  /*
+   * No keys, no payment row. A deployment that cannot reach Bonum says so in a
+   * sentence the button can show, and writes nothing — rather than leaving a
+   * «failed» payment in the live table for every click on a laptop.
+   */
+  if (!paymentsConfigured()) {
+    return Response.json(
+      {
+        ok: false,
+        error: "payments-unconfigured",
+        message: strings(locale).learn.bundle.unconfigured,
+      },
+      { status: 503 },
+    );
+  }
+
   const supabase = createServerSupabase();
 
   // ── What is being bought ───────────────────────────────────────────────────
@@ -52,7 +74,6 @@ export async function POST(request: Request): Promise<Response> {
 
   const amount = BUNDLE_PRICE_MNT;
   const title = "Бүх сургалт";
-  const returnPath = learnPath(locale);
 
   // ── The pending row, written as the buyer ──────────────────────────────────
   const { data: payment, error: paymentError } = await supabase
@@ -72,41 +93,20 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   /*
-   * Mock mode settles the invoice here and now.
+   * There is no other branch. A mock mode used to settle the invoice right
+   * here, with the service key, without the gateway — and since this project
+   * has one database, every laptop "purchase" opened every course in
+   * production for nothing (decision #015). A course opens on a signed Bonum
+   * callback and in no other way.
    *
-   * The one place the service client appears outside the webhook, and reachable
-   * only when `isMockMode()` is true — which requires NODE_ENV !== production.
-   * In production this branch does not exist.
+   * `returnTo` carries the payment's own id, so the payer comes back to the
+   * page that waits for exactly this payment to settle (see the webhook's GET).
    */
-  if (isMockMode()) {
-    const service = createServiceSupabase();
-    const invoiceId = `mock-${payment.id}`;
-
-    await service.from("payments").update({ invoice_id: invoiceId }).eq("id", payment.id);
-    const { error } = await service.rpc("settle_payment", {
-      p_invoice_id: invoiceId,
-      p_status: "paid",
-      p_raw: { mock: true, amount } as unknown as Json,
-      p_provider: "bonum",
-    });
-
-    if (error) {
-      console.error("[checkout] mock settle failed", error.message);
-      return Response.json({ ok: false, error: "mock-settle-failed" }, { status: 500 });
-    }
-
-    return Response.json({
-      ok: true,
-      mock: true,
-      url: `/${locale}/checkout?payment=${payment.id}`,
-    });
-  }
-
   try {
     const invoice = await createInvoice({
       transactionId: payment.id,
       amountMnt: amount,
-      returnTo: `${locale}:${returnPath}`,
+      returnTo: `${locale}:${payment.id}`,
       items: [{ title, amount, count: 1, remark: COURSE_REMARK_MN }],
     });
 
