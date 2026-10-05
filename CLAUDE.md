@@ -203,7 +203,7 @@ that, and is wired into `pnpm test`.
 | Data     | Supabase — Postgres + RLS + Auth + Storage                                       |
 | Payments | **Bonum** (MNT), live. No mock mode (§6.7, decision #015)                        |
 | Video    | **Cloudflare R2**, public bucket. The app holds no R2 credential (decision #014) |
-| Deploy   | Vercel                                                                           |
+| Deploy   | Vercel, functions in **hnd1** (Tokyo) — beside the database, see below           |
 | i18n     | Hand-rolled string tables in `packages/core` — **not** next-intl (decision #003) |
 | Motion   | CSS transitions, plus one keyframe loop (`.marquee`). No animation library.      |
 
@@ -280,6 +280,23 @@ rm -rf apps/web/.next && pnpm dev:web
 
 Deleting `.next` alone does not help if the race repeats on the way back up,
 which is why the wait is the part that matters.
+
+### The functions run where the database is — `hnd1`
+
+Supabase lives in **ap-northeast-1** (Tokyo). Vercel put the functions in its
+default, **iad1** (Washington), and every page paid for it: `x-vercel-id` read
+`hkg1::iad1` — the reader's request crossed the Pacific to reach the function,
+and then every Supabase call (the session in `proxy.ts`, `getViewer()`, the
+page's own queries, one after another) crossed it again. Measured from Ulaanbaatar
+on 2026-10-05 the document took **1–2.4 s** to start while the server reported
+60 ms of work; Lighthouse put both front page and course page at an LCP
+over 3 s for that reason alone.
+
+`apps/web/vercel.json` pins `"regions": ["hnd1"]` (`apps/web` is the Vercel
+project's root directory). **The region follows the database, not the
+reader** — a page makes several sequential queries and one round trip to the
+reader, so the queries are the distance to shorten. If Supabase ever moves,
+this moves with it.
 
 ### Environment
 
@@ -828,6 +845,13 @@ is configured in this repository (SETUP.md step 7 has the two dashboards).
     `http://localhost:3001/auth/google`. Add the URLs **before** setting the
     keys anywhere: with the keys and without the URL, Google answers
     `redirect_uri_mismatch` and nobody can sign in with it.
+  - **`pnpm google:keys` is how the keys go in.** It asks for the secret with
+    the echo off, tries the pair against Google's token endpoint, and writes
+    Vercel Production and `apps/web/.env.local` only when Google accepts it —
+    the `bonum:keys` shape, sharing `scripts/secrets.mjs`. Until 2026-10-05
+    the laptop held the hash below and Vercel held no Google key at all, so
+    the chooser still said `supabase.co` everywhere while this flow sat
+    written and unused.
   - **The secret comes from Google Cloud Console, never from Supabase.** The
     Management API's `GET /config/auth` answers `external_google_secret` with
     a 64-character SHA-256 **hash** of the secret, which looks like a value and

@@ -179,6 +179,11 @@ switched on, and neither of them lives in this repository.
    Supabase's API afterwards: it hands back a hash of the secret, not the
    secret, and Google refuses the hash as `invalid_client`.
 
+   For the app's half, run `pnpm google:keys` and paste the two values when
+   asked: it checks the pair with Google before writing Vercel and
+   `.env.local`. A lost secret cannot be shown again — **Add secret** on the
+   client makes a second one, and the first keeps working for Supabase.
+
 **In Supabase** — **Authentication → Sign In / Providers → Google**:
 
 5. Enable it, paste the client ID and secret, save.

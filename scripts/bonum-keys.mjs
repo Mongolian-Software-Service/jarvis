@@ -31,12 +31,10 @@
  * The prompts are Mongolian because the person who runs this is the owner, not
  * a developer; the reasoning stays in English like every other script here.
  */
-import { createInterface } from "node:readline";
-import { Writable } from "node:stream";
 import { join } from "node:path";
 import { REPO_ROOT } from "./env.mjs";
 import { PRODUCTION, SANDBOX, describe, looksLabelled, tryBonum, verdict } from "./bonum/probe.mjs";
-import { setEnvFile, setVercelSecret } from "./bonum/targets.mjs";
+import { ask, setEnvFile, setVercelSecret } from "./secrets.mjs";
 
 const CALLBACK =
   process.env.BONUM_CALLBACK_URL || "https://www.tsstark-academy.com/api/webhooks/bonum";
@@ -46,32 +44,6 @@ const LOCAL_ENV = join(REPO_ROOT, "apps/web/.env.local");
 function stop(lines) {
   console.log(`\n  ✗ ${lines}\n\n  Юу ч бичигдээгүй — Vercel ч, энэ компьютер ч хэвээрээ.\n`);
   process.exit(0);
-}
-
-/**
- * One line from the terminal, with every space and newline taken out.
- *
- * Hidden by routing readline's echo through a writable that drops it. The
- * prompt itself is written synchronously by `question()`, before `muted` flips,
- * so the question shows and the answer does not.
- */
-function ask(question, hidden) {
-  return new Promise((resolve) => {
-    let muted = false;
-    const output = new Writable({
-      write(chunk, encoding, done) {
-        if (!muted) process.stdout.write(chunk, encoding);
-        done();
-      },
-    });
-    const rl = createInterface({ input: process.stdin, output, terminal: true });
-    rl.question(question, (answer) => {
-      rl.close();
-      if (hidden) process.stdout.write("\n");
-      resolve(answer.replace(/\s+/g, ""));
-    });
-    muted = hidden;
-  });
 }
 
 if (!process.stdin.isTTY) {
@@ -149,7 +121,7 @@ setEnvFile(
     BONUM_APP_SECRET: appSecret,
     BONUM_MERCHANT_CHECKSUM_KEY: checksumKey,
   },
-  ["BONUM_MOCK"],
+  { drop: ["BONUM_MOCK"], heading: "# Bonum — written by `pnpm bonum:keys`" },
 );
 console.log("  ✓ localhost  apps/web/.env.local");
 
