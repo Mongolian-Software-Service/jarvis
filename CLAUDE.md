@@ -1006,8 +1006,10 @@ writes.
 and one lesson page checked at 360 / 768 / 1440.
 
 **Performance** — Lighthouse mobile ≥ 90 performance and accessibility on the
-front page and one course page. The LCP element is the first course cover and it
-is `priority`; the others are not.
+front page and one course page. On a course page and the catalogue the LCP
+element is the first course cover, and it is the only `priority` image. The
+front page carries no course covers — its LCP is the headline — so nothing on
+it is `priority`.
 
 ---
 

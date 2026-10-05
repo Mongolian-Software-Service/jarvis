@@ -6,7 +6,6 @@ import { listCourses } from "@/lib/queries/courses";
 import { getViewer } from "@/lib/queries/viewer";
 import { pageMetadata } from "@/lib/seo";
 import { Hero } from "@/components/home/sections/hero";
-import { CourseGrid } from "@/components/home/sections/courses";
 import { BundlePanel } from "@/components/course/bundle-panel";
 import Link from "next/link";
 import { signInPath } from "@jarvis/core";
@@ -17,7 +16,7 @@ import {
   WebsiteVisual,
   MobileVisual,
   GameVisual,
-  AiVisual,
+  MeetVisual,
 } from "@/components/home/feature-visuals";
 
 /**
@@ -53,16 +52,14 @@ export default async function HomePage() {
    */
   if (viewer) redirect(landingPath(locale, viewer.role));
 
-  const lessons = courses.reduce((sum, course) => sum + course.lessonCount, 0);
-  const minutes = courses.reduce((sum, course) => sum + course.minutes, 0);
   const free = courses.find((course) => course.isFree);
 
-  /* One per row, in the order the four tracks are written in `marketing`. */
+  /* One per row, in the order the four rows are written in `marketing`. */
   const visuals = [
     <WebsiteVisual key="website" t={t} />,
     <MobileVisual key="mobile" />,
     <GameVisual key="game" />,
-    <AiVisual key="ai" t={t} />,
+    <MeetVisual key="meet" t={t} />,
   ];
 
   return (
@@ -77,7 +74,7 @@ export default async function HomePage() {
         <TechMarquee />
       </section>
 
-      {/* ── The four things you can go and build ─────────────────────────── */}
+      {/* ── Three things you can go and build, and who helps you build them ─ */}
       <section className="shell divide-line divide-y">
         {t.marketing.tracks.items.map((item, index) => (
           <FeatureRow
@@ -91,15 +88,13 @@ export default async function HomePage() {
         ))}
       </section>
 
-      <CourseGrid courses={courses} locale={locale} t={t} lessons={lessons} minutes={minutes} />
-
-      {/* ── The offer, once the six courses have been seen ────────────────────
+      {/* ── The offer, once the case has been made ────────────────────────────
           The same component the catalogue leads with, so the two pages cannot
-          come to advertise different numbers. It sits *after* the grid here and
-          *before* it there, and that is the one difference worth having: the
-          catalogue is for somebody already shopping, while this page has just
-          finished making the case and the price is the answer to the question
-          the cards raise by saying «Багцад багтсан» five times.
+          come to advertise different numbers — and it names every course in
+          the bundle, which is why this page carries no grid of course cards.
+          It did: five covers saying «Багцад багтсан» five times, the third
+          telling of the same list after the rows above and this panel. The
+          cards live in the catalogue, one tap away from the hero's button.
 
           `owned` and `signedIn` are both false and not a guess — line 48 sends
           anybody with a session to their own landing, so nobody signed in ever

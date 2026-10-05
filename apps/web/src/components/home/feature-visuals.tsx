@@ -20,4 +20,4 @@
 export { WebsiteVisual } from "./visuals/website";
 export { MobileVisual } from "./visuals/mobile";
 export { GameVisual } from "./visuals/game";
-export { AiVisual } from "./visuals/ai";
+export { MeetVisual } from "./visuals/meet";
