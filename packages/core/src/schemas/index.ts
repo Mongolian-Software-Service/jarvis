@@ -36,3 +36,4 @@ export * from "./fields";
 export * from "./admin";
 export * from "./auth";
 export * from "./projects";
+export * from "./pricing";

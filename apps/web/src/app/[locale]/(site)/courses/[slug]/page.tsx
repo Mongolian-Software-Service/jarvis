@@ -5,6 +5,7 @@ import { getIntl, getLocale } from "@/lib/locale";
 import { getCourseBySlug, hasCourseAccess } from "@/lib/queries/courses";
 import { resumeLessonSlug } from "@/lib/queries/learn";
 import { getViewer } from "@/lib/queries/viewer";
+import { getBundleOffer } from "@/lib/queries/pricing";
 import { pageMetadata } from "@/lib/seo";
 import { Syllabus } from "@/components/course/syllabus";
 import { CourseHeader } from "@/components/course/course-header";
@@ -38,7 +39,11 @@ export default async function CoursePage({
   const course = await getCourseBySlug(slug, locale);
   if (!course) notFound();
 
-  const [access, viewer] = await Promise.all([hasCourseAccess(course.id), getViewer()]);
+  const [access, viewer, offer] = await Promise.all([
+    hasCourseAccess(course.id),
+    getViewer(),
+    getBundleOffer(),
+  ]);
 
   /*
    * Somebody who already holds this course is not shopping for it.
@@ -73,6 +78,7 @@ export default async function CoursePage({
         t={t}
         access={access}
         signedIn={Boolean(viewer)}
+        offer={offer}
       />
 
       {/* `grid-cols-1` is `minmax(0, 1fr)`: an implicit column is sized by its

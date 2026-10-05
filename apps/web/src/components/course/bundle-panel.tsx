@@ -1,11 +1,11 @@
 import { Check } from "lucide-react";
 import {
   SHOW_CONTENT_SIZE,
-  bundleOffer,
   fmt,
   formatDuration,
   formatMoney,
   groupDigits,
+  type BundleOffer,
   type CourseCard,
   type Locale,
   type Strings,
@@ -22,7 +22,8 @@ import { BundleButton } from "./bundle-button";
  *
  * Every figure here is counted or derived: the courses, lessons and hours come
  * from the rows being listed, and the price, the struck number, the saving and
- * the launch's last day are `bundleOffer()` — what checkout charges. Nothing
+ * the launch's last day are the page's `getBundleOffer()` — the console's
+ * `bundle_pricing` row, what checkout charges. Nothing
  * in this panel is a number somebody has to remember to update.
  *
  * Lessons and hours are printed only under `SHOW_CONTENT_SIZE`; until then the
@@ -34,16 +35,18 @@ export function BundlePanel({
   t,
   owned,
   signedIn,
+  offer,
 }: {
   courses: CourseCard[];
   locale: Locale;
   t: Strings;
   owned: boolean;
   signedIn: boolean;
+  /** Null when the price could not be read: no number rather than a guess. */
+  offer: BundleOffer | null;
 }) {
   const lessons = courses.reduce((sum, course) => sum + course.lessonCount, 0);
   const minutes = courses.reduce((sum, course) => sum + course.minutes, 0);
-  const offer = bundleOffer();
 
   return (
     <section className="panel-raised relative overflow-hidden">
@@ -80,24 +83,26 @@ export function BundlePanel({
         </div>
 
         <div className="flex flex-col items-start gap-3 lg:items-end lg:text-right">
-          <div>
-            <p className="font-display text-[34px] leading-none tabular">
-              {formatMoney(offer.price, locale)}
-            </p>
-            {offer.was ? (
-              <p className="mt-2 text-[13px] text-ink-3">
-                <span className="line-through">{formatMoney(offer.was, locale)}</span>{" "}
-                <span className="text-ok">
-                  {fmt(t.learn.bundle.save, { amount: formatMoney(offer.saving, locale) })}
-                </span>
+          {offer ? (
+            <div>
+              <p className="font-display text-[34px] leading-none tabular">
+                {formatMoney(offer.price, locale)}
               </p>
-            ) : null}
-            {offer.until ? (
-              <p className="mt-1 text-[13px] text-ink-3">
-                {fmt(t.learn.bundle.launch, { date: offer.until })}
-              </p>
-            ) : null}
-          </div>
+              {offer.was ? (
+                <p className="mt-2 text-[13px] text-ink-3">
+                  <span className="line-through">{formatMoney(offer.was, locale)}</span>{" "}
+                  <span className="text-ok">
+                    {fmt(t.learn.bundle.save, { amount: formatMoney(offer.saving, locale) })}
+                  </span>
+                </p>
+              ) : null}
+              {offer.until ? (
+                <p className="mt-1 text-[13px] text-ink-3">
+                  {fmt(t.learn.bundle.launch, { date: offer.until })}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           <BundleButton
             locale={locale}

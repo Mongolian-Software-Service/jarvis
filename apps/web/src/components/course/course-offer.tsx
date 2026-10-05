@@ -1,7 +1,7 @@
 import {
-  bundleOffer,
   fmt,
   formatMoney,
+  type BundleOffer,
   type CourseDetail,
   type Locale,
   type Strings,
@@ -14,8 +14,9 @@ import { EnrollButton } from "@/components/course/enroll-button";
  * button below buys all of it — saying so in small print underneath, where a
  * buyer who came looking for this course alone will read it before they click.
  *
- * The price, the struck number and the launch's last day are `bundleOffer()`,
- * the object checkout charges from — so this card and the invoice agree.
+ * The price, the struck number and the launch's last day are the page's
+ * `getBundleOffer()` — the console's `bundle_pricing` row, the object checkout
+ * charges from — so this card and the invoice agree.
  * Its own file since that launch line took the course header to the cap.
  */
 export function CourseOffer({
@@ -24,14 +25,15 @@ export function CourseOffer({
   t,
   access,
   signedIn,
+  offer,
 }: {
   course: CourseDetail;
   locale: Locale;
   t: Strings;
   access: boolean;
   signedIn: boolean;
+  offer: BundleOffer | null;
 }) {
-  const offer = bundleOffer();
 
   return (
     <div className="panel-raised space-y-4 p-5">
@@ -40,7 +42,7 @@ export function CourseOffer({
           <span className="font-display text-ok text-[26px]">{t.learn.course.free}</span>
           {access ? <span className="text-ok text-xs">{t.learn.course.enrolled}</span> : null}
         </div>
-      ) : (
+      ) : offer ? (
         <div>
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-ink-3 text-[13px]">{t.learn.bundle.allCourses}</span>
@@ -65,7 +67,7 @@ export function CourseOffer({
             <p className="text-ok mt-1 text-right text-xs">{t.learn.course.enrolled}</p>
           ) : null}
         </div>
-      )}
+      ) : null}
 
       <EnrollButton
         courseId={course.id}

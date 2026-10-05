@@ -34,42 +34,13 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:30
   "",
 );
 
-/**
- * One price for the whole school, and the only price there is.
- *
- * A course is not sold on its own. Six tracks at six prices is a set of
- * decisions somebody has to make before they have any way of making them — so
- * there is one decision: pay this once, hold every published course for good.
- * Courses carry `is_free` and nothing else about money; the amount charged is
- * this constant, read on the server, never sent by a client (§6.6).
- *
- * A constant rather than a column because there is exactly one of it and
- * changing it is a deploy, not a Tuesday. When the team wants to run a sale
- * without asking a developer, it becomes a row in a settings table and this
- * comment is the note that it was a deliberate wait.
- *
- * **Nothing reads these three directly but `bundleOffer()`** (offer.ts). This
- * is the regular price; while the launch runs, the launch price is charged and
- * this one is the number it is struck through from.
+/*
+ * The bundle's price used to live here as three constants. It is a row in
+ * `public.bundle_pricing` now, edited from the console — see offer.ts and
+ * 20261005000100. Still one price for everything (§1): a course is not sold
+ * on its own, and the amount charged is read on the server, never sent by a
+ * client (§6.7).
  */
-export const BUNDLE_PRICE_MNT = 499_000;
-
-/**
- * The opening price, and the last day it is charged.
- *
- * It replaced an anchor: 499,000₮ was struck through for weeks while nothing
- * had ever been sold at it, and a buyer who suspects one number on a page was
- * invented stops believing the rest. A launch price with a real end makes the
- * struck number true — it is what the bundle costs the morning after.
- *
- * The day is a calendar date in Ulaanbaatar and **inclusive**: «10-р сарын 20
- * хүртэл» is read by a buyer as "on the 20th too", and the generous reading is
- * the one that cannot be called a trick. When it passes, checkout charges
- * `BUNDLE_PRICE_MNT` and the strike, the saving and the date leave every
- * screen on their own. To extend the launch, move the date — before it passes.
- */
-export const BUNDLE_LAUNCH_PRICE_MNT = 199_000;
-export const BUNDLE_LAUNCH_LAST_DAY = "2026-10-20";
 
 /**
  * Whether the selling pages print how many lessons and hours the school holds.

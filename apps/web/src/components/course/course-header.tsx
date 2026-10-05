@@ -5,6 +5,7 @@ import {
   formatDuration,
   levelLabel,
   topicLabel,
+  type BundleOffer,
   type Locale,
   type Strings,
 } from "@jarvis/core";
@@ -23,12 +24,14 @@ export function CourseHeader({
   t,
   access,
   signedIn,
+  offer,
 }: {
   course: CourseDetail;
   locale: Locale;
   t: Strings;
   access: boolean;
   signedIn: boolean;
+  offer: BundleOffer | null;
 }) {
   return (
     <header className="border-line bg-panel border-b">
@@ -95,7 +98,14 @@ export function CourseHeader({
             )}
           </div>
 
-          <CourseOffer course={course} locale={locale} t={t} access={access} signedIn={signedIn} />
+          <CourseOffer
+            course={course}
+            locale={locale}
+            t={t}
+            access={access}
+            signedIn={signedIn}
+            offer={offer}
+          />
         </div>
       </div>
     </header>

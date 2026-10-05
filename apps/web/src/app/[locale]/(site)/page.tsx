@@ -4,6 +4,7 @@ import { landingPath, signUpPath } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
 import { listCourses } from "@/lib/queries/courses";
 import { getViewer } from "@/lib/queries/viewer";
+import { getBundleOffer } from "@/lib/queries/pricing";
 import { pageMetadata } from "@/lib/seo";
 import { Hero } from "@/components/home/sections/hero";
 import { BundlePanel } from "@/components/course/bundle-panel";
@@ -40,7 +41,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const { locale, t } = await getIntl();
-  const [courses, viewer] = await Promise.all([listCourses(locale), getViewer()]);
+  const [courses, viewer, offer] = await Promise.all([
+    listCourses(locale),
+    getViewer(),
+    getBundleOffer(),
+  ]);
 
   /*
    * A signed-in person does not need the sales page.
@@ -64,7 +69,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero locale={locale} t={t} free={free} />
+      <Hero locale={locale} t={t} free={free} offer={offer} />
 
       {/* ── What you will learn ──────────────────────────────────────────── */}
       {/* Not inside `.shell`: a marquee that begins and ends at the column's
@@ -101,7 +106,14 @@ export default async function HomePage() {
           renders this. The button then offers sign-in, which is the right next
           step for a reader who has decided. */}
       <section className="shell pt-4 pb-8">
-        <BundlePanel courses={courses} locale={locale} t={t} owned={false} signedIn={false} />
+        <BundlePanel
+          courses={courses}
+          locale={locale}
+          t={t}
+          owned={false}
+          signedIn={false}
+          offer={offer}
+        />
       </section>
 
       {/* ── Sign-up call ─────────────────────────────────────────────────────

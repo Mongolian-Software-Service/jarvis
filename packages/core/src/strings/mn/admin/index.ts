@@ -7,9 +7,11 @@
 import { content } from "./content";
 import { people } from "./people";
 import { errors } from "./errors";
+import { pricing } from "./pricing";
 
 export const admin = {
   ...content,
   ...people,
+  ...pricing,
   errors,
 } as const;

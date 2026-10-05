@@ -63,17 +63,31 @@ itself, through `BundleButton`.
 an anchor — 499,000₮, struck through above 199,000₮, a number nothing had ever
 been sold at — and a buyer who suspects one number on the page was invented
 stops believing the others. So the discount is now a **launch price with a real
-end**: `BUNDLE_LAUNCH_PRICE_MNT` until the end of `BUNDLE_LAUNCH_LAST_DAY`
-(Ulaanbaatar's calendar, inclusive), then `BUNDLE_PRICE_MNT`.
+end**: the launch price until the end of its last day (Ulaanbaatar's
+calendar, inclusive), then the regular price.
 
-`bundleOffer()` in `packages/core/src/offer.ts` is the only reader of those
-three. `/api/checkout` charges the `price` it returns and every screen prints
-the same object, so the struck number, the saving and «… хүртэл» cannot
-disagree with the invoice. **When the day passes, the checkout charges the full
-price and the strike, the saving and the date disappear on their own.** A
-deadline that does not move the price is the same lie as the anchor, only with
-a date on it. Extending the launch is changing that one date — and it has to be
-changed _before_ it passes, not after.
+**The price is set in the console, not in code.** It is one row,
+`public.bundle_pricing` (20261005000100): `price_mnt`, `launch_price_mnt`,
+`launch_last_day`. «Сургалтууд» in the admin opens with the form that edits it
+(`PricingForm`); anybody may read the row, only `is_admin()` may update it,
+and nobody may insert or delete — one row, enforced by a key that can only be
+`true`. The table's `check`s refuse half a launch (a price with no day, or the
+reverse) and a launch price that is not lower. This replaced three constants
+in `packages/core`, whose own comment had said a sale run without a developer
+would become "a row in a settings table". It is still one price for
+everything — a column per course needs the ADR below, not this row.
+
+`bundleOffer(pricing)` in `packages/core/src/offer.ts` turns the row into what
+is charged now; `getBundleOffer()` in `lib/queries/pricing.ts` reads the row
+and calls it. `/api/checkout` charges that `price` and every screen prints the
+same object, so the struck number, the saving and «… хүртэл» cannot disagree
+with the invoice. A row that cannot be read prints **no** price and checkout
+refuses with 503 — never a default nobody set. **When the day passes, the
+checkout charges the regular price and the strike, the saving and the date
+disappear on their own.** A deadline that does not move the price is the same
+lie as the anchor, only with a date on it. Extending the launch is changing
+that one date in the console — and it has to be changed _before_ it passes,
+not after.
 
 **The size of the catalogue is not advertised yet.** Ten lessons and three and
 a half hours, printed under «2D-ээс 3D хүртэл» as «20 мин», reads to a buyer as

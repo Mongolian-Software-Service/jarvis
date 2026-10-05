@@ -1,5 +1,6 @@
-import { COURSE_REMARK_MN, bundleOffer, checkoutSchema, strings, toLocale } from "@jarvis/core";
+import { COURSE_REMARK_MN, checkoutSchema, strings, toLocale } from "@jarvis/core";
 import { createServerSupabase, getUserId } from "@/lib/supabase/server";
+import { getBundleOffer } from "@/lib/queries/pricing";
 import { createInvoice, paymentsConfigured } from "@/lib/bonum";
 
 /**
@@ -8,10 +9,12 @@ import { createInvoice, paymentsConfigured } from "@/lib/bonum";
  * The order matters and is the whole security of this route:
  *
  *   1. the buyer is the signed-in user, never an id from the request body;
- *   2. the amount is `bundleOffer().price`, read here — never from what the
- *      client sent, and no longer from a course row, because a course has no
- *      price of its own (§1). It is the same object the page printed, so the
- *      launch price is charged exactly while the page says it is;
+ *   2. the amount is `getBundleOffer().price` — the console's
+ *      `bundle_pricing` row, read here, never from what the client sent and
+ *      never from a course row, because a course has no price of its own
+ *      (§1). It is the same object the page printed, so the launch price is
+ *      charged exactly while the page says it is, and a row that cannot be
+ *      read refuses the sale rather than charging a guess;
  *   3. the `payments` row is written **as the buyer**, so the policy checks it
  *      (their own id, status pending) instead of this code promising to;
  *   4. only then does anything leave for the gateway.
@@ -67,7 +70,15 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!count) return Response.json({ ok: false, error: "nothing-to-sell" }, { status: 400 });
 
-  const amount = bundleOffer().price;
+  const offer = await getBundleOffer();
+  if (!offer) {
+    return Response.json(
+      { ok: false, error: "price-unavailable", message: strings(locale).learn.bundle.priceUnavailable },
+      { status: 503 },
+    );
+  }
+
+  const amount = offer.price;
   const title = "Бүх сургалт";
 
   // ── The pending row, written as the buyer ──────────────────────────────────

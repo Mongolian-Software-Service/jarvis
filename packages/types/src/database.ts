@@ -69,6 +69,30 @@ export type Database = {
         }
         Relationships: []
       }
+      bundle_pricing: {
+        Row: {
+          id: boolean
+          launch_last_day: string | null
+          launch_price_mnt: number | null
+          price_mnt: number
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          launch_last_day?: string | null
+          launch_price_mnt?: number | null
+          price_mnt: number
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          launch_last_day?: string | null
+          launch_price_mnt?: number | null
+          price_mnt?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_authors: {
         Row: {
           created_at: string

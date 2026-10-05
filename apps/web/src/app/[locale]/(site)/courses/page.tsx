@@ -3,6 +3,7 @@ import { fmt } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
 import { getViewer } from "@/lib/queries/viewer";
 import { hasEveryCourse, listCourses } from "@/lib/queries/courses";
+import { getBundleOffer } from "@/lib/queries/pricing";
 import { CourseCard } from "@/components/course/course-card";
 import { BundlePanel } from "@/components/course/bundle-panel";
 import { Empty } from "@/components/ui/empty";
@@ -23,10 +24,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function CoursesPage() {
   const { locale, t } = await getIntl();
 
-  const [courses, viewer, owned] = await Promise.all([
+  const [courses, viewer, owned, offer] = await Promise.all([
     listCourses(locale),
     getViewer(),
     hasEveryCourse(),
+    getBundleOffer(),
   ]);
 
   return (
@@ -41,6 +43,7 @@ export default async function CoursesPage() {
             t={t}
             owned={owned}
             signedIn={Boolean(viewer)}
+            offer={offer}
           />
         </div>
       ) : null}
