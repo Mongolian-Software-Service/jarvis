@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import {
+  SHOW_CONTENT_SIZE,
   coursePath,
   formatDuration,
   levelLabel,
@@ -65,11 +66,17 @@ export function CourseCard({
       <div className="flex flex-1 flex-col gap-2.5 p-4">
         <div className="flex items-center gap-1.5 text-[12px] text-ink-3">
           <span>{levelLabel(course.level, locale)}</span>
-          <span aria-hidden="true">·</span>
-          <span className="tabular">
-            {course.lessonCount} {t.learn.course.lessons}
-          </span>
-          {course.minutes > 0 ? (
+          {/* Lessons and minutes wait for `SHOW_CONTENT_SIZE` (§1): «20 мин» under
+              «2D-ээс 3D хүртэл» answers a question the buyer had not asked yet. */}
+          {SHOW_CONTENT_SIZE ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <span className="tabular">
+                {course.lessonCount} {t.learn.course.lessons}
+              </span>
+            </>
+          ) : null}
+          {SHOW_CONTENT_SIZE && course.minutes > 0 ? (
             <>
               <span aria-hidden="true">·</span>
               <span className="tabular">{formatDuration(course.minutes, locale)}</span>

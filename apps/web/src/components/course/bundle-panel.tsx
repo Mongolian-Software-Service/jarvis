@@ -1,8 +1,7 @@
 import { Check } from "lucide-react";
 import {
-  BUNDLE_FULL_PRICE_MNT,
-  BUNDLE_PRICE_MNT,
-  BUNDLE_SAVING_MNT,
+  SHOW_CONTENT_SIZE,
+  bundleOffer,
   fmt,
   formatDuration,
   formatMoney,
@@ -22,8 +21,12 @@ import { BundleButton } from "./bundle-button";
  * rather than each naming a number of its own.
  *
  * Every figure here is counted or derived: the courses, lessons and hours come
- * from the rows being listed, and the saving is `BUNDLE_SAVING_MNT`. Nothing
+ * from the rows being listed, and the price, the struck number, the saving and
+ * the launch's last day are `bundleOffer()` — what checkout charges. Nothing
  * in this panel is a number somebody has to remember to update.
+ *
+ * Lessons and hours are printed only under `SHOW_CONTENT_SIZE`; until then the
+ * sentence counts the courses and says new lessons keep coming (§1).
  */
 export function BundlePanel({
   courses,
@@ -40,6 +43,7 @@ export function BundlePanel({
 }) {
   const lessons = courses.reduce((sum, course) => sum + course.lessonCount, 0);
   const minutes = courses.reduce((sum, course) => sum + course.minutes, 0);
+  const offer = bundleOffer();
 
   return (
     <section className="panel-raised relative overflow-hidden">
@@ -58,7 +62,7 @@ export function BundlePanel({
             {t.learn.bundle.title}
           </h2>
           <p className="mt-3 text-[15px] text-ink-3">
-            {fmt(t.learn.bundle.deck, {
+            {fmt(SHOW_CONTENT_SIZE ? t.learn.bundle.deck : t.learn.bundle.deckGrowing, {
               courses: groupDigits(courses.length),
               lessons: groupDigits(lessons),
               hours: formatDuration(minutes, locale),
@@ -78,14 +82,19 @@ export function BundlePanel({
         <div className="flex flex-col items-start gap-3 lg:items-end lg:text-right">
           <div>
             <p className="font-display text-[34px] leading-none tabular">
-              {formatMoney(BUNDLE_PRICE_MNT, locale)}
+              {formatMoney(offer.price, locale)}
             </p>
-            {BUNDLE_SAVING_MNT > 0 ? (
+            {offer.was ? (
               <p className="mt-2 text-[13px] text-ink-3">
-                <span className="line-through">{formatMoney(BUNDLE_FULL_PRICE_MNT, locale)}</span>{" "}
+                <span className="line-through">{formatMoney(offer.was, locale)}</span>{" "}
                 <span className="text-ok">
-                  {fmt(t.learn.bundle.save, { amount: formatMoney(BUNDLE_SAVING_MNT, locale) })}
+                  {fmt(t.learn.bundle.save, { amount: formatMoney(offer.saving, locale) })}
                 </span>
+              </p>
+            ) : null}
+            {offer.until ? (
+              <p className="mt-1 text-[13px] text-ink-3">
+                {fmt(t.learn.bundle.launch, { date: offer.until })}
               </p>
             ) : null}
           </div>

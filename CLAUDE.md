@@ -59,11 +59,30 @@ never mentions «үнэгүй».** A string that says it is shown only behind
 `is_free` or `is_preview`. `«Сайн уу»` with nothing open offers the bundle
 itself, through `BundleButton`.
 
-Two constants in `packages/core/src/constants.ts` carry the price:
-`BUNDLE_PRICE_MNT` is what is charged and `BUNDLE_FULL_PRICE_MNT` is the number
-it is struck through from — an anchor the school advertises, not a sum of
-anything. `BUNDLE_SAVING_MNT` is their difference, derived once, and is the only
-saving any screen prints.
+**A struck-through price is a price the school really charges.** It used to be
+an anchor — 499,000₮, struck through above 199,000₮, a number nothing had ever
+been sold at — and a buyer who suspects one number on the page was invented
+stops believing the others. So the discount is now a **launch price with a real
+end**: `BUNDLE_LAUNCH_PRICE_MNT` until the end of `BUNDLE_LAUNCH_LAST_DAY`
+(Ulaanbaatar's calendar, inclusive), then `BUNDLE_PRICE_MNT`.
+
+`bundleOffer()` in `packages/core/src/offer.ts` is the only reader of those
+three. `/api/checkout` charges the `price` it returns and every screen prints
+the same object, so the struck number, the saving and «… хүртэл» cannot
+disagree with the invoice. **When the day passes, the checkout charges the full
+price and the strike, the saving and the date disappear on their own.** A
+deadline that does not move the price is the same lie as the anchor, only with
+a date on it. Extending the launch is changing that one date — and it has to be
+changed _before_ it passes, not after.
+
+**The size of the catalogue is not advertised yet.** Ten lessons and three and
+a half hours, printed under «2D-ээс 3D хүртэл» as «20 мин», reads to a buyer as
+"is that all". `SHOW_CONTENT_SIZE` (false) takes the lesson counts and running
+times off the selling surfaces — the bundle panel, a course card and a course
+page's header — and «Шинэ хичээл тогтмол нэмэгдэнэ»
+stands where the totals were. Nothing is hidden from somebody who looks: a
+course page's syllabus still lists every lesson with its minutes. Turn it back
+on when the numbers argue for the school.
 
 If a single course is ever sold again, it comes back as a price column **plus**
 an ADR — not by quietly re-reading `is_free`.

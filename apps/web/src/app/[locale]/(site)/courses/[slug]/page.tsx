@@ -75,7 +75,10 @@ export default async function CoursePage({
         signedIn={Boolean(viewer)}
       />
 
-      <div className="shell grid gap-12 py-12 lg:grid-cols-[1fr_22rem] lg:items-start">
+      {/* `grid-cols-1` is `minmax(0, 1fr)`: an implicit column is sized by its
+          widest unbreakable content, and a truncated syllabus title is exactly
+          that — it pushed this page to 413px on a 360px phone. */}
+      <div className="shell grid grid-cols-1 gap-12 py-12 lg:grid-cols-[1fr_22rem] lg:items-start">
         <CourseAbout course={course} t={t} copy={copy} />
 
         <section className="lg:sticky lg:top-24">

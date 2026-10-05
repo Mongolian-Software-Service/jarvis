@@ -1,19 +1,15 @@
 import Image from "next/image";
 import { BookOpen, Clock, Layers, Signal } from "lucide-react";
 import {
-  BUNDLE_FULL_PRICE_MNT,
-  BUNDLE_PRICE_MNT,
-  BUNDLE_SAVING_MNT,
-  fmt,
+  SHOW_CONTENT_SIZE,
   formatDuration,
-  formatMoney,
   levelLabel,
   topicLabel,
   type Locale,
   type Strings,
 } from "@jarvis/core";
 import type { CourseDetail } from "@jarvis/core";
-import { EnrollButton } from "@/components/course/enroll-button";
+import { CourseOffer } from "@/components/course/course-offer";
 import { TopicChip } from "@/components/ui/badge";
 
 /**
@@ -48,27 +44,37 @@ export function CourseHeader({
           </h1>
           <p className="measure text-ink-3 mt-4 text-[15px]">{course.summary}</p>
 
-          <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-sm">
-            <Meta
-              icon={Layers}
-              label={t.learn.course.syllabus}
-              value={`${course.modules.length}`}
-            />
-            <Meta icon={BookOpen} label={t.learn.course.lessons} value={`${course.lessonCount}`} />
-            {/* 0 is "not known yet" — a video waiting on its film — as on the card. */}
-            {course.minutes > 0 ? (
+          {/* The course's size is not advertised yet (§1) — the syllabus below
+              still lists every lesson and its minutes. */}
+          {SHOW_CONTENT_SIZE ? (
+            <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-sm">
               <Meta
-                icon={Clock}
-                label={t.learn.course.duration}
-                value={formatDuration(course.minutes, locale)}
+                icon={Layers}
+                label={t.learn.course.syllabus}
+                value={`${course.modules.length}`}
               />
-            ) : null}
-            <Meta
-              icon={Signal}
-              label={t.learn.course.level}
-              value={levelLabel(course.level, locale)}
-            />
-          </dl>
+              <Meta
+                icon={BookOpen}
+                label={t.learn.course.lessons}
+                value={`${course.lessonCount}`}
+              />
+              {/* 0 is "not known yet" — a video waiting on its film — as on the card. */}
+              {course.minutes > 0 ? (
+                <Meta
+                  icon={Clock}
+                  label={t.learn.course.duration}
+                  value={formatDuration(course.minutes, locale)}
+                />
+              ) : null}
+              <Meta
+                icon={Signal}
+                label={t.learn.course.level}
+                value={levelLabel(course.level, locale)}
+              />
+            </dl>
+          ) : (
+            <p className="text-ink-3 mt-6 text-sm">{t.learn.bundle.growing}</p>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -89,64 +95,7 @@ export function CourseHeader({
             )}
           </div>
 
-          {/*
-           * What it costs, which for a paid course is not a fact about this
-           * course. It is not sold on its own (§1), so the panel quotes the
-           * one price and the button below buys all of it — saying so in
-           * small print underneath, where a buyer who came looking for this
-           * course alone will read it before they click.
-           */}
-          <div className="panel-raised space-y-4 p-5">
-            {course.isFree ? (
-              <div className="flex items-baseline justify-between">
-                <span className="font-display text-ok text-[26px]">{t.learn.course.free}</span>
-                {access ? <span className="text-ok text-xs">{t.learn.course.enrolled}</span> : null}
-              </div>
-            ) : (
-              <div>
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="text-ink-3 text-[13px]">{t.learn.bundle.allCourses}</span>
-                  <span className="font-display tabular text-[26px]">
-                    {formatMoney(BUNDLE_PRICE_MNT, locale)}
-                  </span>
-                </div>
-                <p className="text-ink-3 mt-1 text-right text-[13px]">
-                  <span className="line-through">{formatMoney(BUNDLE_FULL_PRICE_MNT, locale)}</span>{" "}
-                  <span className="text-ok">
-                    {fmt(t.learn.bundle.save, {
-                      amount: formatMoney(BUNDLE_SAVING_MNT, locale),
-                    })}
-                  </span>
-                </p>
-                {access ? (
-                  <p className="text-ok mt-1 text-right text-xs">{t.learn.course.enrolled}</p>
-                ) : null}
-              </div>
-            )}
-
-            <EnrollButton
-              courseId={course.id}
-              courseSlug={course.slug}
-              locale={locale}
-              free={course.isFree}
-              enrolled={access}
-              signedIn={Boolean(signedIn)}
-              labels={{
-                buy: t.learn.bundle.buy,
-                buying: t.learn.bundle.buying,
-                startFree: t.learn.course.startFree,
-                continue: t.learn.course.continue,
-                signIn: course.isFree ? t.learn.course.signInToStart : t.learn.bundle.signIn,
-                error: t.states.error,
-              }}
-            />
-
-            {course.isFree || access ? null : (
-              <p className="text-ink-3 text-[12px] leading-relaxed">
-                {t.learn.bundle.onlyTogether}
-              </p>
-            )}
-          </div>
+          <CourseOffer course={course} locale={locale} t={t} access={access} signedIn={signedIn} />
         </div>
       </div>
     </header>

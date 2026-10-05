@@ -47,27 +47,42 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:30
  * changing it is a deploy, not a Tuesday. When the team wants to run a sale
  * without asking a developer, it becomes a row in a settings table and this
  * comment is the note that it was a deliberate wait.
+ *
+ * **Nothing reads these three directly but `bundleOffer()`** (offer.ts). This
+ * is the regular price; while the launch runs, the launch price is charged and
+ * this one is the number it is struck through from.
  */
-export const BUNDLE_PRICE_MNT = 199_000;
+export const BUNDLE_PRICE_MNT = 499_000;
 
 /**
- * The price the bundle is struck through from.
+ * The opening price, and the last day it is charged.
  *
- * Stated, not computed. There is no per-course price left to add up, and there
- * should not be: the saving a buyer is shown is the difference between these
- * two numbers and nothing else, so changing either keeps every screen honest
- * with itself.
+ * It replaced an anchor: 499,000₮ was struck through for weeks while nothing
+ * had ever been sold at it, and a buyer who suspects one number on a page was
+ * invented stops believing the rest. A launch price with a real end makes the
+ * struck number true — it is what the bundle costs the morning after.
+ *
+ * The day is a calendar date in Ulaanbaatar and **inclusive**: «10-р сарын 20
+ * хүртэл» is read by a buyer as "on the 20th too", and the generous reading is
+ * the one that cannot be called a trick. When it passes, checkout charges
+ * `BUNDLE_PRICE_MNT` and the strike, the saving and the date leave every
+ * screen on their own. To extend the launch, move the date — before it passes.
  */
-export const BUNDLE_FULL_PRICE_MNT = 499_000;
+export const BUNDLE_LAUNCH_PRICE_MNT = 199_000;
+export const BUNDLE_LAUNCH_LAST_DAY = "2026-10-20";
 
 /**
- * What the buyer is told they save — derived once, shown in two places.
+ * Whether the selling pages print how many lessons and hours the school holds.
  *
- * The catalogue panel and the course page both print it, and a saving that is
- * subtracted separately on each screen is a saving that disagrees with itself
- * the first time one of the two constants moves.
+ * Not yet. Ten lessons and three and a half hours, with «20 мин» under a course
+ * called «2D-ээс 3D хүртэл», reads to a buyer as "is that all" — so the bundle
+ * panel's sentence, a course card and a course page's header say «Шинэ хичээл
+ * тогтмол нэмэгдэнэ» instead. A course page's
+ * syllabus still lists every lesson and its minutes: this stops advertising
+ * the size, it does not hide it. Turn it on when the numbers argue for the
+ * school.
  */
-export const BUNDLE_SAVING_MNT = BUNDLE_FULL_PRICE_MNT - BUNDLE_PRICE_MNT;
+export const SHOW_CONTENT_SIZE = false;
 
 /**
  * How to reach the school — the only copy of these values.

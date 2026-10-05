@@ -15,6 +15,7 @@
  */
 export * from "./locale";
 export * from "./constants";
+export * from "./offer";
 export * from "./roles";
 export * from "./format";
 export * from "./google-mark";

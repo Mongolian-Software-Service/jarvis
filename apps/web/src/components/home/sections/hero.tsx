@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import {
-  BUNDLE_FULL_PRICE_MNT,
-  BUNDLE_PRICE_MNT,
-  BUNDLE_SAVING_MNT,
+  bundleOffer,
   coursesPath,
   fmt,
   formatMoney,
@@ -23,6 +21,8 @@ export function Hero({
   t: Strings;
   free: { slug: string } | undefined;
 }) {
+  const offer = bundleOffer();
+
   return (
     <section className="relative overflow-hidden">
       {/*
@@ -96,26 +96,32 @@ export function Hero({
          * bottom of the front page without meeting a number, and «багцад
          * багтсан» means nothing until they have.
          *
-         * Every figure is derived: `BUNDLE_SAVING_MNT` is the difference rather
-         * than a third number to keep in step, and the struck-through anchor
-         * hides itself if the two are ever set equal.
+         * Every figure is `bundleOffer()`'s — the same object checkout charges
+         * from. The struck number is the price the bundle goes to after the
+         * launch, never an anchor (§1), and the strike, the saving and the
+         * date leave together the morning the launch ends.
          */}
         <p className="mt-7 flex flex-wrap items-baseline justify-center gap-x-2.5 gap-y-1 text-[14px]">
           <span className="text-ink-3">{t.learn.bundle.allCourses}</span>
           <span className="font-display tabular text-[22px] leading-none">
-            {formatMoney(BUNDLE_PRICE_MNT, locale)}
+            {formatMoney(offer.price, locale)}
           </span>
-          {BUNDLE_SAVING_MNT > 0 ? (
+          {offer.was ? (
             <>
               <span className="tabular text-ink-3 line-through">
-                {formatMoney(BUNDLE_FULL_PRICE_MNT, locale)}
+                {formatMoney(offer.was, locale)}
               </span>
               <span className="text-ok">
-                {fmt(t.learn.bundle.save, { amount: formatMoney(BUNDLE_SAVING_MNT, locale) })}
+                {fmt(t.learn.bundle.save, { amount: formatMoney(offer.saving, locale) })}
               </span>
             </>
           ) : null}
         </p>
+        {offer.until ? (
+          <p className="text-ink-3 mt-1.5 text-[13px]">
+            {fmt(t.learn.bundle.launch, { date: offer.until })}
+          </p>
+        ) : null}
       </div>
 
       {/* The product, drawn rather than photographed — see ProductShot. */}

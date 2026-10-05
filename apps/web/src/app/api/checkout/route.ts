@@ -1,10 +1,4 @@
-import {
-  BUNDLE_PRICE_MNT,
-  COURSE_REMARK_MN,
-  checkoutSchema,
-  strings,
-  toLocale,
-} from "@jarvis/core";
+import { COURSE_REMARK_MN, bundleOffer, checkoutSchema, strings, toLocale } from "@jarvis/core";
 import { createServerSupabase, getUserId } from "@/lib/supabase/server";
 import { createInvoice, paymentsConfigured } from "@/lib/bonum";
 
@@ -14,9 +8,10 @@ import { createInvoice, paymentsConfigured } from "@/lib/bonum";
  * The order matters and is the whole security of this route:
  *
  *   1. the buyer is the signed-in user, never an id from the request body;
- *   2. the amount is `BUNDLE_PRICE_MNT`, read here — never from what the
+ *   2. the amount is `bundleOffer().price`, read here — never from what the
  *      client sent, and no longer from a course row, because a course has no
- *      price of its own (§1);
+ *      price of its own (§1). It is the same object the page printed, so the
+ *      launch price is charged exactly while the page says it is;
  *   3. the `payments` row is written **as the buyer**, so the policy checks it
  *      (their own id, status pending) instead of this code promising to;
  *   4. only then does anything leave for the gateway.
@@ -72,7 +67,7 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!count) return Response.json({ ok: false, error: "nothing-to-sell" }, { status: 400 });
 
-  const amount = BUNDLE_PRICE_MNT;
+  const amount = bundleOffer().price;
   const title = "Бүх сургалт";
 
   // ── The pending row, written as the buyer ──────────────────────────────────
