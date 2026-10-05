@@ -239,6 +239,7 @@ that, and is wired into `pnpm test`.
 | Deploy   | Vercel, functions in **hnd1** (Tokyo) — beside the database, see below           |
 | i18n     | Hand-rolled string tables in `packages/core` — **not** next-intl (decision #003) |
 | Motion   | CSS transitions, plus one keyframe loop (`.marquee`). No animation library.      |
+| Visitors | **Vercel Web Analytics**, cookieless — read in Vercel, linked from the console   |
 
 ```bash
 pnpm dev              # turbo dev — web on :3001

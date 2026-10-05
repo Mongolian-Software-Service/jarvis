@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { adminPath, formatAgo, formatMoney, groupDigits, paymentLabel } from "@jarvis/core";
+import {
+  VISITOR_ANALYTICS_URL,
+  adminPath,
+  formatAgo,
+  formatMoney,
+  groupDigits,
+  paymentLabel,
+} from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
 import { getAdminOverview } from "@/lib/queries/admin";
 import { BarList, DailyColumns, Panel, StackedBar, StatTile } from "@/components/admin/charts";
@@ -21,7 +28,18 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-[26px]">{t.admin.overview.title}</h1>
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h1 className="font-display text-[26px]">{t.admin.overview.title}</h1>
+        {/* Visitors are counted by Vercel Web Analytics; the number lives there. */}
+        <a
+          href={VISITOR_ANALYTICS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-accent text-[13px] hover:underline"
+        >
+          {t.admin.overview.visitors} ↗
+        </a>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile label={t.admin.overview.students} value={groupDigits(data.students)} />

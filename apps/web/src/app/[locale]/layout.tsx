@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { locale as rootLocale } from "next/root-params";
 import { LOCALES, SITE_NAME, SITE_TAGLINE, THEME_COLOR, toLocale } from "@jarvis/core";
 import "../globals.css";
@@ -87,7 +88,19 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
 
   return (
     <html lang={toLocale(locale)} className={`${inter.variable} ${jetbrains.variable}`}>
-      <body className="bg-bg text-ink min-h-dvh antialiased">{children}</body>
+      <body className="bg-bg text-ink min-h-dvh antialiased">
+        {children}
+        {/*
+         * How many people visit — Vercel Web Analytics, read in the Vercel
+         * dashboard (Analytics) and linked from the console's overview. No
+         * cookie and nothing that names a visitor, which is what keeps the
+         * privacy policy's «хөндлөнгийн хяналтын күүки байхгүй» true; the
+         * policy says so in its own section. Served from our own domain
+         * (`/_vercel/insights`), so there is no third-party request either.
+         * In `next dev` it sends nothing.
+         */}
+        <Analytics />
+      </body>
     </html>
   );
 }

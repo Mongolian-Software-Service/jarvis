@@ -23,6 +23,7 @@ export const content = {
     topCourses: "Хамгийн их бүртгэлтэй",
     noData: "Мэдээлэл алга",
     last30: "Сүүлийн 30 хоног",
+    visitors: "Зочдын статистик",
   },
   courses: {
     title: "Сургалтууд",

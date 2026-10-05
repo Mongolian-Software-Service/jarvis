@@ -23,6 +23,16 @@ export const SITE_NAME = "TsStark Academy";
 export const COMPANY_NAME = "TsStark";
 export const COMPANY_URL = "https://tsstark.com";
 
+/**
+ * Where the team reads how many people visit: Vercel Web Analytics for this
+ * project (the `<Analytics />` in the root layout feeds it). A link rather
+ * than a number in the console, because the count lives in Vercel and reading
+ * it from here would put a Vercel token in the build's environment for the
+ * sake of one tile.
+ */
+export const VISITOR_ANALYTICS_URL =
+  "https://vercel.com/mulens-projects-9b65355f/tsstark-academy/analytics";
+
 /** What the product is, in one line, for the masthead and the OG description. */
 export const SITE_TAGLINE: Record<Locale, string> = {
   mn: "Код бичихгүйгээр апп бүтээж сурах онлайн сургалт",
