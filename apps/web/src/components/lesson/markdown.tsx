@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { TriangleAlert } from "lucide-react";
 import { parseMarkdown, type MdBlock, type MdInline } from "@jarvis/core";
 import { cn } from "@/lib/cn";
 import { CodeBlock } from "./code-block";
@@ -61,21 +62,21 @@ function Block({
 
     case "paragraph":
       return (
-        <p className="text-[15px] leading-[1.75] text-ink-2">
+        <p className="text-ink-2 text-[15px] leading-[1.75]">
           <Inline parts={block.content} />
         </p>
       );
 
     case "list": {
       const items = block.items.map((item, index) => (
-        <li key={index} className="pl-1.5 text-[15px] leading-[1.75] text-ink-2">
+        <li key={index} className="text-ink-2 pl-1.5 text-[15px] leading-[1.75]">
           <Inline parts={item} />
         </li>
       ));
       return block.ordered ? (
-        <ol className="ml-5 list-decimal space-y-2 marker:text-ink-3">{items}</ol>
+        <ol className="marker:text-ink-3 ml-5 list-decimal space-y-2">{items}</ol>
       ) : (
-        <ul className="ml-5 list-disc space-y-2 marker:text-ink-3">{items}</ul>
+        <ul className="marker:text-ink-3 ml-5 list-disc space-y-2">{items}</ul>
       );
     }
 
@@ -84,9 +85,24 @@ function Block({
 
     case "quote":
       return (
-        <blockquote className="border-l-2 border-accent bg-accent-soft/40 py-3 pl-4 text-[15px] leading-relaxed text-ink-2">
+        <blockquote className="border-accent bg-accent-soft/40 text-ink-2 border-l-2 py-3 pl-4 text-[15px] leading-relaxed">
           <Inline parts={block.content} />
         </blockquote>
+      );
+
+    // Amber, not the accent: purple already marks every prompt on the page, and
+    // the warning has to be the one block that looks like nothing else.
+    case "notice":
+      return (
+        <div
+          role="note"
+          className="border-warn/40 bg-warn-soft text-ink flex gap-3 rounded-xl border px-4 py-3.5 text-[15px] leading-[1.75]"
+        >
+          <TriangleAlert aria-hidden className="text-warn mt-1 size-[18px] shrink-0" />
+          <p>
+            <Inline parts={block.content} />
+          </p>
+        </div>
       );
 
     case "rule":
@@ -101,7 +117,7 @@ function Inline({ parts }: { parts: MdInline[] }): ReactNode {
         switch (part.type) {
           case "strong":
             return (
-              <strong key={index} className="font-semibold text-ink">
+              <strong key={index} className="text-ink font-semibold">
                 {part.value}
               </strong>
             );
@@ -115,7 +131,7 @@ function Inline({ parts }: { parts: MdInline[] }): ReactNode {
             return (
               <code
                 key={index}
-                className="rounded-[4px] bg-panel-2 px-1.5 py-0.5 font-mono text-[0.875em] text-ink"
+                className="bg-panel-2 text-ink rounded-[4px] px-1.5 py-0.5 font-mono text-[0.875em]"
               >
                 {part.value}
               </code>
@@ -128,7 +144,7 @@ function Inline({ parts }: { parts: MdInline[] }): ReactNode {
                 href={part.href}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="text-accent underline underline-offset-2 hover:text-accent-hover"
+                className="text-accent hover:text-accent-hover underline underline-offset-2"
               >
                 {part.value}
               </a>
@@ -136,7 +152,7 @@ function Inline({ parts }: { parts: MdInline[] }): ReactNode {
               <Link
                 key={index}
                 href={part.href}
-                className="text-accent underline underline-offset-2 hover:text-accent-hover"
+                className="text-accent hover:text-accent-hover underline underline-offset-2"
               >
                 {part.value}
               </Link>

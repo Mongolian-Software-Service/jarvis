@@ -12,6 +12,7 @@ const FENCE = /^```\s*([A-Za-z0-9+#-]*)\s*$/;
 const BULLET = /^[-*]\s+(.*)$/;
 const NUMBERED = /^\d+[.)]\s+(.*)$/;
 const QUOTE = /^>\s?(.*)$/;
+const ALERT = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]$/i;
 const RULE = /^(-{3,}|\*{3,}|_{3,})$/;
 
 export function parseMarkdown(source: string): MdBlock[] {
@@ -74,6 +75,13 @@ export function parseMarkdown(source: string): MdBlock[] {
         if (!next) break;
         parts.push(next[1] ?? "");
         i++;
+      }
+      // Every GitHub alert name draws the same one box: a body with two kinds
+      // of warning would ask the reader to learn which one matters more.
+      if (ALERT.test((parts[0] ?? "").trim())) {
+        const content = parseInline(parts.slice(1).join(" ").trim());
+        if (content.length) blocks.push({ type: "notice", content });
+        continue;
       }
       blocks.push({ type: "quote", content: parseInline(parts.join(" ").trim()) });
       continue;

@@ -31,4 +31,10 @@ export type MdBlock =
   | { type: "list"; ordered: boolean; items: MdInline[][] }
   | { type: "code"; language: string | null; code: string }
   | { type: "quote"; content: MdInline[] }
+  /**
+   * A `> [!IMPORTANT]` quote — GitHub's alert syntax, so an editor previews it
+   * the same way. Not a quote: a `>` in a lesson is a prompt to copy into
+   * Claude, and the one sentence a student must not miss cannot look like one.
+   */
+  | { type: "notice"; content: MdInline[] }
   | { type: "rule" };

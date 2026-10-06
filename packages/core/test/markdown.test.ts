@@ -24,7 +24,9 @@ test("markdown: a fenced block keeps its language and its text verbatim", () => 
 });
 
 test("markdown: a diagram fence parses to steps, not to code", () => {
-  const blocks = parseMarkdown("```diagram\nЧи | юу хүсэхээ бичнэ\nClaude\n\nХөтөч | биелүүлнэ\n```");
+  const blocks = parseMarkdown(
+    "```diagram\nЧи | юу хүсэхээ бичнэ\nClaude\n\nХөтөч | биелүүлнэ\n```",
+  );
   const [block] = blocks;
   assert.equal(block?.type, "diagram");
   if (block?.type !== "diagram") return;
@@ -34,6 +36,23 @@ test("markdown: a diagram fence parses to steps, not to code", () => {
     { label: "Claude", note: null },
     { label: "Хөтөч", note: "биелүүлнэ" },
   ]);
+});
+
+test("markdown: an alert quote is a notice, and a plain quote stays a prompt", () => {
+  const blocks = parseMarkdown(
+    "> [!IMPORTANT]\n> **Анхаар.** Картаа холбо.\n\n> Сервер гэж юу вэ?",
+  );
+  assert.deepEqual(
+    blocks.map((block) => block.type),
+    ["notice", "quote"],
+  );
+  // The marker line is dropped, not rendered as text inside the box.
+  assert.deepEqual(blocks[0]?.type === "notice" && blocks[0].content, [
+    { type: "strong", value: "Анхаар." },
+    { type: "text", value: " Картаа холбо." },
+  ]);
+  // A marker with nothing under it draws no empty box.
+  assert.deepEqual(parseMarkdown("> [!WARNING]"), []);
 });
 
 test("markdown: an empty diagram fence produces no block at all", () => {
@@ -57,9 +76,11 @@ test("markdown: inline marks", () => {
 
 test("markdown: a wrapped list item stays in the list", () => {
   const blocks = parseMarkdown(
-    ["- **Видео** — үзээд ойлгох хэсэг, дараа нь", "  тэндээсээ үргэлжилнэ", "- **Унших** — тайлбар"].join(
-      "\n",
-    ),
+    [
+      "- **Видео** — үзээд ойлгох хэсэг, дараа нь",
+      "  тэндээсээ үргэлжилнэ",
+      "- **Унших** — тайлбар",
+    ].join("\n"),
   );
   assert.equal(blocks.length, 1, "the continuation became its own block");
   const list = blocks[0];
@@ -107,7 +128,7 @@ test("highlight: a multi-line token still yields one entry per line", () => {
 });
 
 test("highlight: the text survives tokenising unchanged", () => {
-  const source = "def mendleh(ner):\n    return f\"Сайн уу, {ner}\"";
+  const source = 'def mendleh(ner):\n    return f"Сайн уу, {ner}"';
   const rebuilt = highlight(source, "python")
     .map((line) => line.map((token) => token.text).join(""))
     .join("\n");

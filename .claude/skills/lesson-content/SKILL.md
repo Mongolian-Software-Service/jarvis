@@ -9,14 +9,15 @@ description: Write or edit course content for TsStark Academy — a lesson body,
 
 `packages/core/src/markdown.ts` is a small parser, not CommonMark. It knows:
 
-```
+````
 # ## ###  headings (three levels, rendered as h2/h3/h4)
 - and 1.  lists
-> quote
+> quote         a prompt to copy into Claude
+> [!IMPORTANT]  on its own first line: a warning box, not a prompt
 ```lang    fenced code, with the language tag — always give one
 `code`  **bold**  *italic*  [text](href)
 ---  rule
-```
+````
 
 Anything else is rendered as plain text. Tables, images, nested lists and HTML
 are **not** supported — if a lesson needs one, extend the parser and both
@@ -57,7 +58,7 @@ The seed's questions are the model: each one is about a mistake the lesson
 warned about, and the wrong answers are things somebody might actually believe.
 
 - 2–4 options, exactly one right.
-- `explanation_mn` says *why*, and is shown after answering. It is the second
+- `explanation_mn` says _why_, and is shown after answering. It is the second
   half of the teaching, not a consolation.
 - Four questions is a quiz. Ten is an exam, and this is not one.
 - `correct_index` travels to the browser — the quiz marks itself. Do not write

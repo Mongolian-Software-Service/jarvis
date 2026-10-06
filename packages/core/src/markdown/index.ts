@@ -14,6 +14,9 @@
  * One fence is not code: ```diagram parses to a `diagram` block, one step per
  * line, `Label | the note under it`. It is how a lesson draws a picture without
  * carrying one — see `MdStep` in `./types`.
+ *
+ * One quote is not a quote: `> [!IMPORTANT]` on its own first line makes the
+ * rest a `notice` block, drawn in the warning colour rather than as a prompt.
  */
 
 export * from "./types";

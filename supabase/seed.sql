@@ -176,7 +176,7 @@ delete from public.modules m
 --
 -- Bodies are Markdown, parsed by `packages/core/src/markdown.ts`. Keep them to
 -- the subset that parser supports: headings, paragraphs, lists, ```diagram,
--- inline code, bold, links, quotes.
+-- inline code, bold, links, quotes, and `> [!IMPORTANT]` for a warning box.
 
 insert into public.lessons
   (id, module_id, course_id, slug, title_mn, title_en, kind, video_url, duration_minutes,
@@ -196,7 +196,10 @@ values
 
   ('30000000-0000-4000-8000-000000000808', '20000000-0000-4000-8000-000000001101', '10000000-0000-4000-8000-000000000001',
    'tanilcuulga-hereglegdehuun', 'Танилцуулга хичээлийн хэрэглэгдэхүүн', null, 'text', null, 5,
-   $md$Энэ сургалтыг үзэхэд юу ч суулгах шаардлагагүй — бүгд хөтөч дотор явна. Доорх дөрөв бол дараагийн сургалтуудад өдөр бүр ашиглах зүйлс. Бүгд үнэгүй. Одоо нээгээд танилцчихвал Landing page сургалт дээр шууд ажилдаа орно.
+   $md$Энэ сургалтыг үзэхэд юу ч суулгах шаардлагагүй — бүгд хөтөч дотор явна. Доорх дөрөв бол дараагийн сургалтуудад өдөр бүр ашиглах зүйлс. Одоо нээгээд танилцчихвал Landing page сургалт дээр шууд ажилдаа орно.
+
+> [!IMPORTANT]
+> **Claude-ийг заавал худалдаж авна.** Өөрийн Visa эсвэл Mastercard картаа claude.ai дээр холбож төлбөрөө төлөх шаардлагатай — дараагийн сургалт бүр Claude дээр хийгдэнэ. Бусад гурав нь үнэгүй.
 
 ## Юу нь юунд хэрэгтэй вэ
 
