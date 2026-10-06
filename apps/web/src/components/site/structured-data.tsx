@@ -17,8 +17,8 @@ import {
  *   bare domain, «tsstark-academy.com»; the site-name system reads this to put
  *   «TsStark Academy» there instead.
  * - **`EducationalOrganization`** — the school itself: its logo (the 192px icon,
- *   over Google's 112px minimum), what it teaches, how to reach it, its own
- *   Facebook and Instagram, and the company behind it. It is what lets Google
+ *   over Google's 112px minimum), what it teaches, how to reach it, and the
+ *   company behind it with that company's own profiles. It is what lets Google
  *   connect the brand's pages and profiles into one entity, rather than
  *   matching «tsstark academy» to whichever academy has the nearest name.
  *
@@ -64,8 +64,20 @@ export function StructuredData({ locale }: { locale: Locale }) {
         // claimed here either.
         ...(CONTACT.email ? { email: CONTACT.email } : {}),
         ...(CONTACT.phone ? { telephone: CONTACT.phone } : {}),
-        sameAs: [CONTACT.facebook, CONTACT.instagram].filter(Boolean),
-        parentOrganization: { "@type": "Organization", name: COMPANY_NAME, url: COMPANY_URL },
+        /*
+         * The Facebook and Instagram in CONTACT are the company's («TS Stark
+         * Software»), not the school's, so they are the parent's `sameAs`. A
+         * `sameAs` says "this is the same entity", and claiming the company's
+         * page *as* the school is the kind of mismatch that gets markup
+         * ignored. When the school has profiles of its own, they go on the
+         * school.
+         */
+        parentOrganization: {
+          "@type": "Organization",
+          name: COMPANY_NAME,
+          url: COMPANY_URL,
+          sameAs: [CONTACT.facebook, CONTACT.instagram].filter(Boolean),
+        },
         areaServed: { "@type": "Country", name: "Mongolia" },
         knowsLanguage: locale,
       },
