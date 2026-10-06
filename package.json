@@ -21,6 +21,7 @@
     "supabase:setup": "node scripts/supabase-setup.mjs",
     "video:upload": "node scripts/upload-video.mjs",
     "bonum:keys": "node scripts/bonum-keys.mjs",
+    "icons": "node scripts/icons.mjs",
     "google:keys": "node scripts/google-keys.mjs",
     "check:seed": "node scripts/check-seed.mjs",
     "check:lines": "node scripts/check-lines.mjs"

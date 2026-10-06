@@ -4,10 +4,19 @@
     though the site always is. A filled tile rather than a bare glyph is what
     keeps the mark legible against a light tab strip as well as a dark one.
 
-    The purple is `--accent` (#7b83eb), written out because an SVG served as a
-    file cannot read a custom property. It must stay in step with the token —
-    the header's logo wears the same tile, and a tab that is a slightly
-    different purple from the bar below it reads as a mistake.
+    The purple is the accent token in globals.css (#7b83eb), written out because
+    an SVG served as a file cannot read a custom property. It must stay in step
+    with the token: the header's logo wears the same tile, and a tab that is a
+    slightly different purple from the bar below it reads as a mistake.
+
+    Never write two hyphens in a row anywhere in this comment, not even to name
+    a CSS variable or a command flag. XML forbids them inside a comment, and
+    until 2026-10-06 the token's name sat right here: the file failed every
+    strict parser, and Google showed its grey globe in place of this icon.
+
+    favicon.ico, icon1.png and apple-icon.png beside this file are rendered
+    from it. Change the drawing, then run `pnpm icons`, which also refuses a
+    comment that breaks the rule above.
   -->
   <rect width="32" height="32" rx="8" fill="#7b83eb"/>
   <path d="M8.5 11 13 15.5 8.5 20" fill="none" stroke="#0a0b0e" stroke-width="2.6"

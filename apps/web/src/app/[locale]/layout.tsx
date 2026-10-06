@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { notFound } from "next/navigation";
 import { locale as rootLocale } from "next/root-params";
-import { LOCALES, SITE_NAME, SITE_TAGLINE, THEME_COLOR, toLocale } from "@jarvis/core";
+import { LOCALES, SITE_NAME, SITE_TAGLINE, THEME_COLOR, isLocale, toLocale } from "@jarvis/core";
 import "../globals.css";
 
 /**
@@ -85,6 +86,19 @@ export function generateStaticParams() {
  */
 export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
+
+  /*
+   * A first segment that is not a language is not a page.
+   *
+   * The proxy redirects `/anything` to `/mn/anything`, but it skips every path
+   * with a file extension — and those land here with the file name as the
+   * "locale". `toLocale()` forgave it, so `/favicon.ico`, `/apple-touch-icon.png`
+   * and any other `/<name>.png` a browser or crawler guessed at were answered
+   * with the whole front page and a 200. Only this segment: `dynamicParams =
+   * false` would say the same thing, but it is a segment option and the course
+   * pages below are dynamic.
+   */
+  if (!isLocale(locale)) notFound();
 
   return (
     <html lang={toLocale(locale)} className={`${inter.variable} ${jetbrains.variable}`}>

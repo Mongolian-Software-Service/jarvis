@@ -16,6 +16,14 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: THEME_COLOR,
     theme_color: THEME_COLOR,
     lang: DEFAULT_LOCALE,
-    icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
+    /*
+     * The SVG for anything that scales it, and the 192px PNG beside it for
+     * the launchers that will not take an SVG. Both are rendered from the same
+     * drawing (`pnpm icons`).
+     */
+    icons: [
+      { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
+      { src: "/icon1.png", sizes: "192x192", type: "image/png" },
+    ],
   };
 }
