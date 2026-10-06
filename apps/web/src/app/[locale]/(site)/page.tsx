@@ -8,6 +8,7 @@ import { getBundleOffer } from "@/lib/queries/pricing";
 import { pageMetadata } from "@/lib/seo";
 import { Hero } from "@/components/home/sections/hero";
 import { BundlePanel } from "@/components/course/bundle-panel";
+import { StructuredData } from "@/components/site/structured-data";
 import Link from "next/link";
 import { signInPath } from "@jarvis/core";
 import { buttonClass } from "@/components/ui/button";
@@ -69,6 +70,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <StructuredData locale={locale} />
       <Hero locale={locale} t={t} free={free} offer={offer} />
 
       {/* ── What you will learn ──────────────────────────────────────────── */}
