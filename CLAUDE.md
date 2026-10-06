@@ -133,8 +133,11 @@ change, not a decision.
   one member, there is no switcher, and `/en` is nothing. The `_en` columns stay
   in the database, unread, because dropping them throws away translations
   somebody may still want.
-- A bare URL goes to `/mn`. `Accept-Language` is not consulted and now could
-  not be.
+- A bare URL goes to `/mn`, with a **308**. `Accept-Language` is not consulted
+  and now could not be, so the redirect is a fact rather than a guess about the
+  reader — and the default 307 had Google keep the bare domain in its index
+  with `/mn` filed as a duplicate. Every public page also names itself as
+  canonical (`pageMetadata`), which none did before 2026-10-06.
 - Small team. One admin console, no roles beyond `student` and `admin`.
 
 ### Content model (settled — do not revisit without saying so)

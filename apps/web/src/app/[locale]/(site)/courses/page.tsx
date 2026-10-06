@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { fmt } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
+import { pageMetadata } from "@/lib/seo";
 import { getViewer } from "@/lib/queries/viewer";
 import { hasEveryCourse, listCourses } from "@/lib/queries/courses";
 import { getBundleOffer } from "@/lib/queries/pricing";
@@ -9,8 +10,15 @@ import { BundlePanel } from "@/components/course/bundle-panel";
 import { Empty } from "@/components/ui/empty";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { t } = await getIntl();
-  return { title: t.learn.catalogue.title, description: t.learn.catalogue.deck };
+  const { locale, t } = await getIntl();
+  // Through `pageMetadata` like every other public page, for the canonical URL
+  // and the social tags this one was the only page without.
+  return pageMetadata({
+    locale,
+    title: t.learn.catalogue.title,
+    description: t.learn.catalogue.deck,
+    path: "/courses",
+  });
 }
 
 /**
@@ -52,7 +60,7 @@ export default async function CoursesPage() {
         <h1 className="font-display text-[32px] leading-[1.1] sm:text-[40px]">
           {t.learn.bundle.includes}
         </h1>
-        <p className="mt-2 text-[15px] text-ink-3">{t.learn.catalogue.deck}</p>
+        <p className="text-ink-3 mt-2 text-[15px]">{t.learn.catalogue.deck}</p>
       </header>
 
       {courses.length === 0 ? (

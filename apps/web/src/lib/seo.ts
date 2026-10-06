@@ -33,7 +33,15 @@ export function pageMetadata(input: {
   return {
     title: input.title,
     description: input.description,
-    alternates: alternates(input.path),
+    /*
+     * Every page names itself as the canonical URL.
+     *
+     * Nothing did until 2026-10-06, and Google picked for us: Search Console
+     * reported the front page «Duplicate without user-selected canonical» and
+     * indexed the bare domain, which only ever redirected to it. A page that
+     * says which URL it is leaves Google nothing to guess.
+     */
+    alternates: { ...alternates(input.path), canonical: url },
     openGraph: {
       type: "website",
       siteName: SITE_NAME,

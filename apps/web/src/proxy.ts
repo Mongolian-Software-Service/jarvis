@@ -73,7 +73,15 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     const locale = localeFor(request);
     const url = request.nextUrl.clone();
     url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
-    return NextResponse.redirect(url);
+    /*
+     * 308, permanent. There is one language (§1), so `/` → `/mn` is a fact,
+     * not a guess about the reader. It was the default 307, and a *temporary*
+     * redirect tells Google to keep the source URL as the one it indexes: the
+     * bare domain stood in the results while `/mn` was filed as its
+     * duplicate. If a second language ever comes back and the choice depends
+     * on the reader again, this goes back to temporary.
+     */
+    return NextResponse.redirect(url, 308);
   }
 
   const locale = hasLocale ? (segment as Locale) : localeFor(request);
