@@ -8,6 +8,7 @@ export const content = {
     access: "Эрх олголт",
     feedback: "Санал хүсэлт",
     projects: "Төслүүд",
+    chat: "Чат",
     viewSite: "Сайт харах",
   },
   overview: {

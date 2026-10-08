@@ -10,6 +10,7 @@ import {
   KeyRound,
   LogOut,
   MessageSquare,
+  MessagesSquare,
   Plus,
   Users,
 } from "lucide-react";
@@ -46,6 +47,7 @@ export function AdminSidebar({ locale, t }: { locale: Locale; t: Strings }) {
     { href: adminPath(locale, "/payments"), label: t.admin.nav.payments, icon: CreditCard },
     { href: adminPath(locale, "/access"), label: t.admin.nav.access, icon: KeyRound },
     { href: adminPath(locale, "/projects"), label: t.admin.nav.projects, icon: Globe },
+    { href: adminPath(locale, "/chat"), label: t.admin.nav.chat, icon: MessagesSquare },
     { href: adminPath(locale, "/feedback"), label: t.admin.nav.feedback, icon: MessageSquare },
   ];
 
@@ -55,14 +57,17 @@ export function AdminSidebar({ locale, t }: { locale: Locale; t: Strings }) {
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   return (
-    <div className="flex h-full flex-col gap-6 border-line py-2.5 lg:border-r lg:p-5">
+    <div className="border-line flex h-full flex-col gap-6 py-2.5 lg:border-r lg:p-5">
       <div className="hidden items-center justify-between gap-4 px-1 lg:flex">
         <Link href={adminPath(locale)} aria-label={SITE_NAME}>
           <Logo />
         </Link>
       </div>
 
-      <Link href={newCourse} className={buttonClass("primary", "md", "hidden w-full lg:inline-flex")}>
+      <Link
+        href={newCourse}
+        className={buttonClass("primary", "md", "hidden w-full lg:inline-flex")}
+      >
         <Plus className="size-4" />
         {t.admin.courses.create}
       </Link>
@@ -96,7 +101,7 @@ export function AdminSidebar({ locale, t }: { locale: Locale; t: Strings }) {
             href={newCourse}
             aria-label={t.admin.courses.create}
             title={t.admin.courses.create}
-            className="grid size-8 place-items-center rounded-full bg-solid text-solid-ink"
+            className="bg-solid text-solid-ink grid size-8 place-items-center rounded-full"
           >
             <Plus className="size-4" />
           </Link>
@@ -105,7 +110,7 @@ export function AdminSidebar({ locale, t }: { locale: Locale; t: Strings }) {
               type="submit"
               aria-label={t.auth.account.signOut}
               title={t.auth.account.signOut}
-              className="grid size-8 place-items-center rounded-full text-ink-3 transition-colors hover:bg-panel-2 hover:text-ink"
+              className="text-ink-3 hover:bg-panel-2 hover:text-ink grid size-8 place-items-center rounded-full transition-colors"
             >
               <LogOut className="size-4" aria-hidden="true" />
             </button>

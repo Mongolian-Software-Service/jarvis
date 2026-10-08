@@ -720,6 +720,11 @@ are still server actions).
 - **Delete, never edit:** your own, or the team's on anybody's. Times print in
   Ulaanbaatar's clock (`formatClock`), so the server's render and the
   browser's agree without `Intl` (§6.5).
+- **The console moderates from a list.** `/admin/chat` («Чат» in the rail)
+  shows every message newest first — author, day and time, the words — with
+  a delete on each. It is the same `chat_delete` the room uses, through the
+  admin's own session (`removeChatMessage`); Realtime takes the message out of
+  every open room as soon as it is gone.
 
 `projects` is «Миний төслүүд»: the address of what a student built, with an
 optional name and description. **It belongs to the student, not to a course** —

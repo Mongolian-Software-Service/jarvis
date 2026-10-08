@@ -8,10 +8,12 @@ import { content } from "./content";
 import { people } from "./people";
 import { errors } from "./errors";
 import { pricing } from "./pricing";
+import { chat } from "./chat";
 
 export const admin = {
   ...content,
   ...people,
   ...pricing,
+  ...chat,
   errors,
 } as const;

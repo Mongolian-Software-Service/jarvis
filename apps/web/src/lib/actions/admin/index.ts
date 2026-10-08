@@ -14,3 +14,4 @@ export * from "./people";
 export * from "./access";
 export * from "./projects";
 export * from "./pricing";
+export * from "./chat";
