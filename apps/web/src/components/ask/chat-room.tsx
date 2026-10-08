@@ -13,6 +13,7 @@ import { deleteChatMessage } from "@/lib/actions/chat";
 import { cn } from "@/lib/cn";
 import { ChatLine } from "./chat-message";
 import { ChatComposer } from "./chat-composer";
+import { ChatBlocked } from "./chat-blocked";
 
 /** How much of the room one open tab keeps; older lines drop off the top. */
 const KEEP = 500;
@@ -34,10 +35,13 @@ const KEEP = 500;
 export function ChatRoom({
   initial,
   canModerate,
+  blocked = false,
   t,
 }: {
   initial: ChatMessage[];
   canModerate: boolean;
+  /** Blocked from writing (20261008000100): the room reads, the composer goes. */
+  blocked?: boolean;
   t: Strings;
 }) {
   const copy = t.ask;
@@ -167,7 +171,7 @@ export function ChatRoom({
         )}
       </div>
 
-      <ChatComposer onSent={onSent} t={t} />
+      {blocked ? <ChatBlocked t={t} /> : <ChatComposer onSent={onSent} t={t} />}
     </section>
   );
 }

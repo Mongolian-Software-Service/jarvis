@@ -43,7 +43,12 @@ export async function sendChatMessage(body: string): Promise<ActionResult<ChatMe
     .select(COLUMNS)
     .single();
 
-  if (error) return fail(error.message?.includes("chat_rate_limit") ? copy.rate : copy.failed);
+  if (error) {
+    // Both are the triggers' own words (20261003000200, 20261008000100), read
+    // by name so a reader is told which wall they met rather than "failed".
+    if (error.message?.includes("chat_blocked")) return fail(copy.blocked);
+    return fail(error.message?.includes("chat_rate_limit") ? copy.rate : copy.failed);
+  }
 
   const message = toChatMessage(data, true);
   return message ? { ok: true, data: message } : fail(copy.failed);

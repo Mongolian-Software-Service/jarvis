@@ -19,13 +19,33 @@ export async function isChatMember(): Promise<boolean> {
 }
 
 /**
+ * Has the team blocked this reader from writing (20261008000100)?
+ *
+ * Their own row in `chat_blocks` is the one row of it they may read. An error
+ * answers "no": the trigger still refuses the insert, so a composer shown by
+ * mistake fails with the blocked sentence rather than letting anything through.
+ */
+export async function isChatBlocked(): Promise<boolean> {
+  if (!supabaseConfigured()) return false;
+  const userId = await getUserId();
+  if (!userId) return false;
+
+  const supabase = createServerSupabase();
+  const { data, error } = await supabase
+    .from("chat_blocks")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return !error && Boolean(data);
+}
+
+/**
  * The room's first screenful: the last `CHAT_HISTORY` messages, oldest first,
  * each knowing whether the reader wrote it.
  *
  * Two plain reads rather than a view. The messages are readable by the room;
- * authorship is in `chat_authors`, whose policy returns only the reader's own
- * rows — so asking it about these ids answers "which of them are mine" and
- * nothing about anybody else (20261003000100).
+ * authorship is in `chat_authors`, asked about these ids *and* this reader —
+ * which answers "which of them are mine" (20261003000100).
  *
  * No `locale`, like `listFeedback`: nothing in a message is bilingual. An
  * error is an empty room, so the page still renders before the migration has.
@@ -44,9 +64,16 @@ export async function listChat(): Promise<ChatMessage[]> {
 
   if (error || !rows?.length) return [];
 
+  /*
+   * Filtered to the reader by name, not left to the policy. `chat_authors`
+   * returned only the reader's rows on its own until the team was let read
+   * all of it (20261008000100) — and an admin's room then marked every
+   * message «Та».
+   */
   const { data: authored } = await supabase
     .from("chat_authors")
     .select("message_id")
+    .eq("user_id", userId)
     .in(
       "message_id",
       rows.map((row) => row.id),

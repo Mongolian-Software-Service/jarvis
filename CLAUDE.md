@@ -683,7 +683,7 @@ runs. That app is gone — decision #013 — and neither choice depended on it.)
 
 See `supabase/migrations/`. Tables: `profiles`, `courses`, `modules`, `lessons`,
 `quiz_questions`, `enrollments`, `lesson_progress`, `payments`, `feedback`,
-`projects`, `chat_messages`, `chat_authors`, `teacher_emails`.
+`projects`, `chat_messages`, `chat_authors`, `chat_blocks`, `teacher_emails`.
 
 `chat_messages` is «Мэдэхгүй зүйлээ асуу»: one room, live through Supabase
 Realtime (`postgres_changes`, the only read a client component makes — writes
@@ -703,7 +703,9 @@ are still server actions).
   whole row to every browser in the room, so `chat_messages` carries only what
   the room may read — the words, the printed name («Б.Тэмүүлэн», copied in by
   the insert trigger) and `is_team` — and the author's id lives in
-  `chat_authors`, readable only by that author. Column grants on one table were
+  `chat_authors`, readable by that author and by the team (the console has to
+  name an account to block it; 20261008000100). Neither table is published to
+  Realtime, and that migration refuses to apply if either is. Column grants on one table were
   rejected: whether Realtime honours them is an internal detail, and when it
   does not, the failure is silent. A table with nothing to hide needs no such
   detail. `is_mine` on the first screen comes from asking `chat_authors` about
@@ -711,6 +713,14 @@ are still server actions).
 - **The trigger is the author.** It takes `auth.uid()`, never a client value,
   overwrites the name and team flag from `profiles`, and refuses an eleventh
   message in a minute (`chat_rate_limit`). Insert is granted on `body` alone.
+- **A block stops writing, not reading.** `chat_blocks` (one row a person) is
+  written by the team — `user_id` only; who blocked and when are the
+  database's — and read by the team and by the blocked person, which is how the
+  room swaps the composer for `ChatBlocked`'s sentence. The gate is a BEFORE
+  INSERT trigger raising `chat_blocked`, so a client that skips the page meets
+  it too. Reading stays: taking the room away would show `ChatLocked`, which
+  says "pay to join" to somebody who paid. An admin cannot block themselves,
+  and the console offers no block on a team member's message.
 - **«Багш» is a list, not a role.** `teacher_emails` (the `admin_emails`
   shape, §5: writable by no API) names who answers with a teacher's mark; the
   trigger copies `is_teacher` onto each message, and the room draws it apart —
@@ -722,9 +732,11 @@ are still server actions).
   browser's agree without `Intl` (§6.5).
 - **The console moderates from a list.** `/admin/chat` («Чат» in the rail)
   shows every message newest first — author, day and time, the words — with
-  a delete on each. It is the same `chat_delete` the room uses, through the
-  admin's own session (`removeChatMessage`); Realtime takes the message out of
-  every open room as soon as it is gone.
+  a delete on each, and a block on each student's. It is the same
+  `chat_delete` the room uses, through the admin's own session
+  (`removeChatMessage`); Realtime takes the message out of every open room as
+  soon as it is gone. The people blocked are listed above the messages, each
+  with an unblock.
 
 `projects` is «Миний төслүүд»: the address of what a student built, with an
 optional name and description. **It belongs to the student, not to a course** —

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getIntl } from "@/lib/locale";
-import { isChatMember, listChat } from "@/lib/queries/learn";
+import { isChatBlocked, isChatMember, listChat } from "@/lib/queries/learn";
 import { getViewer } from "@/lib/queries/viewer";
 import { ChatRoom } from "@/components/ask/chat-room";
 import { ChatLocked } from "@/components/ask/chat-locked";
@@ -27,7 +27,11 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function AskPage() {
   const { locale, t } = await getIntl();
-  const [member, viewer] = await Promise.all([isChatMember(), getViewer()]);
+  const [member, viewer, blocked] = await Promise.all([
+    isChatMember(),
+    getViewer(),
+    isChatBlocked(),
+  ]);
   const messages = member ? await listChat() : [];
   const copy = t.ask;
 
@@ -39,7 +43,12 @@ export default async function AskPage() {
       </header>
 
       {member ? (
-        <ChatRoom initial={messages} canModerate={viewer?.role === "admin"} t={t} />
+        <ChatRoom
+          initial={messages}
+          canModerate={viewer?.role === "admin"}
+          blocked={blocked}
+          t={t}
+        />
       ) : (
         <ChatLocked locale={locale} t={t} />
       )}

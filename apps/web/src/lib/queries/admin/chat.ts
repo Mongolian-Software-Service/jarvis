@@ -1,39 +1,94 @@
 import "server-only";
-import { toChatMessage, type ChatMessage } from "@jarvis/core";
+import { formatFullName, toChatMessage, type ChatMessage } from "@jarvis/core";
 import { createServerSupabase, supabaseConfigured } from "@/lib/supabase/server";
 
+/** A message as the console sees it: whose account wrote it, and whether it is blocked. */
+export type AdminChatMessage = ChatMessage & {
+  /** Null for a message whose author row is gone, which cannot be blocked. */
+  authorId: string | null;
+  authorBlocked: boolean;
+};
+
+export type BlockedChatUser = {
+  userId: string;
+  name: string | null;
+  email: string | null;
+  since: string;
+};
+
+type MessageRow = {
+  id: string;
+  body: string;
+  author_first_name: string | null;
+  author_initial: string | null;
+  is_team: boolean;
+  is_teacher: boolean;
+  created_at: string;
+  chat_authors: { user_id: string } | null;
+};
+
+type BlockRow = {
+  user_id: string;
+  created_at: string;
+  profiles: { first_name: string | null; last_name: string | null; email: string | null } | null;
+};
+
 /**
- * Every message in «Мэдэхгүй зүйлээ асуу», newest first, for the team to read
- * and take down.
+ * Every message in «Мэдэхгүй зүйлээ асуу», newest first, and everybody blocked
+ * from it — for the team to read, take down and block.
  *
- * Through the admin's own session: `chat_read` asks `is_chat_member()`, which
- * says yes to the team (20261004000100), so a demoted admin reads nothing here
- * a moment after the role changes. The room shows its last `CHAT_HISTORY`
- * oldest-first; the console reads further back and newest-first, because what
- * the team comes here for is what was just said.
+ * Through the admin's own session: `chat_read` lets the team through
+ * (20261004000100), and since 20261008000100 so do `chat_authors` and
+ * `chat_blocks`, which is what puts an account behind each message. A demoted
+ * admin reads nothing here a moment after the role changes.
  *
- * The author is the printed name the insert trigger copied onto the row.
- * Which account wrote it lives in `chat_authors`, readable by its author
- * alone — and taking a message down does not need it.
+ * The author is embedded (`chat_authors` is one-to-one with the message)
+ * rather than asked about with `.in(...)`: five hundred ids in a query string
+ * is a URL of twenty kilobytes.
  */
-export async function listChatForAdmin(
-  limit = 500,
-): Promise<{ messages: ChatMessage[]; total: number }> {
-  if (!supabaseConfigured()) return { messages: [], total: 0 };
+export async function listChatForAdmin(limit = 500): Promise<{
+  messages: AdminChatMessage[];
+  total: number;
+  blocked: BlockedChatUser[];
+}> {
+  if (!supabaseConfigured()) return { messages: [], total: 0, blocked: [] };
 
   const supabase = createServerSupabase();
-  const { data, error, count } = await supabase
-    .from("chat_messages")
-    .select("id, body, author_first_name, author_initial, is_team, is_teacher, created_at", {
-      count: "exact",
-    })
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  const [messageRead, blockRead] = await Promise.all([
+    supabase
+      .from("chat_messages")
+      .select(
+        "id, body, author_first_name, author_initial, is_team, is_teacher, created_at, chat_authors (user_id)",
+        { count: "exact" },
+      )
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    supabase
+      .from("chat_blocks")
+      .select(
+        "user_id, created_at, profiles!chat_blocks_user_id_fkey (first_name, last_name, email)",
+      )
+      .order("created_at", { ascending: false }),
+  ]);
 
-  if (error || !data) return { messages: [], total: 0 };
+  const blocks = (blockRead.data ?? []) as unknown as BlockRow[];
+  const blockedIds = new Set(blocks.map((row) => row.user_id));
 
-  const messages = data
-    .map((row) => toChatMessage(row, false))
-    .filter((message): message is ChatMessage => message !== null);
-  return { messages, total: count ?? messages.length };
+  const messages = ((messageRead.data ?? []) as unknown as MessageRow[]).flatMap((row) => {
+    const message = toChatMessage(row, false);
+    if (!message) return [];
+    const authorId = row.chat_authors?.user_id ?? null;
+    return [{ ...message, authorId, authorBlocked: authorId ? blockedIds.has(authorId) : false }];
+  });
+
+  return {
+    messages,
+    total: messageRead.count ?? messages.length,
+    blocked: blocks.map((row) => ({
+      userId: row.user_id,
+      name: formatFullName(row.profiles?.last_name, row.profiles?.first_name),
+      email: row.profiles?.email ?? null,
+      since: row.created_at,
+    })),
+  };
 }

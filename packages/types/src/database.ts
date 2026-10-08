@@ -126,6 +126,39 @@ export type Database = {
           },
         ]
       }
+      chat_blocks: {
+        Row: {
+          blocked_by: string | null
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          blocked_by?: string | null
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          blocked_by?: string | null
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_blocks_blocked_by_fkey"
+            columns: ["blocked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_blocks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           author_first_name: string | null
