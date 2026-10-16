@@ -3,6 +3,7 @@ import { ChevronRight, Mail, User } from "lucide-react";
 import { adminPath, fmt, formatDate, type Locale, type Strings } from "@jarvis/core";
 import type { GrantedPerson } from "@/lib/queries/admin";
 import { cn } from "@/lib/cn";
+import { GrantKindBadge } from "./grant-kind-badge";
 
 /**
  * «Эрх олгосон хүмүүс» — everybody the team has opened the school for.
@@ -13,7 +14,8 @@ import { cn } from "@/lib/cn";
  * is one tap away rather than an address to copy and paste back up the page.
  *
  * Plain links, not client state, for the reason the search is a GET form: the
- * person being looked at lives in the URL. The row for them is marked.
+ * person being looked at lives in the URL. The row for them is marked, and
+ * every row says why they were let in — VIP or Бэлэг.
  */
 export function GrantedList({
   people,
@@ -55,6 +57,7 @@ export function GrantedList({
                   <span className="text-ink flex min-w-0 items-center gap-2 text-[13.5px] font-medium sm:w-56 sm:shrink-0">
                     <User className="text-ink-3 size-4 shrink-0" aria-hidden="true" />
                     <span className="truncate">{person.name ?? "—"}</span>
+                    <GrantKindBadge kind={person.kind} t={t} className="shrink-0" />
                   </span>
                   <span className="text-ink-2 flex min-w-0 items-center gap-2 text-[13px]">
                     <Mail className="text-ink-3 size-3.5 shrink-0" aria-hidden="true" />

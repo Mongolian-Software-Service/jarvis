@@ -1,5 +1,6 @@
 "use server";
 
+import { accessGrantSchema, mn, type GrantKind } from "@jarvis/core";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { describeError, fail, requireAdmin, type ActionResult } from "../guard";
 import { revalidateAdmin } from "./shared";
@@ -15,13 +16,27 @@ import { revalidateAdmin } from "./shared";
  *
  * Neither sets `expires_at`. Null means no expiry, which is what «хугацаагүй»
  * asks for; a date here would be a second policy nobody remembers setting.
+ *
+ * Opening says why — VIP or Бэлэг (20261016000100). Pressing the other kind
+ * for somebody who already holds a grant switches it; a purchase is untouched.
  */
-export async function openAllCourses(userId: string): Promise<ActionResult<{ count: number }>> {
+export async function openAllCourses(
+  userId: string,
+  kind: GrantKind,
+): Promise<ActionResult<{ count: number }>> {
+  // The kind arrives from a button, but a server action is a public endpoint:
+  // anything can be posted to it, so it is parsed like a form (§6.2).
+  const parsed = accessGrantSchema.safeParse({ user_id: userId, grant_kind: kind });
+  if (!parsed.success) return fail(mn.admin.errors.saveFailed);
+
   const admin = await requireAdmin();
   if (!admin.ok) return fail(admin.error);
 
   const supabase = createServerSupabase();
-  const { data, error } = await supabase.rpc("grant_all_courses", { p_user: userId });
+  const { data, error } = await supabase.rpc("grant_all_courses", {
+    p_user: parsed.data.user_id,
+    p_kind: parsed.data.grant_kind,
+  });
   if (error) return fail(describeError(error));
 
   await revalidateAdmin();

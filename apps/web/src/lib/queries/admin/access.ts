@@ -1,5 +1,5 @@
 import "server-only";
-import { formatFullName } from "@jarvis/core";
+import { formatFullName, type GrantKind } from "@jarvis/core";
 import { createServerSupabase, supabaseConfigured } from "@/lib/supabase/server";
 
 /**
@@ -22,6 +22,8 @@ export type AccessCandidate = {
   enrolled: number;
   /** Of those, the ones the team handed over — the only ones a revoke touches. */
   granted: number;
+  /** Why they were handed over, when they were: VIP or Бэлэг (20261016000100). */
+  kind: GrantKind | null;
 };
 
 export async function findAccessCandidate(email: string): Promise<AccessCandidate | null> {
@@ -47,7 +49,7 @@ export async function findAccessCandidate(email: string): Promise<AccessCandidat
   // spent on arithmetic.
   const { data: rows } = await supabase
     .from("enrollments")
-    .select("source")
+    .select("source, grant_kind")
     .eq("user_id", profile.id);
 
   const held = rows ?? [];
@@ -61,6 +63,7 @@ export async function findAccessCandidate(email: string): Promise<AccessCandidat
     createdAt: profile.created_at,
     enrolled: held.length,
     granted: held.filter((row) => row.source === "grant").length,
+    kind: held.find((row) => row.grant_kind)?.grant_kind ?? null,
   };
 }
 
@@ -74,11 +77,14 @@ export type GrantedPerson = {
   courses: number;
   /** The most recent grant: the bundle grants every course in one statement. */
   grantedAt: string;
+  /** VIP or Бэлэг — the kind on their latest grant row. */
+  kind: GrantKind;
 };
 
 type GrantRow = {
   user_id: string;
   created_at: string;
+  grant_kind: GrantKind | null;
   profiles: {
     email: string | null;
     first_name: string | null;
@@ -103,7 +109,7 @@ export async function listGrantedPeople(limit = 2000): Promise<GrantedPerson[]> 
   const supabase = createServerSupabase();
   const { data, error } = await supabase
     .from("enrollments")
-    .select("user_id, created_at, profiles (email, first_name, last_name)")
+    .select("user_id, created_at, grant_kind, profiles (email, first_name, last_name)")
     .eq("source", "grant")
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -124,6 +130,8 @@ export async function listGrantedPeople(limit = 2000): Promise<GrantedPerson[]> 
       name: formatFullName(row.profiles?.last_name, row.profiles?.first_name),
       courses: 1,
       grantedAt: row.created_at,
+      // Never null on a grant — the check in 20261016000100 — but typed so.
+      kind: row.grant_kind ?? "gift",
     });
   }
   return [...people.values()];

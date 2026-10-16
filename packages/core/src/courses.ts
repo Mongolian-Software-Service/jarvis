@@ -20,6 +20,19 @@ export type LessonKind = Enums<"lesson_kind">;
  */
 export type EnrollmentSource = Enums<"enrollment_source">;
 
+/**
+ * Why the team opened the school for somebody: a VIP or a gift (20261016000100).
+ * Only a `grant` carries one — the database refuses it anywhere else.
+ */
+export type GrantKind = Enums<"grant_kind">;
+export const GRANT_KINDS = ["vip", "gift"] as const satisfies readonly GrantKind[];
+
+/**
+ * How a student holds the school, as the dashboard counts them: a grant is
+ * split by its kind, so «Гараар нээсэн» becomes VIP and Бэлэг beside the buyers.
+ */
+export type AccessKind = Exclude<EnrollmentSource, "grant"> | GrantKind;
+
 export const COURSE_LEVELS: readonly CourseLevel[] = ["beginner", "intermediate", "advanced"];
 
 const LEVEL_LABELS: Record<Locale, Record<CourseLevel, string>> = {

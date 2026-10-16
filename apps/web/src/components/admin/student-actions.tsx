@@ -3,7 +3,7 @@
 import { useActionState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import type { Strings } from "@jarvis/core";
+import { GRANT_KINDS, type Strings } from "@jarvis/core";
 import { grantCourse, setRole } from "@/lib/actions/admin";
 import { Field, Input, Select } from "@/components/ui/field";
 import { buttonClass } from "@/components/ui/button";
@@ -72,6 +72,21 @@ export function GrantForm({
           {courses.map((course) => (
             <option key={course.id} value={course.id}>
               {course.title}
+            </option>
+          ))}
+        </Select>
+      </Field>
+
+      {/* No default: a grant says why it was given, and a preselected kind
+          would be a reason nobody chose (20261016000100). */}
+      <Field label={t.admin.access.kindLabel} htmlFor={`kind-${studentId}`}>
+        <Select id={`kind-${studentId}`} name="grant_kind" required defaultValue="">
+          <option value="" disabled>
+            {t.admin.access.kindPick}
+          </option>
+          {GRANT_KINDS.map((kind) => (
+            <option key={kind} value={kind}>
+              {t.admin.access.kinds[kind]}
             </option>
           ))}
         </Select>

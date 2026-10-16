@@ -251,6 +251,7 @@ export type Database = {
           course_id: string
           created_at: string
           expires_at: string | null
+          grant_kind: Database["public"]["Enums"]["grant_kind"] | null
           id: string
           source: Database["public"]["Enums"]["enrollment_source"]
           user_id: string
@@ -259,6 +260,7 @@ export type Database = {
           course_id: string
           created_at?: string
           expires_at?: string | null
+          grant_kind?: Database["public"]["Enums"]["grant_kind"] | null
           id?: string
           source?: Database["public"]["Enums"]["enrollment_source"]
           user_id: string
@@ -267,6 +269,7 @@ export type Database = {
           course_id?: string
           created_at?: string
           expires_at?: string | null
+          grant_kind?: Database["public"]["Enums"]["grant_kind"] | null
           id?: string
           source?: Database["public"]["Enums"]["enrollment_source"]
           user_id?: string
@@ -769,7 +772,13 @@ export type Database = {
       }
     }
     Functions: {
-      grant_all_courses: { Args: { p_user: string }; Returns: number }
+      grant_all_courses: {
+        Args: {
+          p_kind: Database["public"]["Enums"]["grant_kind"]
+          p_user: string
+        }
+        Returns: number
+      }
       has_course_access: { Args: { course: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_chat_member: { Args: never; Returns: boolean }
@@ -794,6 +803,7 @@ export type Database = {
     Enums: {
       course_level: "beginner" | "intermediate" | "advanced"
       enrollment_source: "purchase" | "grant" | "free"
+      grant_kind: "vip" | "gift"
       lesson_kind: "video" | "text" | "code" | "quiz"
       payment_status: "pending" | "paid" | "failed" | "expired"
       user_role: "student" | "admin"
@@ -929,6 +939,7 @@ export const Constants = {
     Enums: {
       course_level: ["beginner", "intermediate", "advanced"],
       enrollment_source: ["purchase", "grant", "free"],
+      grant_kind: ["vip", "gift"],
       lesson_kind: ["video", "text", "code", "quiz"],
       payment_status: ["pending", "paid", "failed", "expired"],
       user_role: ["student", "admin"],

@@ -3,6 +3,7 @@
  * (§6.2) — the form is a convenience, this is the check.
  */
 import { z } from "zod";
+import { GRANT_KINDS } from "../courses";
 import { checkbox, optionalText, optionalUrl, slug } from "./fields";
 
 export const courseSchema = z.object({
@@ -84,7 +85,9 @@ export const quizQuestionSchema = z
     lesson_id: z.uuid(),
     prompt_mn: z.string().trim().min(3, "Асуулт оруулна уу").max(400),
     prompt_en: optionalText,
-    options_mn: z.array(z.string().trim().min(1, "Хариултаа бөглөнө үү")).min(2, "Хоёроос доошгүй хариулт"),
+    options_mn: z
+      .array(z.string().trim().min(1, "Хариултаа бөглөнө үү"))
+      .min(2, "Хоёроос доошгүй хариулт"),
     correct_index: z.coerce.number().int().min(0),
     explanation_mn: optionalText,
     explanation_en: optionalText,
@@ -102,6 +105,7 @@ export type QuizQuestionInput = z.infer<typeof quizQuestionSchema>;
 export const grantSchema = z.object({
   user_id: z.uuid("Сурагч сонгоно уу"),
   course_id: z.uuid("Сургалт сонгоно уу"),
+  grant_kind: z.enum(GRANT_KINDS, "VIP эсвэл Бэлэг сонгоно уу"),
   expires_at: z
     .string()
     .trim()
@@ -125,11 +129,13 @@ export const roleSchema = z.object({
  * here so a capital in a typed address still finds the row.
  */
 export const accessLookupSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .pipe(z.email("Зөв имэйл хаяг оруулна уу")),
+  email: z.string().trim().toLowerCase().pipe(z.email("Зөв имэйл хаяг оруулна уу")),
 });
 
 export type AccessLookupInput = z.infer<typeof accessLookupSchema>;
+
+/** «Эрх олголт»'s two buttons: whom, and why — VIP or Бэлэг (20261016000100). */
+export const accessGrantSchema = z.object({
+  user_id: z.uuid(),
+  grant_kind: z.enum(GRANT_KINDS),
+});

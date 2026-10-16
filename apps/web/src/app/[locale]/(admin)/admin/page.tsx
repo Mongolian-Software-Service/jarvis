@@ -6,20 +6,24 @@ import {
   formatAgo,
   formatMoney,
   groupDigits,
-  paymentLabel,
+  type AccessKind,
 } from "@jarvis/core";
 import { getIntl } from "@/lib/locale";
 import { getAdminOverview } from "@/lib/queries/admin";
-import { BarList, DailyColumns, Panel, StackedBar, StatTile } from "@/components/admin/charts";
+import { BarList, DailyColumns, Donut, Panel, StatTile } from "@/components/admin/charts";
+import { OverviewPayments } from "@/components/admin/overview-payments";
 
 export const metadata: Metadata = { robots: { index: false } };
 
-/** A status keeps the same colour here and in the payments list. */
-const STATUS_COLOR: Record<string, string> = {
-  paid: "var(--ok)",
-  pending: "var(--warn)",
-  failed: "var(--bad)",
-  expired: "var(--ink-3)",
+/**
+ * How a student got in, one colour each. VIP and Бэлэг match their badges in
+ * «Эрх олголт» (`grant-kind-badge.tsx`); a buyer is the green of money taken.
+ */
+const ACCESS_COLOR: Record<AccessKind, string> = {
+  purchase: "var(--viz-2)",
+  vip: "var(--viz-3)",
+  gift: "var(--viz-1)",
+  free: "var(--viz-4)",
 };
 
 export default async function AdminDashboard() {
@@ -49,8 +53,8 @@ export default async function AdminDashboard() {
           note={`${data.published} ${t.admin.courses.published.toLowerCase()} · ${data.drafts} ${t.admin.courses.draft.toLowerCase()}`}
         />
         <StatTile
-          label={t.admin.overview.enrollments}
-          value={groupDigits(data.enrollments)}
+          label={t.admin.overview.withAccess}
+          value={groupDigits(data.withAccess)}
           tone="accent"
         />
         <StatTile
@@ -61,10 +65,17 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title={`${t.admin.overview.enrollments} · ${t.admin.overview.last30}`}>
-          <DailyColumns
-            data={data.daily}
-            label={t.admin.overview.enrollments}
+        {/* Bought, VIP or Бэлэг — each student once, in one ring (20261016000100). */}
+        <Panel title={t.admin.overview.accessMix}>
+          <Donut
+            segments={data.access.map((row) => ({
+              id: row.kind,
+              label: t.admin.overview.accessKinds[row.kind],
+              value: row.count,
+              color: ACCESS_COLOR[row.kind],
+            }))}
+            unit={t.admin.overview.studentsUnit}
+            label={t.admin.overview.accessMix}
             empty={t.admin.overview.noData}
           />
         </Panel>
@@ -91,36 +102,21 @@ export default async function AdminDashboard() {
         </Panel>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title={t.admin.payments.title}>
-          <StackedBar
-            segments={data.statuses.map((row) => ({
-              id: row.status,
-              label: paymentLabel(row.status, locale),
-              value: row.count,
-              color: STATUS_COLOR[row.status] ?? "var(--viz-1)",
-            }))}
-            empty={t.admin.payments.empty}
-          />
+      <Panel title={`${t.admin.overview.accessDaily} · ${t.admin.overview.last30}`}>
+        <DailyColumns
+          data={data.daily}
+          label={t.admin.overview.accessDaily}
+          empty={t.admin.overview.noData}
+        />
+      </Panel>
 
-          <ul className="mt-5 space-y-2.5">
-            {data.recentPayments.map((payment) => (
-              <li key={payment.id} className="flex items-center justify-between gap-3 text-sm">
-                <span className="min-w-0 flex-1 truncate text-ink-2">
-                  {payment.student ?? "—"}
-                  <span className="text-ink-3"> · {payment.course ?? "—"}</span>
-                </span>
-                <span className="shrink-0 tabular">{formatMoney(payment.amount, locale)}</span>
-                <span
-                  className="shrink-0 text-xs"
-                  style={{ color: STATUS_COLOR[payment.status] ?? "var(--ink-3)" }}
-                >
-                  {paymentLabel(payment.status, locale)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Panel>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <OverviewPayments
+          statuses={data.statuses}
+          payments={data.recentPayments}
+          locale={locale}
+          t={t}
+        />
 
         <Panel
           title={t.admin.overview.recentSignups}

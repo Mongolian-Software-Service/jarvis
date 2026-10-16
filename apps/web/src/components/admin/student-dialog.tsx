@@ -6,6 +6,7 @@ import { formatDate, type Locale, type Strings } from "@jarvis/core";
 import { Badge } from "@/components/ui/badge";
 import type { AdminStudent } from "@/lib/queries/admin";
 import { GrantForm, RoleButton } from "./student-actions";
+import { GrantKindBadge } from "./grant-kind-badge";
 
 /**
  * One student, in full, and everything the team can do to them.
@@ -116,7 +117,12 @@ export function StudentDialog({
                   className="flex items-center justify-between gap-3 px-3 py-2 text-[13px]"
                 >
                   <span className="min-w-0 truncate">{held.title}</span>
-                  <span className="text-ink-3 shrink-0 text-xs">{copy.source[held.source]}</span>
+                  {/* A grant names its kind — VIP or Бэлэг — instead of «Гараар нээсэн». */}
+                  {held.source === "grant" && held.kind ? (
+                    <GrantKindBadge kind={held.kind} t={t} className="shrink-0" />
+                  ) : (
+                    <span className="text-ink-3 shrink-0 text-xs">{copy.source[held.source]}</span>
+                  )}
                 </li>
               ))}
             </ul>

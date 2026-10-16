@@ -1,5 +1,11 @@
 import "server-only";
-import { localized, type EnrollmentSource, type Locale, type Role } from "@jarvis/core";
+import {
+  localized,
+  type EnrollmentSource,
+  type GrantKind,
+  type Locale,
+  type Role,
+} from "@jarvis/core";
 import { createServerSupabase, supabaseConfigured } from "@/lib/supabase/server";
 
 /** Who is enrolled and who has paid — the two lists the team actually works from. */
@@ -15,7 +21,7 @@ export type AdminStudent = {
   role: Role;
   joined: string;
   /** What they hold, and how they came by it — the list the dialog prints. */
-  held: { courseId: string; title: string; source: EnrollmentSource }[];
+  held: { courseId: string; title: string; source: EnrollmentSource; kind: GrantKind | null }[];
 };
 
 export async function listStudents(locale: Locale): Promise<AdminStudent[]> {
@@ -35,7 +41,7 @@ export async function listStudents(locale: Locale): Promise<AdminStudent[]> {
       .from("profiles")
       .select("id, full_name, first_name, last_name, email, phone, role, created_at")
       .order("created_at", { ascending: false }),
-    supabase.from("enrollments").select("user_id, course_id, source"),
+    supabase.from("enrollments").select("user_id, course_id, source, grant_kind"),
     supabase.from("courses").select("id, title_mn, title_en"),
   ]);
 
@@ -50,6 +56,7 @@ export async function listStudents(locale: Locale): Promise<AdminStudent[]> {
       courseId: row.course_id,
       title: titles.get(row.course_id) ?? "—",
       source: row.source,
+      kind: row.grant_kind,
     });
     held.set(row.user_id, list);
   }

@@ -738,6 +738,19 @@ are still server actions).
   soon as it is gone. The people blocked are listed above the messages, each
   with an unblock.
 
+**A grant says why: VIP or Бэлэг.** «Эрх олголт» opens the whole school with
+one of two buttons, and `enrollments.grant_kind` (20261016000100) records
+which. It belongs to a grant only: a check makes it required on
+`source = 'grant'` and absent everywhere else, and a trigger clears it when
+`settle_payment()` turns a grant into a purchase, so the money path never had
+to learn about kinds. "Is this a grant" stays one test, `source = 'grant'` —
+the chat room, `revoke_all_courses()` and the lists treat both kinds alike.
+Pressing the other kind switches every grant row the person holds; a purchase
+is never touched, and the per-course grant refuses a course somebody bought.
+`source` has no default any more: a grant made without a reason is a check
+violation, not a quiet `gift`. The dashboard counts each student once —
+purchase over VIP over Бэлэг — in one ring, «Эрх авсан хэлбэр».
+
 `projects` is «Миний төслүүд»: the address of what a student built, with an
 optional name and description. **It belongs to the student, not to a course** —
 there was a course picker, filing one project under each track, and it is gone

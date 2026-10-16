@@ -41,11 +41,23 @@ export async function grantCourse(_prev: unknown, form: FormData): Promise<Actio
   if (!parsed.success) return fail(mn.admin.errors.saveFailed, fieldErrors(parsed.error));
 
   const supabase = createServerSupabase();
+
+  // The upsert below would turn a course they **bought** into a grant — and a
+  // grant is what «хаах» takes away (§6.7). A purchase is the stronger claim.
+  const { data: existing } = await supabase
+    .from("enrollments")
+    .select("source")
+    .eq("user_id", parsed.data.user_id)
+    .eq("course_id", parsed.data.course_id)
+    .maybeSingle();
+  if (existing?.source === "purchase") return fail(mn.admin.students.alreadyBought);
+
   const { error } = await supabase.from("enrollments").upsert(
     {
       user_id: parsed.data.user_id,
       course_id: parsed.data.course_id,
       source: "grant",
+      grant_kind: parsed.data.grant_kind,
       expires_at: parsed.data.expires_at,
     },
     { onConflict: "user_id,course_id" },
