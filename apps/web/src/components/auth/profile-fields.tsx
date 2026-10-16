@@ -51,7 +51,7 @@ export function ProfileFields({
           autoComplete="tel-national"
           defaultValue={values?.phone ?? ""}
           placeholder="ж: 99112233"
-          maxLength={12}
+          maxLength={16}
           required
         />
       </Field>

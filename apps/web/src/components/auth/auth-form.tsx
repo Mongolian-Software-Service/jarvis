@@ -47,10 +47,10 @@ export function AuthForm({
   next?: string;
 }) {
   const action = mode === "sign-in" ? signIn : signUp;
-  const [state, submit, pending] = useActionState<ActionResult<{ confirm: boolean }> | null, FormData>(
-    action as (prev: unknown, form: FormData) => Promise<ActionResult<{ confirm: boolean }>>,
-    null,
-  );
+  const [state, submit, pending] = useActionState<
+    ActionResult<{ confirm: boolean }> | null,
+    FormData
+  >(action as (prev: unknown, form: FormData) => Promise<ActionResult<{ confirm: boolean }>>, null);
 
   // Sign-up with confirmations on returns here rather than redirecting: the
   // account exists but has no session until the emailed link is followed.
@@ -58,7 +58,7 @@ export function AuthForm({
     return (
       <div className="space-y-2 text-center">
         <h2 className="font-display text-xl font-medium">{copy.checkEmail}</h2>
-        <p className="text-sm text-ink-2">{copy.checkEmailBody}</p>
+        <p className="text-ink-2 text-sm">{copy.checkEmailBody}</p>
       </div>
     );
   }
@@ -70,10 +70,10 @@ export function AuthForm({
       {next ? <input type="hidden" name="next" value={next} /> : null}
 
       {/*
-        * Овог and нэр side by side, овог first — that is the order a Mongolian
-        * name is written and read in, and a form that asks for them the other
-        * way round gets them the other way round.
-        */}
+       * Овог and нэр side by side, овог first — that is the order a Mongolian
+       * name is written and read in, and a form that asks for them the other
+       * way round gets them the other way round.
+       */}
       {mode === "sign-up" && copy.lastName && copy.firstName ? (
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={copy.lastName} htmlFor="last_name" error={fields.last_name}>
@@ -112,14 +112,16 @@ export function AuthForm({
         <Field label={copy.phone} htmlFor="phone" error={fields.phone}>
           {/* `inputMode="numeric"` gives a phone the number pad without the
               `type="tel"` keyboard's dial-pad symbols, which are not part of a
-              Mongolian number. */}
+              Mongolian number. 16 leaves room for `+976 9911 2233` and
+              `00976 9911 2233`, which the schema accepts — at 12 the browser
+              cut their last digits off before the schema saw them. */}
           <Input
             id="phone"
             name="phone"
             inputMode="numeric"
             autoComplete="tel-national"
             placeholder={copy.phonePlaceholder}
-            maxLength={12}
+            maxLength={16}
             required
           />
         </Field>
@@ -142,7 +144,7 @@ export function AuthForm({
       </Field>
 
       {state && !state.ok && !Object.keys(fields).length ? (
-        <p className="rounded-md border border-bad/30 bg-bad-soft px-3 py-2 text-sm text-bad">
+        <p className="border-bad/30 bg-bad-soft text-bad rounded-md border px-3 py-2 text-sm">
           {state.error}
         </p>
       ) : null}
@@ -152,7 +154,7 @@ export function AuthForm({
         {pending ? copy.submitting : copy.submit}
       </button>
 
-      <p className="text-center text-sm text-ink-3">
+      <p className="text-ink-3 text-center text-sm">
         {copy.footer}{" "}
         <Link href={copy.footerHref} className="text-accent hover:text-accent-hover">
           {copy.footerAction}

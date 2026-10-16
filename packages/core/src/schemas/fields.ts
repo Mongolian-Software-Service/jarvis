@@ -33,7 +33,10 @@ export const optionalUrl = z
   .trim()
   .transform((value) => (value === "" ? null : value))
   .nullable()
-  .refine((value) => value === null || /^https?:\/\//i.test(value), "http эсвэл https хаяг оруулна уу");
+  .refine(
+    (value) => value === null || /^https?:\/\//i.test(value),
+    "http эсвэл https хаяг оруулна уу",
+  );
 
 // ── Courses ──────────────────────────────────────────────────────────────────
 
@@ -44,12 +47,21 @@ export const optionalUrl = z
  * so the spacing and the country code come off before anything is checked or
  * stored — two students who typed it differently are then one number, and the
  * column's own constraint has nothing left to argue with.
+ *
+ * The country code comes off only when it **is** one: eleven digits that begin
+ * 976. G-Mobile numbers begin 97, so `9761 2345` is a whole number that happens
+ * to start with the same three digits — stripping them on sight left five, and
+ * everybody with such a number was refused at sign-up and by the profile gate.
+ * `00976…` is the same code dialled the long way.
  */
 export const phone = (message: string) =>
   z
     .string()
     .trim()
-    .transform((value) => value.replace(/\D/g, "").replace(/^976/, ""))
+    .transform((value) => {
+      const digits = value.replace(/\D/g, "").replace(/^00(?=976)/, "");
+      return digits.length === 11 && digits.startsWith("976") ? digits.slice(3) : digits;
+    })
     .refine((value) => /^[0-9]{8}$/.test(value), message);
 
 export const personName = (message: string) => z.string().trim().min(2, message).max(60);
